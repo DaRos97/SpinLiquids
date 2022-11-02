@@ -1,0 +1,9 @@
+Computes the phases of the classical orders. Need to know the amplitudes of the single parameters. It works by computing the fluxes through non-trivial loops in the lattice. 
+Need to specify the loop through the "A" list and the value of the spins in the loop through the "Spins" list.
+
+
+20/09/2022
+Works and computes all the phases for the classical orders. Maybe could be made more efficient by computing directly all the phases but is not actually necessary.
+
+14/10/2022
+Now it computes all phases at once for the specified ansatz. Reproduces results precedently obtained probably by chance.
