@@ -135,49 +135,24 @@ def FormatParams(P,ans,J2,J3):
     j2 = np.sign(int(np.abs(J2)*1e8))
     j3 = np.sign(int(np.abs(J3)*1e8))
     newP = [P[0]]
-    if ans == '3x3_1':
+    if ans == '3x3':
         newP.append(P[1]*j3)
         newP.append(P[2*j3]*j3+P[1]*(1-j3))
         newP.append(P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2)
         newP.append(P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-3*j3]*j3 + P[-1]*(1-j3))
-        newP.append(P[-2]*j3)
         newP.append(P[-1]*j3)
-    elif ans == 'q0_1':
+    elif ans == 'q0':
         newP.append(P[1]*j2)
         newP.append(P[2*j2]*j2+P[1]*(1-j2))
         newP.append(P[3*j2]*j2)
         newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-4*j2*j3]*j2*j3 + P[-3*(1-j3)*j2]*(1-j3)*j2 + P[-2*j3*(1-j2)]*j3*(1-j2) + P[-1]*(1-j2)*(1-j3))
-        newP.append(P[-3*j2*j3]*j2*j3 + P[-2*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2*j3]*j2*j3 + P[-1*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-1]*j3)
+        newP.append(P[-1]*j2)
     elif ans == 'cb1':
         newP.append(P[1*j2]*j2)
         newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
         newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
         newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-4*j2]*j2 + P[-2]*(1-j2))
-        newP.append(P[-3*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-2]*j2)
-        newP.append(P[-1]*j2)
-    elif ans == 'cb2':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-4*j2*j3]*j2*j3 + P[-3*(1-j3)*j2]*(1-j3)*j2 + P[-2*j3*(1-j2)]*j3*(1-j2) + P[-1]*(1-j2)*(1-j3))
-        newP.append(P[-3*j2*j3]*j2*j3 + P[-2*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2*j3]*j2*j3 + P[-1*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-1]*j3)
-    elif ans == 'oct':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-4*j2]*j2 + P[-2]*(1-j2))
-        newP.append(P[-3*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-2]*j2)
+        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
         newP.append(P[-1]*j2)
     return tuple(newP)
 
@@ -199,57 +174,22 @@ def IsConverged(P,pars,bnds,Sigma):
     if Sigma > inp.cutoff:
         return False
     return True
- 
- 
- ########
- ########        Additional lines of code
-########
 
-#### Computes the part of the energy given by the Bogoliubov eigen-modes
-def sumEigs(P,L,args):
-    J1,J2,J3,ans = args
-    Args = (J1,J2,J3,ans)
-    N = an.Nk(P,L,Args) #compute Hermitian matrix
-    res = np.zeros((inp.m,inp.Nx,inp.Ny))
-    for i in range(inp.Nx):
-        for j in range(inp.Ny):
-            Nk = N[:,:,i,j]
-            try:
-                K = LA.cholesky(Nk)     #not always the case since for some parameters of Lambda the eigenmodes are negative
-            except LA.LinAlgError:      #matrix not pos def for that specific kx,ky
-                res = -5-(inp.L_bounds[0]-L)
-                return res, 10      #if that's the case even for a single k in the grid, return a defined value
-            temp = np.dot(np.dot(K,J),np.conjugate(K.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
-            res[:,i,j] = LA.eigvalsh(temp)[inp.m:]
-    r2 = 0
-    for i in range(inp.m):
-        func = RBS(inp.kxg,inp.kyg,res[i])
-        r2 += func.integral(0,1,0,1)
-    r2 /= inp.m
-    gap = np.amin(res[0].ravel())
-    return r2, gap
-    if 0:
-        #plot
-        print("P: ",P,"\nL:",L,"\ngap:",gap)
-        R = np.zeros((3,inp.Nx,inp.Ny))
-        for i in range(inp.Nx):
-            for j in range(inp.Ny):
-                R[0,i,j] = np.real(inp.kkg[0,i,j])
-                R[1,i,j] = np.real(inp.kkg[1,i,j])
-                R[2,i,j] = res[0,i,j]
-        func = RBS(inp.kxg,inp.kyg,res[0])
-        X,Y = np.meshgrid(inp.kxg,inp.kyg)
-        Z = func(inp.kxg,inp.kyg)
-        #fig,(ax1,ax2) = plt.subplots(1,2)#,projection='3d')
-        fig = plt.figure(figsize=(10,5))
-        plt.axis('off')
-        plt.title(str(inp.Nx)+' * '+str(inp.Ny))
-        ax1 = fig.add_subplot(131, projection='3d')
-        #ax1 = fig.gca(projection='3d')
-        ax1.plot_trisurf(R[0].ravel(),R[1].ravel(),R[2].ravel())
-        ax2 = fig.add_subplot(132, projection='3d')
-        ax2.plot_surface(inp.kkgp[0],inp.kkgp[1],res[0],cmap=cm.coolwarm)
-        ax3 = fig.add_subplot(133, projection='3d')     #works only for square grid
-        ax3.plot_surface(X,Y,Z,cmap=cm.coolwarm)
-        plt.show()
-    return r2, gap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
