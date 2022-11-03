@@ -26,15 +26,15 @@ def CheckCsv(csvf):
 
 #Extracts the initial point for the minimization from a file in a reference directory specified in inputs.py
 #If the file matching the j2,j3 point is not found initialize the initial point with default parameters defined in inputs.py
-def FindInitialPoint(J2,J3,ansatze):
+def FindInitialPoint(J2,J3,ansatze,ReferenceDir):
     P = {}  #parameters
     done = {}
-    if Path(inp.ReferenceDir).is_dir():
-        for file_ in os.listdir(inp.ReferenceDir):     #find file in dir
+    if Path(ReferenceDir).is_dir():
+        for file_ in os.listdir(ReferenceDir):     #find file in dir
             j2 = float(file_[7:-5].split('_')[0])/10000  #specific for the name of the file
             j3 = float(file_[7:-5].split('_')[1])/10000
             if np.abs(j2-J2) < inp.cutoff_pts and np.abs(j3 - J3) < inp.cutoff_pts:         #once found read it
-                with open(inp.ReferenceDir+file_, 'r') as f:
+                with open(ReferenceDir+file_, 'r') as f:
                     lines = f.readlines()
                 N = (len(lines)-1)//2 + 1
                 for Ans in ansatze:

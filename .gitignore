@@ -2,7 +2,9 @@ Analysis_of_Data/*/__pycache__/
 Analysis_of_Data/structure_factor/LRO_SSF/
 Analysis_of_Data/structure_factor/SFs/
 #
-effortDM/__pycache__/
+minimization/__pycache__/
+#
+working_DM/__pycache__/
 #
 bashCodes/
 #

@@ -1,24 +1,9 @@
 import numpy as np
 #
 m = 6
-S_label = {'05':0.5,'03':(np.sqrt(3)-1)/2,'02':0.2}
-txt_S = '05'
-S = S_label[txt_S]
 ####
-phi = 0 #n*np.pi/3
-DM1 = phi
-DM2 = 0
-DM3 = phi*2
-####
-Nx = 13     #25,37
-Ny = Nx
-mp_cpu = 16
+mp_cpu = 1#6
 list_ans = ['3x3','q0','cb1']
-phi_t = 0
-DirName = '/home/users/r/rossid/Data/S'+txt_S+'/phi'+"{:3.2f}".format(phi_t).replace('.','')+"/"
-#DirName = '../Data/test/'
-DataDir = DirName + str(Nx) + '/'
-ReferenceDir = DirName + str(Nx-1) + '/'
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids
@@ -33,27 +18,12 @@ L_method = 'Brent'
 L_bounds = (0.4,1.5)
 L_b_2 = 0.01
 #phase diagram
-J1 = 1
 z = (4,4,2)
-#small
-#J2i = -0.02; J2f = 0.03; J3i = -0.04; J3f = 0.01; Jpts = 11
-#big
 J2i = -0.3; J2f = 0.3; J3i = -0.3; J3f = 0.3; Jpts = 9
 J= []
 for i in range(Jpts):
     for j in range(Jpts):
         J.append((J2i+(J2f-J2i)/(Jpts-1)*i,J3i+(J3f-J3i)/(Jpts-1)*j))
-#summation over BZ
-kxg = np.linspace(0,1,Nx)
-kyg = np.linspace(0,1,Ny)
-kkg = np.ndarray((2,Nx,Ny),dtype=complex)
-kkgp = np.ndarray((2,Nx,Ny))
-for i in range(Nx):
-    for j in range(Ny):
-        kkg[0,i,j] = kxg[i]*2*np.pi
-        kkg[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
-        kkgp[0,i,j] = kxg[i]*2*np.pi
-        kkgp[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
 #initial point
 header = {'3x3':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A3','B1','B2','B3','phiA3'],  #3x3
           'q0':     ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiA2'],  #q0
@@ -108,7 +78,9 @@ for ans in lAns:
         num_phi[ans] = 2
 shame2 = 100
 
-print("Grid pts:",Nx,'*',Ny)
-print("Spin: ",txt_S)
-print("Number of CPUs used: ",mp_cpu)
-print("DM angle: ",phi)
+
+
+
+
+
+

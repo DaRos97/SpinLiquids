@@ -1,20 +1,6 @@
 import inputs as inp
 import numpy as np
 
-#### vectors of 1nn, 2nn and 3nn
-a1 = (1,0)
-a2 = (-1,np.sqrt(3))
-a12p = (a1[0]+a2[0],a1[1]+a2[1])
-a12m = (a1[0]-a2[0],a1[1]-a2[1])
-#### product of lattice vectors with K-matrix
-ka1 = np.exp(1j*np.tensordot(a1,inp.kkg,axes=1));   ka1_ = np.conjugate(ka1);
-ka2 = np.exp(1j*np.tensordot(a2,inp.kkg,axes=1));   ka2_ = np.conjugate(ka2);
-ka12p = np.exp(1j*np.tensordot(a12p,inp.kkg,axes=1));   ka12p_ = np.conjugate(ka12p);
-ka12m = np.exp(1j*np.tensordot(a12m,inp.kkg,axes=1));   ka12m_ = np.conjugate(ka12m);
-#### DM
-t1 = np.exp(-1j*inp.DM1);    t1_ = np.conjugate(t1)
-t2 = np.exp(-1j*inp.DM2);    t2_ = np.conjugate(t2)
-t3 = np.exp(-1j*inp.DM3);    t3_ = np.conjugate(t3)
 #### Ansatze encoded in the matrix
 def Nk(P,L,args):
     m = inp.m

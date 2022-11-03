@@ -5,24 +5,86 @@ import system_functions as sf
 from time import time as t
 from scipy.optimize import differential_evolution as d_e
 import sys
+import getopt
 ######################
 ###################### Set the initial parameters
 ######################
 ####### Outside inputs
-N = int(sys.argv[1])    #number which defines the point in the phase diagram through inp.J
+argv = sys.argv[1:]
+try:
+    opts, args = getopt.getopt(argv, "N:S:K:",["DM="])
+    N = 13      #inp.J point in phase diagram
+    txt_S = '05'
+    K = 13      #number ok cuts in BZ
+    txt_DM = '000'  #DM angle from list
+except:
+    print("Error in input parameters",argv)
+    exit()
+for opt, arg in opts:
+    if opt in ['-N']:
+        N = int(arg)
+    elif opt in ['-S']:
+        txt_S = arg
+    elif opt in ['-K']:
+        K = int(arg)
+    if opt == '--DM':
+        txt_DM = arg
+J1 = 1
 J2, J3 = inp.J[N]
-#File where the result is going to be saved in
-csvfile = inp.DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+S_label = {'05':0.5,'03':(np.sqrt(3)-1)/2,'02':0.2}
+S = S_label[txt_S]
+DM_list = {'000':0,'104':np.pi/3,'209':2*np.pi/3}
+phi = DM_list[txt_DM]
+DM1 = phi;      DM2 = 0;    DM3 = 2*phi
+#BZ points
+Nx = K;     Ny = K
+#Filenames
+DirName = '/home/users/r/rossid/Data/S'+txt_S+'/phi'+txt_DM+"/"
+DataDir = DirName + str(Nx) + '/'
+ReferenceDir = DirName + str(Nx-1) + '/'
+csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+#BZ points
+kxg = np.linspace(0,1,Nx)
+kyg = np.linspace(0,1,Ny)
+kkg = np.ndarray((2,Nx,Ny),dtype=complex)
+kkgp = np.ndarray((2,Nx,Ny))
+for i in range(Nx):
+    for j in range(Ny):
+        kkg[0,i,j] = kxg[i]*2*np.pi
+        kkg[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
+        kkgp[0,i,j] = kxg[i]*2*np.pi
+        kkgp[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
+#### vectors of 1nn, 2nn and 3nn
+a1 = (1,0)
+a2 = (-1,np.sqrt(3))
+a12p = (a1[0]+a2[0],a1[1]+a2[1])
+a12m = (a1[0]-a2[0],a1[1]-a2[1])
+#### product of lattice vectors with K-matrix
+ka1 = np.exp(1j*np.tensordot(a1,kkg,axes=1));   ka1_ = np.conjugate(ka1);
+ka2 = np.exp(1j*np.tensordot(a2,kkg,axes=1));   ka2_ = np.conjugate(ka2);
+ka12p = np.exp(1j*np.tensordot(a12p,kkg,axes=1));   ka12p_ = np.conjugate(ka12p);
+ka12m = np.exp(1j*np.tensordot(a12m,kkg,axes=1));   ka12m_ = np.conjugate(ka12m);
+KM = (ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_)
+#### DM
+t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
+t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
+t3 = np.exp(-1j*DM3);    t3_ = np.conjugate(t3)
+Tau = (t1,t1_,t2,t2_,t3,t3_)
+########################
+########################    Initiate routine
+########################
+
 #Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
 ansatze = sf.CheckCsv(csvfile)
 #Find the initial point for the minimization for each ansatz
-Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze)
+Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir)
 #Find the bounds to the free parameters for each ansatz
 Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial)
 #Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 DerRange = sf.ComputeDerRanges(J2,J3,ansatze)
 
-print('\n(J2,J3) = ('+'{:5.4f}'.format(J2)+',{:5.4f}'.format(J3)+')\n')
+print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoint in phase diagram(J2,J3) = ('+'{:5.4f}'.format(J2)+',{:5.4f}'.format(J3)+')',
+      "\nCuts in BZ: ",K)
 ######################
 ###################### Compute the parameters by minimizing the energy for each ansatz
 ######################
@@ -52,7 +114,7 @@ for ans in ansatze:
             else:
                 hess_sign[par] = 1
     is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
-    Args = (inp.J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min)
+    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
     DataDic = {}
     #Actual minimization
     result = d_e(cf.Sigma,
@@ -72,21 +134,21 @@ for ans in ansatze:
     #Compute the final values using the result of the minimization
     Pf = tuple(result.x)
     is_min = False
-    Args = (inp.J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min)
+    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
     try:
-        S, E, L, gap = cf.Sigma(Pf,*Args)
+        Sigma, E, L, gap = cf.Sigma(Pf,*Args)
     except TypeError:
-        print("Initial point not correct")
+        print("!!!!!!!!!!!!!!!Initial point not correct!!!!!!!!!!!!!!!!")
         print("Found values: Pf=",Pf,"\nSigma = ",result.fun)
         print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
         continue
-    if S >= 10:
+    if Sigma >= 10:
         print("Hessian sign not Correct")
-    conv = cf.IsConverged(Pf,pars,Bnds[ans],S)      #check whether the convergence worked and it is not too close to the boudary of the bounds
+    conv = cf.IsConverged(Pf,pars,Bnds[ans],Sigma)      #check whether the convergence worked and it is not too close to the boudary of the bounds
     #Format the parameters in order to have 0 values in the non-considered ones
     newP = cf.FormatParams(Pf,ans,J2,J3)
     #Store the files in a dictionary
-    data = [ans,J2,J3,conv,E,S,gap,L]
+    data = [ans,J2,J3,conv,E,Sigma,gap,L]
     for ind in range(len(data)):
         DataDic[header[ind]] = data[ind]
     for ind2 in range(len(newP)):
