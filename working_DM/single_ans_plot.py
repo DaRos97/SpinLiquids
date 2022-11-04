@@ -6,21 +6,17 @@ import sys
 import getopt
 from matplotlib import cm
 
-Color = {'3x3_1': ['red','firebrick'],
-         '3x3_2': ['r','orange'],
-         'q0_1':  ['yellow','y'],
-         'q0_2':  ['khaki','orange'],
-         'cb1':  ['lime','limegreen'],
-         'cb2':  ['blue','cyan'],
-         'oct':  ['deeppink','fuchsia'],
-         'cb1_nc':  ['k','k']}
+Color = {'3x3': ['red','firebrick'],
+         'q0':  ['yellow','y'],
+         'cb1':  ['lime','limegreen']
+         }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:a:p:N:",["plot"])
     S = '05'
     N = '13'
-    ans = '3x3_1'
+    ans = '3x3'
     phi = '000'
     plot = False
 except:
@@ -41,7 +37,7 @@ for opt, arg in opts:
 #S = '03'
 #ans = sys.argv[1]
 phi = "{:3.2f}".format(float(phi)).replace('.','')
-dirname = '../Data/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
+dirname = '../Data_new/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
 D = {}
 Ji = -0.3
 Jf = 0.3
