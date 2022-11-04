@@ -81,6 +81,8 @@ t_0 = np.arctan(np.sqrt(2))
 Pi_ = {  '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
         'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA2': np.pi},
         'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
+        'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
+        'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B1':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
         }
 Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
@@ -88,30 +90,21 @@ bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
     min_dic = {'05':0.05, '03':0.01, '02':0.005}
-    mM_A1 = {'05':(0.39,0.6), '03':(0.3,0.5), '02':(0.1,0.41)}
+    mM_A1 = {'05':(0.3,0.6), '03':(0.2,0.5), '02':(0.05,0.41)}
     minP = min_dic[txt_S]
     maxA = (2*S+1)/2
     maxB = S
     bounds_[ans]['A1'] = mM_A1[txt_S]
-    bounds_[ans]['B1'] = (minP,maxB)
     phase_step = 0.8
     #bounds
-    if ans == '3x3':
-        bounds_[ans]['A3'] = (minP,maxA)
-        bounds_[ans]['B2'] = (minP,maxB)
-        bounds_[ans]['B3'] = (minP,maxB)
-        bounds_[ans]['phiA3'] = (-phase_step,phase_step)
-    elif ans == 'q0':
-        bounds_[ans]['A2'] = (minP,maxA)
-        bounds_[ans]['B2'] = (minP,maxB)
-        bounds_[ans]['B3'] = (minP,maxB)
-        bounds_[ans]['phiA2'] = (np.pi-phase_step,np.pi+phase_step)
-    elif ans == 'cb1':
-        bounds_[ans]['A2'] = (minP,maxA)
-        bounds_[ans]['A3'] = (minP,maxA)
-        bounds_[ans]['B2'] = (minP,maxB)
-        bounds_[ans]['phiA1'] = (2*t_0-phase_step,2*t_0+phase_step)
-        bounds_[ans]['phiB2'] = (2*np.pi-t_0-phase_step,2*np.pi-t_0+phase_step)
+    for param in inp.header[ans][9:]:
+        if param[0] == 'A':
+            bb = (minP,maxA)
+        elif param[0] == 'B':
+            bb = (minP,maxB)
+        elif param[:3] == 'phi':
+            bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
+        bounds_[ans][param] = bb
 Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial,Pi_,bounds_)
 #Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 DerRange = sf.ComputeDerRanges(J2,J3,ansatze)

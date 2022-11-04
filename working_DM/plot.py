@@ -7,8 +7,8 @@ import getopt
 from matplotlib import cm
 from matplotlib.lines import Line2D
 
-Color = {'3x3_1': ['r','orange'],
-         'q0_1':  ['blue','aqua'],
+Color = {'3x3': ['r','orange'],
+         'q0':  ['blue','aqua'],
          'cb1':  ['lime','olive']
          }
 argv = sys.argv[1:]

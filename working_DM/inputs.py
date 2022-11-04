@@ -1,11 +1,8 @@
 import numpy as np
-################################IMPORTANT
-txt_S = '05'
-################################IMPORTANT
 m = 6
 ####
 mp_cpu = 1#6
-list_ans = ['3x3','q0','cb1']
+list_ans = ['3x3','q0','cb1','cb2','oct']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids
@@ -29,9 +26,11 @@ for i in range(Jpts):
 #initial point
 header = {'3x3':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A3','B1','B2','B3','phiA3'],  #3x3
           'q0':     ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiA2'],  #q0
-          'cb1':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2']  #cuboc1
+          'cb1':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
+          'cb2':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiB1','phiA2'],
+          'oct':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiB1','phiB2']
           }
-num_phi = {'3x3':1,'q0':1,'cb1':2}
+num_phi = {'3x3':1,'q0':1,'cb1':2,'cb2':2,'oct':2}
 list_A2 = []
 list_A3 = []
 list_B3 = []
