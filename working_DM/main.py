@@ -77,9 +77,42 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 #Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
 ansatze = sf.CheckCsv(csvfile)
 #Find the initial point for the minimization for each ansatz
-Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir)
+t_0 = np.arctan(np.sqrt(2))
+Pi_ = {  '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
+        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA2': np.pi},
+        'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
+        }
+Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
-Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial)
+bounds_ = {}
+for ans in inp.list_ans:
+    bounds_[ans] = {}
+    min_dic = {'05':0.05, '03':0.01, '02':0.005}
+    mM_A1 = {'05':(0.39,0.6), '03':(0.3,0.5), '02':(0.1,0.41)}
+    minP = min_dic[txt_S]
+    maxA = (2*S+1)/2
+    maxB = S
+    bounds_[ans]['A1'] = mM_A1[txt_S]
+    bounds_[ans]['B1'] = (minP,maxB)
+    phase_step = 0.8
+    #bounds
+    if ans == '3x3':
+        bounds_[ans]['A3'] = (minP,maxA)
+        bounds_[ans]['B2'] = (minP,maxB)
+        bounds_[ans]['B3'] = (minP,maxB)
+        bounds_[ans]['phiA3'] = (-phase_step,phase_step)
+    elif ans == 'q0':
+        bounds_[ans]['A2'] = (minP,maxA)
+        bounds_[ans]['B2'] = (minP,maxB)
+        bounds_[ans]['B3'] = (minP,maxB)
+        bounds_[ans]['phiA2'] = (np.pi-phase_step,np.pi+phase_step)
+    elif ans == 'cb1':
+        bounds_[ans]['A2'] = (minP,maxA)
+        bounds_[ans]['A3'] = (minP,maxA)
+        bounds_[ans]['B2'] = (minP,maxB)
+        bounds_[ans]['phiA1'] = (2*t_0-phase_step,2*t_0+phase_step)
+        bounds_[ans]['phiB2'] = (2*np.pi-t_0-phase_step,2*np.pi-t_0+phase_step)
+Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial,Pi_,bounds_)
 #Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 DerRange = sf.ComputeDerRanges(J2,J3,ansatze)
 
@@ -95,7 +128,7 @@ for ans in ansatze:
     #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
     j2 = int(np.sign(J2)*np.sign(int(np.abs(J2)*1e8)) + 1)   #j < 0 --> 0, j == 0 --> 1, j > 0 --> 2
     j3 = int(np.sign(J3)*np.sign(int(np.abs(J3)*1e8)) + 1)
-    pars2 = inp.Pi[ans].keys()
+    pars2 = Pi_[ans].keys()
     pars = []
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):

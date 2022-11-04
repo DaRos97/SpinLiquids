@@ -26,7 +26,7 @@ def CheckCsv(csvf):
 
 #Extracts the initial point for the minimization from a file in a reference directory specified in inputs.py
 #If the file matching the j2,j3 point is not found initialize the initial point with default parameters defined in inputs.py
-def FindInitialPoint(J2,J3,ansatze,ReferenceDir):
+def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
     P = {}  #parameters
     done = {}
     if Path(ReferenceDir).is_dir():
@@ -59,25 +59,25 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir):
             done[ans] = 1
             continue
         P[ans] = []
-        for par in inp.Pi[ans].keys():
+        for par in Pi_[ans].keys():
             if par[-1] == '1':
-                P[ans].append(inp.Pi[ans][par])
+                P[ans].append(Pi_[ans][par])
             elif par[-1] == '2' and j2:
-                P[ans].append(inp.Pi[ans][par])
+                P[ans].append(Pi_[ans][par])
             elif par[-1] == '3' and j3:
-                P[ans].append(inp.Pi[ans][par])
+                P[ans].append(Pi_[ans][par])
         done[ans] = 0
     return P, done
 
 #Constructs the bounds of the specific ansatz depending on the number and type of parameters involved in the minimization
-def FindBounds(J2,J3,ansatze,done,Pin):
+def FindBounds(J2,J3,ansatze,done,Pin,Pi_,bounds_):
     B = {}
     j2 = np.abs(J2) > inp.cutoff_pts
     j3 = np.abs(J3) > inp.cutoff_pts
     for ans in ansatze:
         if done[ans]:
             B[ans] = tuple()
-            list_p = list(inp.Pi[ans].keys())
+            list_p = list(Pi_[ans].keys())
             new_list = []
             for t in list_p:
                 if t[-1] == '2' and j2:
@@ -92,20 +92,20 @@ def FindBounds(J2,J3,ansatze,done,Pin):
                     s_b = inp.s_b_phase
                 else:
                     s_b = inp.s_b_modulus
-                mB = p - s_b #if (p - s_b > inp.bounds[ans][t][0]) else inp.bounds[ans][t][0]
-                MB = p + s_b #if (p + s_b < inp.bounds[ans][t][1]) else inp.bounds[ans][t][1]
+                mB = p - s_b
+                MB = p + s_b
                 B[ans] += ((mB,MB),)
             continue
-        B[ans] = (inp.bounds[ans]['A1'],)
-        for par in inp.Pi[ans].keys():
+        B[ans] = (bounds_[ans]['A1'],)
+        for par in Pi_[ans].keys():
             if par == 'A1':
                 continue
             if par[-1] == '1':
-                B[ans] = B[ans] + (inp.bounds[ans][par],)
+                B[ans] = B[ans] + (bounds_[ans][par],)
             elif par[-1] == '2' and j2:
-                B[ans] = B[ans] + (inp.bounds[ans][par],)
+                B[ans] = B[ans] + (bounds_[ans][par],)
             elif par[-1] == '3' and j3:
-                B[ans] = B[ans] + (inp.bounds[ans][par],)
+                B[ans] = B[ans] + (bounds_[ans][par],)
     return B
 
 #Compute the derivative ranges for the various parameters of the minimization
