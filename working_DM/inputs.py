@@ -1,7 +1,7 @@
 import numpy as np
 m = 6
 ####
-mp_cpu = 1#6
+mp_cpu = 16
 list_ans = ['3x3','q0','cb1','cb2','oct']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
@@ -14,7 +14,7 @@ MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-12      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
-L_bounds = (0.4,1.5)
+L_bounds = (0.2,1.5)
 L_b_2 = 0.01
 #phase diagram
 z = (4,4,2)

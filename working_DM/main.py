@@ -41,7 +41,7 @@ Nx = K;     Ny = K
 #Filenames
 DirName = '/home/users/r/rossid/Data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
-ReferenceDir = DirName + str(Nx-1) + '/'
+ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
 #BZ points
 kxg = np.linspace(0,1,Nx)
@@ -89,7 +89,7 @@ Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
-    min_dic = {'05':0.05, '03':0.01, '02':0.005}
+    min_dic = {'05':0.01, '03':0.005, '02':0.001}
     mM_A1 = {'05':(0.3,0.6), '03':(0.2,0.5), '02':(0.05,0.41)}
     minP = min_dic[txt_S]
     maxA = (2*S+1)/2
