@@ -14,7 +14,7 @@ Color = {'3x3': ['r','orange'],
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['DM=','Nmax='])
-    S = '05'
+    txt_S = '50'
     phi_t = '000'
     Nmax_txt = '13'
 except:
@@ -22,15 +22,15 @@ except:
     exit()
 for opt, arg in opts:
     if opt in ['-S']:
-        S = arg
+        txt_S = arg
     if opt == '--DM':
         phi = float(arg)
     if opt == '--Nmax':
         Nmax_txt = arg
 phi_t = "{:3.2f}".format(float(phi)).replace('.','')
 #dirname = '../Data/S'+S+'/phi'+phi_t+'/'+Nmax_txt+'/'; 
-dirname = '../Data/final_'+S+'_'+phi_t+'/' 
-title = "Phi = "+phi_t+", S = "+S
+dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
+title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')
 Ji = -0.3

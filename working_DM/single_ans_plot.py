@@ -14,7 +14,7 @@ Color = {'3x3': ['red','firebrick'],
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:a:p:N:",["plot"])
-    S = '05'
+    S = '50'
     N = '13'
     ans = '3x3'
     phi = '000'

@@ -2,7 +2,7 @@ import numpy as np
 m = 6
 ####
 mp_cpu = 16
-list_ans = ['3x3','q0','cb1','cb2','oct']
+list_ans = ['3x3','q0','cb1']#,'cb2','oct']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids

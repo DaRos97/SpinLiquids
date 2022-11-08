@@ -14,7 +14,7 @@ argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "N:S:K:",["DM="])
     N = 13      #inp.J point in phase diagram
-    txt_S = '05'
+    txt_S = '50'
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
 except:
@@ -31,7 +31,7 @@ for opt, arg in opts:
         txt_DM = arg
 J1 = 1
 J2, J3 = inp.J[N]
-S_label = {'05':0.5,'03':(np.sqrt(3)-1)/2,'02':0.2}
+S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'30':0.3,'20':0.2}
 S = S_label[txt_S]
 DM_list = {'000':0,'104':np.pi/3,'209':2*np.pi/3}
 phi = DM_list[txt_DM]
@@ -89,8 +89,8 @@ Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
-    min_dic = {'05':0.01, '03':0.005, '02':0.001}
-    mM_A1 = {'05':(0.3,0.6), '03':(0.2,0.5), '02':(0.05,0.41)}
+    min_dic = {'50':0.01, '36':0.005,'30':0.002, '20':0.001}
+    mM_A1 = {'50':(0.3,0.6), '36':(0.2,0.5), '30':(0.2,0.45), '20':(0.05,0.41)}
     minP = min_dic[txt_S]
     maxA = (2*S+1)/2
     maxB = S
@@ -116,6 +116,7 @@ print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoi
 ######################
 Ti = t()    #Total initial time
 for ans in ansatze:
+    print("Computing ansatz ",ans)
     Tti = t()   #Initial time of the ansatz
     header = inp.header[ans]
     #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
