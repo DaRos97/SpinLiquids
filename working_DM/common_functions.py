@@ -147,7 +147,7 @@ def FormatParams(P,ans,J2,J3):
         newP.append(P[3*j2]*j2)
         newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
         newP.append(P[-1]*j2)
-    elif ans == 'cb1':
+    elif ans == 'cb1' or 'cb1_nc':
         newP.append(P[1*j2]*j2)
         newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
         newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
@@ -232,6 +232,17 @@ def big_Nk(P,L,args):
         phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
         phiB2 = P[-1]*j2
         phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
+        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
+        p1 = 1
+    elif ans == 'cb1_nc':
+        B3 = 0; phiB3 = 0
+        A2 = P[1*j2]*j2
+        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
+        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
+        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
+        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
+        phiB2 = P[-1]*j2
+        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2+np.pi)
         phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
         p1 = 1
     elif ans == 'cb2':
