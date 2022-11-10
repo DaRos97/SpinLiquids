@@ -5,7 +5,7 @@ from matplotlib import cm
 import getopt
 import sys
 
-list_ans = ['3x3_1','q0_1','cb1','cb2','oct']
+list_ans = ['3x3','q0','cb1','cb2','oct']
 DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
 #input arguments
 argv = sys.argv[1:]

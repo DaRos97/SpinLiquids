@@ -24,10 +24,11 @@ for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
     if opt == '--DM':
-        phi = float(arg)
+        phi_t = arg
     if opt == '--Nmax':
         Nmax_txt = arg
-phi_t = "{:3.2f}".format(float(phi)).replace('.','')
+phi_label = {'000':0, '209':np.pi/3*2}
+phi = phi_label[phi_t]
 #dirname = '../Data/S'+S+'/phi'+phi_t+'/'+Nmax_txt+'/'; 
 dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
