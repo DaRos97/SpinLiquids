@@ -31,7 +31,7 @@ for opt, arg in opts:
         txt_DM = arg
 J1 = 1
 J2, J3 = inp.J[N]
-S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'30':0.3,'20':0.2}
+S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
 DM_list = {'000':0,'104':np.pi/3,'209':2*np.pi/3}
 phi = DM_list[txt_DM]
@@ -83,15 +83,15 @@ Pi_ = {  '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
         'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
         'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
         'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
-        'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B1':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
+        'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
         }
 Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
 bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
-    min_dic = {'50':0.01, '36':0.005,'30':0.002, '20':0.001}
-    mM_A1 = {'50':(0.3,0.6), '36':(0.2,0.5), '30':(0.2,0.45), '20':(0.05,0.41)}
+    min_dic = {'50':0.01, '36':0.005,'34':0.002, '30':0.002, '20':0.001}
+    mM_A1 = {'50':(0.3,0.6), '36':(0.2,0.5),'34':(0.2,0.45), '30':(0.2,0.45), '20':(0.05,0.41)}
     minP = min_dic[txt_S]
     maxA = (2*S+1)/2
     maxB = S

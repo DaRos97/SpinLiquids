@@ -8,7 +8,8 @@ from matplotlib import cm
 
 Color = {'3x3': ['red','firebrick'],
          'q0':  ['yellow','y'],
-         'cb1':  ['lime','limegreen']
+         'cb1':  ['lime','limegreen'],
+         'cb1_nc':  ['k','gray']
          }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
 argv = sys.argv[1:]
