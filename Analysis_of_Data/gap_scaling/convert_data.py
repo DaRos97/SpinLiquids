@@ -11,7 +11,7 @@ import csv
 #In order to work, final_S_DM has to contain all the ansatze, so that then we can compare it in the phase diagram using effort_DM/plot.py
 cutoff_gap = 1e-2
 #parameters are: ansatz, j2,j3, DM angle, Spin
-list_ans = ['3x3','q0','cb1','cb2','oct']
+list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
 DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
@@ -25,7 +25,7 @@ except:
 for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
-        S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'30':0.3,'20':0.2}
+        S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
         S = S_label[txt_S]         #####CHECK
     if opt == '--DM':
         DM = arg.replace('.','')
@@ -37,8 +37,8 @@ print("Using arguments: Dm angle = ",DM," spin S = ",S)
 #import data
 data_dirname = '../../Data/final_'+txt_S+'_'+DM+'/'
 ##### 
-m_ans = {'q0':1, '3x3':3, 'cb1':4}
-m_ans_gauge = {'q0':3, '3x3':3, 'cb1':12}
+m_ans = {'q0':1, '3x3':3, 'cb1':4, 'cb1_nc':4}
+m_ans_gauge = {'q0':3, '3x3':3, 'cb1':12, 'cb1_nc':12}
 ########
 for filename in os.listdir(data_dirname):
     data_name = data_dirname + filename

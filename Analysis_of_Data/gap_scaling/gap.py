@@ -7,18 +7,18 @@ import functions as fs
 from scipy.optimize import curve_fit
 
 #parameters are: ansatz, j2,j3, DM angle, Spin
-list_ans = ['3x3_1','q0_1','cb1','cb2','oct']
+list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
 DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
 argv = sys.argv[1:]
 #try:
 if 1:
     opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax='])
     S = 0.5
-    txt_S = '05'
+    txt_S = '50'
     J2 = 0
     J3 = 0
     DM = '000'
-    ans = '3x3_1'
+    ans = '3x3'
     N_max = 13
 #except:
 else:
@@ -27,11 +27,11 @@ else:
 for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
-        if txt_S not in ['05','03']:
+        S_dic = {'50':0.5,'36':(np.sqrt(3)-1)/2,'30':0.3,'20':0.2}
+        if txt_S not in S_dic.keys():
             print('Error in -S argument')
             exit()
-        else:
-            S = 0.5 if txt_S == '05' else 0.366         #####CHECK
+        S = S_dic[txt_S]         #####CHECK
     if opt == '--j2':
         J2 = float(arg)
     if opt == '--j3':
@@ -56,8 +56,8 @@ data = []
 gaps1 = []
 gaps2 = []
 #### N list for different ansatze depending on gap closing points
-m_ans = {'q0_1':1, '3x3_1':3, 'cb1':4}
-m_ans_gauge = {'q0_1':3, '3x3_1':3, 'cb1':12}
+m_ans = {'q0':1, '3x3':3, 'cb1':4}
+m_ans_gauge = {'q0':3, '3x3':3, 'cb1':12}
 if DM != '209':
     m_ = m_ans[ans]
 else:
@@ -69,7 +69,8 @@ for n in N_:
         continue
     NN.append(n)
 N_ = NN
-print(NN)
+#Just 13,25,37
+N_ = [13,25,37]
 ###
 for n in N_:
     data.append(fs.get_data(arguments,n))
