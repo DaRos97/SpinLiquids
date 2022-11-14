@@ -171,7 +171,8 @@ for ans in ansatze:
         print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
         continue
     if Sigma >= 10:
-        print("Hessian sign not Correct")
+        print("Hessian sign not Correct, not saving")
+        continue
     conv = cf.IsConverged(Pf,pars,Bnds[ans],Sigma)      #check whether the convergence worked and it is not too close to the boudary of the bounds
     #Format the parameters in order to have 0 values in the non-considered ones
     newP = cf.FormatParams(Pf,ans,J2,J3)

@@ -37,6 +37,9 @@ def Sigma(P,*Args):
         pp[i] = P[i] + dP                   #change only one by dP
         init_plus = totE(pp,args)           #compute first derivative               #2
         der1 = (init_plus[0]-init[0])/dP
+        if is_min:
+            temp.append(der1**2)
+            continue
         pp[i] = P[i] + 2*dP                 #change again the same parameter by dP
         init_2plus = totE(pp,args)          #compute the second derivative          #3
         der2 = (init_2plus[0]-init_plus[0])/dP
@@ -45,10 +48,12 @@ def Sigma(P,*Args):
         if hess == hess_sign[pars[i]]:      #check if the sign of the Hessian is correct
             temp.append(der1**2)        #add it to the sum
         else:
-            if der1:                    #add to the sum a value which will decrease going in the correct direction
-                r2 = np.abs(der1)**2 + np.sqrt(np.abs(1/der1)) + np.abs(1/der1) + 10
-            else:
-                r2 = 1e5
+            print("Hessian of ",pars[i]," was not good")
+            r2 = 1e5
+            #if der1:                    #add to the sum a value which will decrease going in the correct direction
+            #    r2 = np.abs(der1)**2 + np.sqrt(np.abs(1/der1)) + np.abs(1/der1) + 10
+            #else:
+            #    r2 = 1e5
             temp.append(r2)
     res = np.array(temp).sum()          #sum all the contributioms
     if is_min:
