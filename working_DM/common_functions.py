@@ -201,7 +201,11 @@ def big_Nk(P,L,args):
     J3 /= 2.
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
     j3 = np.sign(int(np.abs(J3)*1e8))
-    A1 = P[0]
+    if -np.angle(t1) < np.pi/3+1e-4 and -np.angle(t1) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
+        p104 = -1
+    else:
+        p104 = 1
+    A1 = p104*P[0]
     #parameters of the various ansatze
     if ans == '3x3':      #3
         A2 = 0;     phiA2 = 0;    phiA2p = 0;
@@ -267,6 +271,7 @@ def big_Nk(P,L,args):
         phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
         phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
         p1 = 1
+    B1 *= p104
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B
