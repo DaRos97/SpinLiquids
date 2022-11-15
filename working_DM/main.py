@@ -172,8 +172,6 @@ for ans in ansatze:
         print("Found values: Pf=",Pf,"\nSigma = ",result.fun)
         print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
         continue
-    if Sigma >= 10:
-        print("Hessian sign not Correct")
     conv = cf.IsConverged(Pf,pars,Bnds[ans],Sigma)      #check whether the convergence worked and it is not too close to the boudary of the bounds
     #Format the parameters in order to have 0 values in the non-considered ones
     newP = cf.FormatParams(Pf,ans,J2,J3)
@@ -185,6 +183,9 @@ for ans in ansatze:
         DataDic[header[len(data)+ind2]] = newP[ind2]
     #Save values to an external file
     print(DataDic)
+    if not conv:
+        print("!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!\\Hessian sign not Correct")
+        continue
     print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
     sf.SaveToCsv(DataDic,csvfile)
 
