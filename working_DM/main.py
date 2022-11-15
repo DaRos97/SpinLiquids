@@ -106,6 +106,8 @@ for ans in inp.list_ans:
         elif param[:3] == 'phi':
             bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
         bounds_[ans][param] = bb
+        if ans == 'cb1_nc' and param == 'A2':
+            bounds_[ans][param] = (-0.1,maxA)
 Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial,Pi_,bounds_)
 #Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 DerRange = sf.ComputeDerRanges(J2,J3,ansatze)
