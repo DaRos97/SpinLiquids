@@ -74,17 +74,23 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 
-#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
-ansatze = sf.CheckCsv(csvfile)
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
 Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':np.pi, 'phiA3': 0, 'phiB3': np.pi},
-        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':0, 'phiA2': np.pii, 'phiB3': 0},
+        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':0, 'phiA2': np.pi, 'phiB3': 0},
         'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB1':np.pi, 'phiB2': 2*np.pi-t_0},
         'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB1':np.pi, 'phiB2': np.pi},
-       'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0, 'phiA2p': np.pi+t_0, 'phiA3': 0},
+        'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0, 'phiA2p': np.pi+t_0, 'phiA3': 0},
         'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiA1': np.pi, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
+        '6':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiA1': 2*t_0, 'phiB1':np.pi, 'phiB2': 2*np.pi-t_0},
         }
+Pi_['6']['phiA1'] = 2*t_0
+for i in range(4):
+    for ttt in ['a','b']:
+        ans_ = '6'+ttt+'_'+str(i)
+        Pi_[ans_] = Pi_['6']
+#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
+ansatze = sf.CheckCsv(csvfile)
 Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
 bounds_ = {}
