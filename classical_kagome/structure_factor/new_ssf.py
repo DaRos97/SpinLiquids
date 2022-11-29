@@ -13,7 +13,7 @@ try:
     gauge = '0'
     theta = 0
     phi = 0
-    UC = 6
+    UC = 4
     save_fig = False
     show = False
     compute_new = False

@@ -16,7 +16,7 @@ J3 = np.linspace(J3i,J3f,J3pts)
 
 min_energy = np.zeros((J2pts,J3pts,3))
 
-dm_angle_1nn = int(sys.argv[1])*np.pi/48
+dm_angle_1nn = 0.05#int(sys.argv[1])*np.pi/48
 DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
 #

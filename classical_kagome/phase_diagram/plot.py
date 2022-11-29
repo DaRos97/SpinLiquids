@@ -14,6 +14,7 @@ def name(dm_angle_1nn):
 angles = []
 for n in range(9):
     angles.append(n*np.pi/12)
+angles = [0.05]
 energies = []
 for ang in angles:
     energies.append(np.load(dirname+name(ang)))
