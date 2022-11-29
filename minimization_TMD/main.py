@@ -13,7 +13,7 @@ import getopt
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "N:S:K:",["DM="])
-    N = 13      #inp.J point in phase diagram
+    N = 40      #inp.J point in phase diagram
     txt_S = '50'
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
@@ -33,7 +33,7 @@ J1 = 1
 J2, J3 = inp.J[N]
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
-DM_list = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
+DM_list = {'005':0.05}
 phi = DM_list[txt_DM]
 DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
@@ -74,19 +74,15 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 
-#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
-ansatze = sf.CheckCsv(csvfile)
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
-Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
-        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA2': np.pi},
-        'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
-        'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
-        'cb1_2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
-        'cb1_nc2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
-        'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
-        'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
+Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':np.pi, 'phiA3': 0, 'phiB3': np.pi},
+        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':0, 'phiA2': np.pi, 'phiB3': 0},
+        'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB1':np.pi, 'phiB2': 2*np.pi-t_0},
+        'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB1':np.pi, 'phiB2': np.pi}
         }
+#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
+ansatze = sf.CheckCsv(csvfile)
 Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
 bounds_ = {}
@@ -98,7 +94,7 @@ for ans in inp.list_ans:
     maxA = (2*S+1)/2
     maxB = S
     bounds_[ans]['A1'] = mM_A1[txt_S]
-    phase_step = 0.4
+    phase_step = 0.2
     #bounds
     for param in inp.header[ans][9:]:
         if param[0] == 'A':
@@ -186,7 +182,7 @@ for ans in ansatze:
     #Save values to an external file
     print(DataDic)
     if not conv:
-        print("!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!\\Hessian sign not Correct")
+        print("!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!\\Din not converge -> Hessian sign not Correct?")
         continue
     print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
     sf.SaveToCsv(DataDic,csvfile)

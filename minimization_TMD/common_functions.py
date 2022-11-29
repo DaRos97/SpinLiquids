@@ -181,32 +181,10 @@ def FormatParams(P,ans,J2,J3):
         newP.append(P[-3*j2]*j2 + P[-2]*(1-j2))
         newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
         newP.append(P[-1]*j2)
-    elif ans[0] == '6':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[5*j3*j2]*j2*j3 + P[3*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-3*j2]*j2 + P[-2]*(1-j2))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
     return tuple(newP)
 
 ## Looks if the convergence is good or if it failed
 def IsConverged(P,pars,bnds,Sigma):
-#    for i in range(len(P)):
-#        try:
-#            low = np.abs((P[i]-bnds[i][0])/P[i])
-#        except:
-#           low = 1
-#       #
-#       try:
-#           high = np.abs((P[i]-bnds[i][1])/P[i])
-#      except:
-#          high = 1
-#      #
-#      if low < 1e-3 or high < 1e-3:
-#          return False
     if Sigma > inp.cutoff:
         return False
     return True
@@ -223,15 +201,8 @@ def big_Nk(P,L,args):
     J3 /= 2.
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
     j3 = np.sign(int(np.abs(J3)*1e8))
-    if -np.angle(t1) < np.pi/3+1e-4 and -np.angle(t1) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
-        p104 = -1
-    else:
-        p104 = 1
-    A1 = p104*P[0]
+    A1 = P[0]
     #parameters of the various ansatze
-    if ans[:2] == '6b':
-        ans = '6a_' + ans[-1]
-        p6b = True
     if ans == '3x3':      #3
         A2 = 0;     phiA2 = 0;    phiA2p = 0;
         A3 = P[1*j3]*j3
@@ -268,53 +239,17 @@ def big_Nk(P,L,args):
         phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
         phiB1p, phiB2p= (phiB1 ,-phiB2)
         p1 = 1
-    elif ans == '6a_0':
+    elif ans == 'cb1_nc':      #6b
+        B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
         B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
         B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        B3 = P[5*j3*j2]*j2*j3 + P[3*j3*(1-j2)]*j3*(1-j2)
-        phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
-        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2, phiA1p/2, phiA1p/2)
-        phiB1p, phiB2p, phiB3 = (phiB1, phiB2, np.pi/2)
-        p1 = 1
-    elif ans == '6a_1':
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        B3 = P[5*j3*j2]*j2*j3 + P[3*j3*(1-j2)]*j3*(1-j2)
-        phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
-        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2, phiA1p/2+np.pi, phiA1p/2+np.pi)
-        phiB1p, phiB2p, phiB3 = (phiB1 ,phiB2, np.pi/2)
-        p1 = 1
-    elif ans == '6a_2':
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        B3 = P[5*j3*j2]*j2*j3 + P[3*j3*(1-j2)]*j3*(1-j2)
-        phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
-        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2, phiA1p/2)
-        phiB1p, phiB2p, phiB3 = (phiB1 ,phiB2, np.pi/2*3)
-        p1 = 1
-    elif ans == '6a_3':
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        B3 = P[5*j3*j2]*j2*j3 + P[3*j3*(1-j2)]*j3*(1-j2)
         phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
         phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
         phiB2 = P[-1]*j2
         phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2+np.pi)
-        phiB1p, phiB2p, phiB3 = (phiB1 ,phiB2, np.pi/2*3)
+        phiB1p, phiB2p= (phiB1 ,-phiB2)
         p1 = 1
     elif ans == 'cb2':
         B3 = 0; phiB3 = 0
@@ -341,9 +276,6 @@ def big_Nk(P,L,args):
         phiA2, phiA2p = (phiA1p/2+np.pi, phiA1p/2)
         phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
         p1 = 1
-    B1 *= p104
-    if p6b:
-        phiB2p *= -1
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B

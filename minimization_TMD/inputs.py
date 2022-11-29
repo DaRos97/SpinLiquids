@@ -2,12 +2,7 @@ import numpy as np
 m = 6
 ####
 mp_cpu = 16
-#list_ans = ['3x3','q0','cb1','cb2','oct']
-list_ans = []
-for i in range(4):
-    for ttt in ['a','b']:
-        ans_ = '6'+ttt+'_'+str(i)
-        list_ans.append(ans_)
+list_ans = ['3x3','q0','cb1','cb1_nc']#'cb2','oct']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids
@@ -32,17 +27,9 @@ for i in range(Jpts):
 header = {'3x3':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A3','B1','B2','B3','phiB1','phiA3','phiB3'],  #3x3
           'q0':     ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiB1','phiA2','phiB3'],  #q0
           'cb1':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB1','phiB2'],
-          '6':      ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','B3','phiA1','phiB1','phiB2'],
-          'cb1_nc': ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB1','phiB2'],
-          'cb2':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiB1','phiA2','phiA2p','phiA3'],
-          'oct':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiA1','phiB1','phiB2']
+          'cb1_nc': ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB1','phiB2']
           }
-num_phi = {'3x3':3,'q0':3,'cb1':3,'cb1_nc':3,'cb2':4,'oct':3,'6':3}
-for i in range(4):
-    for ttt in ['a','b']:
-        ans_ = '6'+ttt+'_'+str(i)
-        header[ans_] = header['6']
-        num_phi[ans_] = num_phi['6']
+num_phi = {'3x3':3,'q0':3,'cb1':3,'cb1_nc':3}
 list_A2 = []
 list_A3 = []
 list_B3 = []
