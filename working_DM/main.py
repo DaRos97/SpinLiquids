@@ -33,7 +33,7 @@ J1 = 1
 J2, J3 = inp.J[N]
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
-DM_list = {'000':0,'104':np.pi/3,'209':2*np.pi/3}
+DM_list = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 phi = DM_list[txt_DM]
 DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
@@ -98,7 +98,7 @@ for ans in inp.list_ans:
     maxA = (2*S+1)/2
     maxB = S
     bounds_[ans]['A1'] = mM_A1[txt_S]
-    phase_step = 0.8
+    phase_step = 0.4
     #bounds
     for param in inp.header[ans][9:]:
         if param[0] == 'A':

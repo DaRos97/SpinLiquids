@@ -10,6 +10,7 @@ from matplotlib.lines import Line2D
 Color = {'3x3': ['r','orange'],
          'q0':  ['blue','aqua'],
          'cb1':  ['forestgreen','lime'],
+         #'cb1_2':  ['blue','red'],
          'cb1_nc':  ['yellow','y'],
          'labels':  ['k','k']
          }
@@ -29,9 +30,11 @@ for opt, arg in opts:
 phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
 dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
+#dirname = '../Data/S50/phi000/13/'
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')
+delta = np.zeros((9,9))
 DD_none = D[0,0]
 Ji = -0.3
 Jf = 0.3
@@ -43,6 +46,8 @@ for filename in os.listdir(dirname):
         lines = f.readlines()
     N = (len(lines)-1)//2 + 1
     minE = 10
+    e1 = 0
+    e2 = 0
     for i in range(N):
         data = lines[i*2+1].split(',')
         if data[0] not in Color.keys():     #not a considered ansatz
@@ -51,6 +56,10 @@ for filename in os.listdir(dirname):
         j3 = float(data[2]) - Ji
         i2 = int(j2*8/(0.6))
         i3 = int(j3*8/(0.6))
+        if data[0] == 'cb1':
+            e1 = float(data[4])
+        if data[0] == 'cb1_2':
+            e2 = float(data[4])
         if float(data[4]) < minE:
             if data[3][-1] in ['L','O']:      #spin Liquid or long range Order
                 txt_SL = data[3][-1]
@@ -60,10 +69,14 @@ for filename in os.listdir(dirname):
                 txt_conv = 'g' if data[3][0] == 'T' else 'b'
             D[i2,i3] = data[0] + txt_conv + txt_SL
             minE = float(data[4])
+    if e1 and e2:
+        delta[i2,i3] = e1-e2
+    else:
+        delta[i2,i3] = np.nan
 ##########
 pts = len(os.listdir(dirname))
-plt.figure(figsize=(8,4))
-plt.subplot(1,2,1)
+fig = plt.figure(figsize=(8,4))
+#plt.subplot(2,2,1)
 plt.title(title)
 plt.gca().set_aspect('equal')
 plt.axhline(y=0,color='k',zorder=-1)
@@ -100,8 +113,8 @@ for col in Color.values():
     legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[1]))
 
 plt.legend(legend_lines,list_leg,loc='upper left',bbox_to_anchor=(1,1),fancybox=True)
+#
 plt.show()
-
 
 list_leg = ['3x3 LRO','3x3 SL','q=0 LRO','q=0 SL','CB1 LRO','CB1 SL','CB1_NC LRO','CB1_NC SL','just energy','TD limit']
 legend_lines = [Line2D([], [], color="w", marker='o', markerfacecolor="r"),  

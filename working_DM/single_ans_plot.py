@@ -9,6 +9,7 @@ from matplotlib import cm
 Color = {'3x3': ['red','firebrick'],
          'q0':  ['yellow','y'],
          'cb1':  ['lime','limegreen'],
+         'cb1_2':  ['lime','limegreen'],
          'cb1_nc':  ['k','gray']
          }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
@@ -38,7 +39,7 @@ for opt, arg in opts:
 #S = '03'
 #ans = sys.argv[1]
 phi = "{:3.2f}".format(float(phi)).replace('.','')
-dirname = '../Data/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
+dirname = '../Data_temp/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
 D = {}
 Ji = -0.3
 Jf = 0.3
