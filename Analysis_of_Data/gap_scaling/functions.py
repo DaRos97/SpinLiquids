@@ -109,7 +109,11 @@ def matrix(P,N,arguments,L,kkg):
     J3 /= 2.
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
     j3 = np.sign(int(np.abs(J3)*1e8))
-    A1 = P[0]
+    if DM1 < np.pi/3+1e-4 and DM1 > np.pi/3-1e-4:
+        p104 = -1
+    else:
+        p104 = 1
+    A1 = P[0]*p104
     #parameters of the various ansatze
     if ans == '3x3':      #3
         A2 = 0;     phiA2 = 0;    phiA2p = 0;
@@ -175,6 +179,7 @@ def matrix(P,N,arguments,L,kkg):
         phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
         phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
         p1 = 1
+    B1 *= p104
     ################
     #print(A1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3)
     N = np.zeros((2*m,2*m,N,N), dtype=complex)

@@ -9,10 +9,10 @@ import csv
 
 #Takes the data in Data/final_S_DM and converts the "Converge" value from True to TrueL (SL) or TrueO (LRO) depending on the final value of the gap
 #In order to work, final_S_DM has to contain all the ansatze, so that then we can compare it in the phase diagram using effort_DM/plot.py
-cutoff_gap = 1e-2
+cutoff_gap = 1e-6
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
+DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '104':np.pi/3, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['DM='])
@@ -33,7 +33,7 @@ for opt, arg in opts:
             print('Not computed DM angle')
             exit()
 N_max = 37
-print("Using arguments: Dm angle = ",DM," spin S = ",S)
+print("Using arguments: Dm angle = ",DM," spin S = ",S," and cutoff: ",cutoff_gap)
 #import data
 data_dirname = '../../Data/final_'+txt_S+'_'+DM+'/'
 ##### 
