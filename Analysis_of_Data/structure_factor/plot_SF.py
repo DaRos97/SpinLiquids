@@ -5,29 +5,24 @@ from matplotlib import cm
 import sys
 import getopt
 
-list_ans = ['3x3_1','q0_1','cb1','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
+list_ans = ['3x3','q0','cb1','cb2','oct']
+DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '104':np.pi/3, '209':2*np.pi/3}
+S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','kpts='])
-    S = 0.5
-    txt_S = '05'
+    txt_S = '50'
     J2 = 0
     J3 = 0
     DM = '000'
-    ans = '3x3_1'
-    pts = '13'
+    ans = '3x3'
+    pts = '37'
 except:
     print("Error")
 for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
-        if txt_S not in ['05','03']:
-            print('Error in -S argument')
-            exit()
-        else:
-            S = 0.5 if txt_S == '05' else 0.366         #####CHECK
     if opt == '--j2':
         J2 = float(arg)
     if opt == '--j3':
@@ -38,12 +33,15 @@ for opt, arg in opts:
             print('Not computed DM angle')
             exit()
     if opt == '--ans':
-        ans = arg 
+        ans = arg
         if ans not in list_ans:
             print('Error in -ans choice')
             exit()
     if opt == '-kpts':
         pts = arg
+S = S_dic[txt_S]
+################################
+################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 
 ph = 0 #0->LRO, 1->SL
@@ -68,8 +66,8 @@ plt.figure()
 figManager = plt.get_current_fig_manager()
 figManager.window.showMaximized()
 title = ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+')'
-plt.title(title)
-plt.axis('off')
+plt.suptitle(title)
+#plt.axis('off')
 plt.subplot(2,2,1)
 plt.title(title+'--Sxy')
 #hexagons

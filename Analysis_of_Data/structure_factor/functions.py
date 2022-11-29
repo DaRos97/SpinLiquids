@@ -153,8 +153,6 @@ def SpinStructureFactor(k,L,UC):
                             SiSjz = Li[2]*Lj[2]
                             resxy += np.exp(-1j*np.dot(k,dist))*SiSjxy/2
                             resz += np.exp(-1j*np.dot(k,dist))*SiSjz/2
-    if np.imag(resxy) > 1e-8:
-        print(resxy)
     return np.real(resxy), np.real(resz)
 ####
 def Nk(K,par,args):
@@ -181,97 +179,77 @@ def Nk(K,par,args):
     J3 /= 2.
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
     j3 = np.sign(int(np.abs(J3)*1e8))
-    A1 = P[0]
-    #params
-    if ans == '3x3_1':      #3
+    if -np.angle(t1) < np.pi/3+1e-4 and -np.angle(t1) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
+        p104 = -1
+    else:
+        p104 = 1
+    A1 = p104*P[0]
+    #parameters of the various ansatze
+    if ans == '3x3':      #3
         A2 = 0;     phiA2 = 0;    phiA2p = 0;
         A3 = P[1*j3]*j3
         B1 = P[2*j3]*j3 + P[1]*(1-j3)
         B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
         B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
-        phiB1 = P[-3*j3]*j3*j2 + P[-2]*j3*(1-j2) + P[-2]*j2*(1-j3) + P[-1]*(1-j2)*(1-j3)
-        phiB2 = P[-2]*j2*j3 + P[-1]*j2*(1-j3)
         phiA3 = P[-1]*j3
         phiA1p = np.pi
-        phiB1p, phiB2p, phiB3 = (phiB1, phiB2, np.pi)
+        phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, 0, 0, np.pi)
         p1 = 0
-    elif ans == '3x3_2':    #4
-        A2 = 0;     phiA2 = 0;    phiA2p = 0;
-        A3 = P[1*j3]*j3
-        B1 = P[2*j3]*j3 + P[1]*(1-j3)
-        B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
-        B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
-        phiA1p = P[-4*j3*j2]*j3*j2 + P[-3*j3]*j3*(1-j2) + P[-3*j2]*j2*(1-j3) + P[-2]*(1-j2)*(1-j3)
-        phiB1 = P[-3*j3*j2]*j3*j2 + P[-2]*j3*(1-j2) + P[-2]*j2*(1-j3) + P[-1]*(1-j2)*(1-j3)
-        phiB2 = P[-2]*j2*j3 + P[-1]*j2*(1-j3)
-        phiB3 = P[-1]*j3
-        phiA3 = (phiA1p-np.pi)/2
-        phiB1p, phiB2p = (-phiB1, -phiB2)
-        p1 = 0
-    elif ans == 'q0_1':     #1
+    elif ans == 'q0':     #1
         A3 = 0; phiA3 = 0
         A2 = P[1]*j2
         B1 = P[2*j2]*j2+P[1]*(1-j2)
         B2 = P[3*j2]*j2
         B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-        phiB1 = P[-3*j2]*j2 + P[-1]*(1-j2)
-        phiA2 = P[-2]*j2
-        phiB2 = P[-1]*j2
+        phiA2 = P[-1]*j2
         phiA1p, phiA2p = (0, phiA2)
-        phiB1p, phiB2p, phiB3 = (phiB1, phiB2, 0)
+        phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, np.pi, np.pi, 0)
         p1 = 0
-    elif ans == 'q0_2':     #2
-        A3 = 0; phiA3 = 0
-        A2 = P[1]*j2
-        B1 = P[2*j2]*j2+P[1]*(1-j2)
-        B2 = P[3*j2]*j2
-        B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-        phiA1p = P[-5*j3*j2]*j3*j2 + P[-3*j3*(1-j2)]*j3*(1-j2) + P[-4*j2*(1-j3)]*j2*(1-j3) + P[-2]*(1-j2)*(1-j3)
-        phiB1 = P[-4*j3*j2]*j3*j2 + P[-2]*j3*(1-j2) + P[-3*j2]*j2*(1-j3) + P[-1]*(1-j2)*(1-j3)
-        phiA2 = P[-3*j2*j3]*j2*j3 + P[-2]*j2*(1-j3)
-        phiB2 = P[-2]*j2*j3 + P[-1]*j2*(1-j3)
-        phiB3 = P[-1]*j3
-        phiA2p = phiA1p - phiA2
-        phiB1p ,phiB2p = (-phiB1, -phiB2)
-        p1 = 0
-    elif ans == 'cb1' or ans == 'cb2':      #5 and 6
+    elif ans == 'cb1':
         B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
         B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
         B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-4*j2]*j2 + P[-2]*(1-j2)
-        phiB1 = P[-3*j2]*j2 + P[-1]*(1-j2)
-        phiA2 = P[-2]*j2
+        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
         phiB2 = P[-1]*j2
-        phiA2p, phiA3 = (phiA1p-phiA2,phiA1p/2)
-        phiB1p, phiB2p= (-phiB1 ,-phiB2)
+        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
+        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
         p1 = 1
-    elif ans == 'cb1_nc':      #A1,A2,A3,B1,B2,phiA1p,phiB2
+    elif ans == 'cb1_nc':
         B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
         B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
         B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-4*j2]*j2 + P[-2]*(1-j2)
-        phiB1 = P[-3*j2]*j2 + P[-1]*(1-j2)
-        phiA2 = P[-2]*j2
+        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
         phiB2 = P[-1]*j2
-        phiA2p, phiA3 = (phiA1p-phiA2,phiA1p/2+np.pi)
-        phiB1p, phiB2p= (-phiB1 ,-phiB2)
+        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2+np.pi)
+        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
         p1 = 1
-    elif ans == 'oct':                      #7
+    elif ans == 'cb2':
+        B3 = 0; phiB3 = 0
+        A2 = P[1*j2]*j2
+        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
+        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
+        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
+        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
+        phiA2 = P[-1]*j2
+        phiA1p, phiA2p, phiA3 = (0, -phiA2, 0)
+        phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
+        p1 = 1
+    elif ans == 'oct':
         A3 = 0; phiA3 = 0
         A2 = P[1]*j2
         B1 = P[2*j2]*j2+P[1]*(1-j2)
         B2 = P[3*j2]*j2
         B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-        phiB1 = P[-3*j2]*j2 + P[-1]*(1-j2)
-        phiA2 = P[-2]*j2
+        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
         phiB2 = P[-1]*j2
-        phiA1p, phiA2p = (np.pi, phiA2+np.pi)
-        phiB1p, phiB2p, phiB3 = (phiB1, phiB2, 3*np.pi/2)
+        phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
+        phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
         p1 = 1
+    B1 *= p104
     ################
     N = np.zeros((2*m,2*m), dtype=complex)
     ##################################### B

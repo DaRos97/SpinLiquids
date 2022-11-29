@@ -6,28 +6,23 @@ import getopt
 import sys
 
 list_ans = ['3x3','q0','cb1','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
+DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48,'104':np.pi/3, '209':2*np.pi/3}
+S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','kpts='])
-    S = 0.5
-    txt_S = '05'
+    txt_S = '50'
     J2 = 0
     J3 = 0
     DM = '000'
-    ans = '3x3_1'
-    pts = '13'
+    ans = '3x3'
+    pts = '37'
 except:
     print("Error")
 for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
-        if txt_S not in ['05','03']:
-            print('Error in -S argument')
-            exit()
-        else:
-            S = 0.5 if txt_S == '05' else 0.366         #####CHECK
     if opt == '--j2':
         J2 = float(arg)
     if opt == '--j3':
@@ -38,22 +33,25 @@ for opt, arg in opts:
             print('Not computed DM angle')
             exit()
     if opt == '--ans':
-        ans = arg 
+        ans = arg
         if ans not in list_ans:
             print('Error in -ans choice')
             exit()
     if opt == '-kpts':
         pts = arg
+S = S_dic[txt_S]
+DM_angle = DM_list[DM]
+#Arguments
+args = (1,J2,J3,ans,DM_angle)
+########################################
+########################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 #import data from file
-filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+filename = '../../Good_Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
 data = fs.import_data(ans,filename)
-#Arguments
-DM_angle = DM_list[DM]
-args = (1,J2,J3,ans,DM_angle)
 #compute the Ks of the minimum band
-Nx = 13     #points for looking at minima in BZ
-Ny = 13
+Nx = 37     #points for looking at minima in BZ
+Ny = 37
 K_,is_LRO = fs.find_minima(data,args,Nx,Ny)
 if not is_LRO:
     print("Not LRO, there is a gap now")
@@ -122,11 +120,21 @@ for i in range(UC):
 #plt.colorbar()
 #plt.show()
 print("Chirality single triangles: ")
-for i in range(2):
-    for j in range(1):
-        ch1 = np.dot(S[:,1,i,j],np.cross(S[:,2,i,j],S[:,3,i,j]))
-        ch2 = np.dot(S[:,4,i,j],np.cross(S[:,5,i,j],S[:,0,i,j+1]))
-        print(ch1,'\t',ch2)
+for i in range(1,2):
+    for j in range(1,2):
+        ch_u1 = np.dot(S[:,1,i,j],np.cross(S[:,2,i,j],S[:,3,i,j]))      #up
+        ch_u2 = np.dot(S[:,4,i,j],np.cross(S[:,5,i,j],S[:,0,i,j+1]))    #up
+        ch_d1 = np.dot(S[:,0,i,j],np.cross(S[:,1,i+1,j],S[:,2,i,j]))      #down
+        ch_d2 = np.dot(S[:,3,i,j],np.cross(S[:,4,i+1,j],S[:,5,i,j]))      #down
+        Ch_r = np.dot(S[:,2,i-1,j],np.cross(S[:,3,i,j],S[:,4,i,j]))      #right
+        Ch_l = np.dot(S[:,1,i,j],np.cross(S[:,5,i,j],S[:,3,i-1,j]))      #left
+        CH_a = np.dot(S[:,1,i+1,j],np.cross(S[:,3,i,j],S[:,2,i,j]))      #2nn
+        CH_b = np.dot(S[:,2,i,j],np.cross(S[:,4,i+1,j],S[:,3,i,j]))      #2nn
+        print("Small triangles up ",i,",",j,": ",ch_u1,"\t",ch_u2)
+        print("Small triangles down ",i,",",j,": ",ch_d1,"\t",ch_d2)
+        print("Big triangles right and left ",i,",",j,": ",Ch_r,"\t",Ch_l)
+        print("Big (2nn) triangles a and b ",i,",",j,": ",CH_a,"\t",CH_b)
+#exit()
 savenameS = "SpinOrientations/S_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 np.save(savenameS,S)
 print("Spins computed, now compute the spin structure factor")
