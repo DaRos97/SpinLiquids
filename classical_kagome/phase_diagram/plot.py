@@ -12,9 +12,9 @@ dirname = 'ferro_j1/' if J1 == -1 else 'antiferro_j1/'
 def name(dm_angle_1nn):
     return 'DM1nn_'+"{:.3f}".format(dm_angle_1nn).replace('.','-')+'.npy'
 angles = []
-for n in range(3):
-    angles.append(n*np.pi/3)
-#angles = [0.05]
+#for n in range(3):
+#    angles.append(n*np.pi/3)
+angles = [0.05]
 energies = []
 for ang in angles:
     energies.append(np.load(dirname+name(ang)))
@@ -54,14 +54,14 @@ J3pts = len(energies[0][0,:,0])
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 
-fig = plt.figure(figsize=(10,3))
+fig = plt.figure(figsize=(3,3))
 j3_label = [0,3,6]
 j2_label = [6,7,8]
 Title = 'J1 = -1 (FM)' if J1 == -1 else 'J1 = 1 (AFM)'
 #plt.title(Title)
 txt_dm = ['0','\pi/3','2\pi/3']
 for pd in range(len(angles)):
-    plt.subplot(1,4,pd+1)
+    plt.subplot(1,1,pd+1)
     plt.gca().set_aspect('equal')
 #    ax = fig.add_subplot(3,3,pd+1)
     for i in range(J2pts):
@@ -85,6 +85,10 @@ for pd in range(len(angles)):
     plt.xticks([-0.3,0,0.3],['-0.3','0','0.3'])
     if pd == 2:
         plt.legend(legend_lines,legend_names,loc='center left',bbox_to_anchor=(1,0.3))
+
+plt.gca().set_aspect('equal')
+plt.axhline(y=0,color='k',zorder=-1)
+plt.axvline(x=0,color='k',zorder=-1)
 #figManager = plt.get_current_fig_manager()
 #figManager.window.showMaximized()
 plt.show()

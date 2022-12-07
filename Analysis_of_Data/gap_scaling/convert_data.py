@@ -12,7 +12,7 @@ import csv
 cutoff_gap = 1e-6
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '104':np.pi/3, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['DM='])
@@ -26,12 +26,13 @@ for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
         S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
-        S = S_label[txt_S]         #####CHECK
+        S = S_label[txt_S]
     if opt == '--DM':
         DM = arg.replace('.','')
         if DM not in DM_list.keys():
             print('Not computed DM angle')
             exit()
+        is_SU2 = True if DM in ['000','104','209'] else False
 N_max = 37
 print("Using arguments: Dm angle = ",DM," spin S = ",S," and cutoff: ",cutoff_gap)
 #import data
@@ -93,7 +94,7 @@ for filename in os.listdir(data_dirname):
         gaps = []
         N_N = np.sort(Ns)
         for nnn_ in N_N:
-            gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_list[DM],J2,J3,txt_S]))
+            gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_list[DM],J2,J3,txt_S,is_SU2]))
         try:
             parameters, covariance = curve_fit(fs.linear, N_N, gaps, p0=(1,0))
         except:

@@ -26,7 +26,7 @@ for opt, arg in opts:
         txt_S = arg
     if opt == '--DM':
         phi_t = arg
-phi_label = {'000':0, '209':np.pi/3*2}
+phi_label = {'005':0.05}
 phi = phi_label[phi_t]
 dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
