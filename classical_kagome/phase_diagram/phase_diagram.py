@@ -7,8 +7,8 @@ J2i = -0.3
 J2f = 0.3
 J3i = -0.3
 J3f = 0.3
-J2pts = 11
-J3pts = 11
+J2pts = 9
+J3pts = 9
 DM_orientation = 0      #0 for TMD and 1 for Messio
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
@@ -16,7 +16,7 @@ J3 = np.linspace(J3i,J3f,J3pts)
 
 min_energy = np.zeros((J2pts,J3pts,3))
 
-dm_angle_1nn = 0.05#int(sys.argv[1])*np.pi/48
+dm_angle_1nn = int(sys.argv[1])*np.pi/3
 DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
 #

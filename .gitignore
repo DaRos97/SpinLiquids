@@ -3,9 +3,8 @@ Analysis_of_Data/structure_factor/LRO_SSF/
 Analysis_of_Data/structure_factor/SFs/
 Analysis_of_Data/structure_factor/SpinOrientations/
 #
-minimization/__pycache__/
-#
-working_DM/__pycache__/
+minimization_SU2/__pycache__/
+minimization_TMD/__pycache__/
 #
 bashCodes/
 #

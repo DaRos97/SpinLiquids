@@ -47,7 +47,7 @@ args = (1,J2,J3,ans,DM_angle)
 ########################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 #import data from file
-filename = '../../Good_Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
 data = fs.import_data(ans,filename)
 #compute the Ks of the minimum band
 Nx = 37     #points for looking at minima in BZ
