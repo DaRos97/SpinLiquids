@@ -12,6 +12,11 @@ Color = {'1a': ['r','orange'],
          '1c':  ['pink','aqua'],
          '1d':  ['grey','aqua'],
          '1f':  ['forestgreen','lime'],
+         '1f0':  ['yellow','lime'],
+         '1f1':  ['red','lime'],
+         '1f2':  ['aqua','lime'],
+         '1f3':  ['gold','lime'],
+         '1f4':  ['limegreen','lime'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -40,14 +45,16 @@ for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
         lines = f.readlines()
     N = (len(lines)-1)//2 + 1
-    minE = 10
+    minE1 = 10
+    minE2 = 10
+    minE3 = 10
     for i in range(N):
         data = lines[i*2+1].split(',')
         if data[0] not in Color.keys():     #not a considered ansatz
             continue
         dm = list(DM_list).index(float(data[2]))
         s = list(S_list).index(float(data[1]))
-        if float(data[4]) < minE:
+        if float(data[4]) < minE1:
             if data[3][-1] in ['L','O']:        #spin Liquid or long range Order
                 txt_SL = data[3][-1]
                 txt_conv = 'g' if data[3][0] == 'T' else 'b'
@@ -55,7 +62,13 @@ for filename in os.listdir(dirname):
                 txt_SL = 'n'                    #not determined
                 txt_conv = 'g' if data[3][0] == 'T' else 'b'
             D[dm,s] = data[0] + txt_conv + txt_SL
-            minE = float(data[4])
+            minE1 = float(data[4])
+        elif float(data[4]) < minE2:
+            minE2 = float(data[4])
+        elif float(data[4]) < minE3:
+            minE3 = float(data[4])
+    if abs(minE2 - minE1) < 1e-5 and abs(minE1 - minE3) < 1e-5:
+        print(filename)
 ##########
 pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(8,4))
@@ -72,8 +85,8 @@ for i in range(DM_pts+1):
             OL = 0
         c = Color[D[i,j][:-2]][OL]
         plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
-#plt.xlim(0,0.1)
-plt.xscale('log')
+plt.xlim(-0.001,0.1)
+#plt.xscale('log')
 #Legenda
 list_leg = []
 for col in Color.keys():
