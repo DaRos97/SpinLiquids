@@ -33,14 +33,15 @@ DM_max = 0.5
 S_pts = 10
 DM_pts = 15
 S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
+DM_list = list(np.logspace(-5,np.log(DM_max),DM_pts,base = np.e))
+DM_list.insert(0, 0)
 X,Y = np.meshgrid(DM_list,S_list)
 Head = inp.header[ans][3:]
 head = []
 for h in Head:
     head.append(h)
 for h in head:
-    D[h] = np.zeros((DM_pts,S_pts))
+    D[h] = np.zeros((DM_pts+1,S_pts))
     D[h][:] = np.nan
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
@@ -67,11 +68,11 @@ for filename in os.listdir(dirname):
                     except:
                         print("not good: ",h,dm,s)
             break
-print("Non converged points: ",int(150-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
+print("Non converged points: ",int((DM_pts+1)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
 for i in range(nP):
     temp = []
-    for l in range(DM_pts):
+    for l in range(DM_pts+1):
         for j in range(S_pts):
             if D[head[i]][l,j] == 0:
                 D[head[i]][l,j] = np.nan

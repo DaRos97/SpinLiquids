@@ -44,7 +44,7 @@ def Sigma(P,*Args):
         else:
             print("Hessian of ",pars[i]," not correct")
             if pars[i][0] == 'p':
-                temp.append(der1**2)        #add it to the sum
+                temp.append(der1**2)        #add it to the sum anyway if it is a phase
             else:
                 temp.append(1e5)
     res = np.array(temp).sum()          #sum all the contributioms
@@ -133,7 +133,7 @@ def big_Nk(P,L,args):
         phiA1p = P[-2]
         phiB1p = phiB1
         p1 = 0
-    if ans == '1f':      #3
+    if ans[:2] == '1f':      #3
         phiA1p = P[-2]
         phiB1p = phiB1
         p1 = 1

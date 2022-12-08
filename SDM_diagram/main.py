@@ -77,7 +77,7 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
-minP = 0
+minP = 1e-4
 maxA = (2*S+1)/2
 maxB = S
 Ai = maxA/2
@@ -88,6 +88,11 @@ Pi_ = { '1a':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1d':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1e':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
         '1f':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
+        '1f0':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
+        '1f1':{'A1':Ai,'B1':Bi,'phiA1':t_0,'phiB1':np.pi},
+        '1f2':{'A1':Ai,'B1':Bi,'phiA1':2.6,'phiB1':np.pi},
+        '1f3':{'A1':Ai,'B1':Bi,'phiA1':np.pi,'phiB1':np.pi},
+        '1f4':{'A1':Ai,'B1':Bi,'phiA1':2*np.pi-2*t_0,'phiB1':np.pi},
        }
 ansatze = sf.CheckCsv(csvfile)
 Pinitial, done  = sf.FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_)
@@ -96,7 +101,7 @@ bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
     phase_step = 0.2
-    if ans == '1c' or ans == '1d':
+    if ans == '1c' or ans == '1d' or ans == '1e':
         phase_step = np.pi
     #bounds
     for param in inp.header[ans][8:]:
@@ -151,7 +156,7 @@ for ans in ansatze:
     #
     Pf = tuple(result.x)
     is_min = False
-    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
+    Args = (ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
     try:
         Sigma, E, L, gap = fs.Sigma(Pf,*Args)
     except TypeError:

@@ -60,9 +60,9 @@ for filename in os.listdir(dirname):
 pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(8,4))
 plt.title("DM diagram")
-plt.gca().set_aspect('equal')
-for i in range(15):
-    for j in range(10):
+#plt.gca().set_aspect('equal')
+for i in range(DM_pts+1):
+    for j in range(S_pts):
         if D[i,j] == DD_none:
             continue
         OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
