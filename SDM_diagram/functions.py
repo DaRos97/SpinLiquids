@@ -16,17 +16,15 @@ for i in range(inp.m):
 # Check also Hessians on the way --> more time (1 general + 2 energy evaluations for each P).
 # Calls only the totE func
 def Sigma(P,*Args):
-    J1,J2,J3,ans,der_range,pars,hess_sign,is_min,KM,Tau,K_,S = Args         #extract arguments
-    j2 = int(np.sign(J2)*np.sign(int(np.abs(J2)*1e8)) + 1)      #j < 0 --> 0, j == 0 --> 1, j > 0 --> 2
-    j3 = int(np.sign(J3)*np.sign(int(np.abs(J3)*1e8)) + 1)
+    ans,der_range,pars,hess_sign,is_min,KM,Tau,K_,S = Args         #extract arguments
     L_bounds = inp.L_bounds                                     #bounds on Lagrange multiplier set by default
-    args = (J1,J2,J3,ans,L_bounds,KM,Tau,K_,S)                              #arguments to pass to totE
+    args = (ans,L_bounds,KM,Tau,K_,S)                              #arguments to pass to totE
     init = totE(P,args)                                         #compute the initial point        #1
     if init[2] > 9 or np.abs(init[1]-L_bounds[0]) < 1e-3:       #check whether is good (has to be)
         return inp.shame2
     temp = []
     L_bounds = (init[1]-inp.L_b_2, init[1]+inp.L_b_2)           #restrict the bound on the Lagrange multiplier since we are staying close to its value of the #1 evaluation
-    args = (J1,J2,J3,ans,L_bounds,KM,Tau,K_,S)                    #new arguments to pass to totE in computing derivatives and Hessian
+    args = (ans,L_bounds,KM,Tau,K_,S)                    #new arguments to pass to totE in computing derivatives and Hessian
     for i in range(len(P)):                 #for each parameter
         pp = np.array(P)                    #copy the list of parameters
         dP = der_range[i]                   
@@ -45,12 +43,10 @@ def Sigma(P,*Args):
             temp.append(der1**2)        #add it to the sum
         else:
             print("Hessian of ",pars[i]," not correct")
-            r2 = 1e5
-            #if der1:                    #add to the sum a value which will decrease going in the correct direction
-            #    r2 = np.abs(der1)**2 + np.sqrt(np.abs(1/der1)) + np.abs(1/der1) + 10
-            #else:
-            #    r2 = 1e5
-            temp.append(r2)
+            if pars[i][0] == 'p':
+                temp.append(der1**2)        #add it to the sum
+            else:
+                temp.append(1e5)
     res = np.array(temp).sum()          #sum all the contributioms
     if is_min:
         return res
@@ -72,7 +68,7 @@ def totE(P,args):
 #### Computes the Energy given the paramters P and the Lagrange multiplier L. 
 #### This is the function that does the actual work.
 def totEl(P,L,args):
-    J1,J2,J3,ans,L_bounds,KM,Tau,K_,S = args
+    ans,L_bounds,KM,Tau,K_,S = args
     #The minimization function sometimes goes out of the given bounds so let it go back inside
     if L < L_bounds[0] :
         Res = -5-(L_bounds[0]-L)
@@ -80,33 +76,10 @@ def totEl(P,L,args):
     elif L > L_bounds[1]:
         Res = -5-(L-L_bounds[1])
         return Res, 10
-    J = (J1,J2,J3)
-    j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or 1 --> problem for VERY small J2,J3 points
-    j3 = np.sign(int(np.abs(J3)*1e8))
-    Res = 0                         #resulting energy
-    n = 0                           #?????
-    Pp = np.zeros(6)
-    Pp[0] = P[n]
-    #Compute the part of the energy coming from the moduli of the parameters (out of the Hamiltonian matrix)
-    if ans in inp.list_A2 and j2:
-        n += 1
-        Pp[1] = P[n]
-    if ans in inp.list_A3 and j3:
-        n += 1
-        Pp[2] = P[n]
-    n += 1
-    Pp[3] = P[n] #B1
-    if j2:
-        n += 1
-        Pp[4] = P[n] #B2
-    if ans in inp.list_B3 and j3:
-        n += 1
-        Pp[5] = P[n]
-    for i in range(3):
-        Res += inp.z[i]*(Pp[i]**2-Pp[i+3]**2)*J[i]/2
+    Res = inp.z[0]*(P[0]**2-P[1]**2)/2
     Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (J1,J2,J3,ans,KM,Tau,K_)
+    args2 = (ans,KM,Tau,K_)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((inp.m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -130,65 +103,14 @@ def totEl(P,L,args):
     Res += r2                               #sum to the other part of the energy
     return Res, gap
 
-#From the list of parameters obtained after the minimization constructs an array containing them and eventually 
-#some 0 parameters which may be omitted because j2 or j3 are equal to 0.
-def FormatParams(P,ans,J2,J3):
-    j2 = np.sign(int(np.abs(J2)*1e8))
-    j3 = np.sign(int(np.abs(J3)*1e8))
-    newP = [P[0]]
-    if ans == '3x3':
-        newP.append(P[1]*j3)
-        newP.append(P[2*j3]*j3+P[1]*(1-j3))
-        newP.append(P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-1]*j3)
-    elif ans == 'q0':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans[:3] == 'cb1':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans == 'cb2':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans == 'oct':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    return tuple(newP)
-
-
 #### Ansatze encoded in the matrix
 def big_Nk(P,L,args):
     m = inp.m
-    J1,J2,J3,ans,KM,Tau,K_ = args
+    ans,KM,Tau,K_ = args
     ka1 = KM[0]; ka1_=KM[1]; ka2=KM[2]; ka2_=KM[3]; ka12p=KM[4]; ka12p_=KM[5]; ka12m=KM[6]; ka12m_=KM[7]
     t1 = Tau[0]; t1_ = Tau[1]; t2 = Tau[2]; t2_ = Tau[3]; t3 = Tau[4]; t3_ = Tau[5];
-    J1 /= 2.
-    J2 /= 2.
-    J3 /= 2.
-    j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
-    j3 = np.sign(int(np.abs(J3)*1e8))
+    J1 = 1/2
     A1 = P[0]
-    #parameters of the various ansatze
-    A2 = 0;     phiA2 = 0;    phiA2p = 0;
-    A3 = 0;     phiA3 = 0;    phiA3p = 0;
-    B2 = 0;     phiB2 = 0;    phiB2p = 0;
-    B3 = 0;     phiB3 = 0;    phiB3p = 0;
     B1 = P[1]
     phiB1 = P[-1]
     if ans == '1a':      #3
@@ -221,93 +143,53 @@ def big_Nk(P,L,args):
     b1 = B1*np.exp(1j*phiB1);               b1_ = np.conjugate(b1)
     b1p = B1*np.exp(1j*phiB1p);             b1p_ = np.conjugate(b1p)
     b1pi = B1*np.exp(1j*(phiB1p+p1*np.pi)); b1pi_ = np.conjugate(b1pi)
-    b2 = B2*np.exp(1j*phiB2);               b2_ = np.conjugate(b2)
-    b2i = B2*np.exp(1j*(phiB2+p1*np.pi));   b2i_ = np.conjugate(b2i)
-    b2p = B2*np.exp(1j*phiB2p);             b2p_ = np.conjugate(b2p)
-    b2pi = B2*np.exp(1j*(phiB2p+p1*np.pi)); b2pi_ = np.conjugate(b2pi)
-    b3 = B3*np.exp(1j*phiB3);               b3_ = np.conjugate(b3)
-    b3i = B3*np.exp(1j*(phiB3+p1*np.pi));   b3i_ = np.conjugate(b3i)
     #
-    N[0,1] = J1*b1p_ *ka1  *t1_              + J2*b2*t2                         #t1
-    N[0,2] = J1*b1p        *t1               + J2*b2p_ *ka1*t2                  #t1_
-    N[0,4] = J1*b1_  *ka2_ *t1               + J2*b2pi *ka12m*t2_               #t1
-    N[0,5] = J1*b1   *ka2_ *t1_              + J2*b2i_ *ka12p_*t2_              #t1_
+    N[0,1] = J1*b1p_ *ka1  *t1_              #t1
+    N[0,2] = J1*b1p        *t1               #t1_
+    N[0,4] = J1*b1_  *ka2_ *t1               #t1
+    N[0,5] = J1*b1   *ka2_ *t1_              #t1_
     N[1,2] = J1*(b1_       *t1  + b1p_*ka1_*t1_)                                #t1     t1
-    N[1,3] = J1*b1         *t1_              + J2*b2p_ *ka1_*t2                 #t1_
-    N[1,5] =                                   J2*(b2  *ka12p_*t2 + b2p*t2_)
-    N[2,3] = J1*b1_        *t1               + J2*b2   *ka1*t2                  #t1
-    N[2,4] =                                   J2*(b2p_*ka2_*t2 + b2i_*ka1*t2_)
-    N[3,4] = J1*b1pi_*ka1  *t1_              + J2*b2*t2                         #t1
-    N[3,5] = J1*b1p        *t1               + J2*b2pi_*ka1*t2                  #t1_
+    N[1,3] = J1*b1         *t1_ 
+    N[2,3] = J1*b1_        *t1   
+    N[3,4] = J1*b1pi_*ka1  *t1_  
+    N[3,5] = J1*b1p        *t1   
     N[4,5] = J1*(b1_       *t1  + b1pi_*ka1_*t1_)                               #t1     t1
-
-    N[0,0] = J3*b3i_ *ka1_ *t3_
-    N[3,3] = J3*b3_  *ka1_ *t3_
-    N[1,4] = J3*(b3_ *ka2_ *t3_ + b3       *t3)
-    N[2,5] = J3*(b3  *ka12p_  *t3  + b3i_*ka1*t3_)
     ####other half square                                                       #Same ts
-    N[m+0,m+1] = J1*b1p  *ka1  *t1_           + J2*b2_*t2
-    N[m+0,m+2] = J1*b1p_       *t1            + J2*b2p  *ka1*t2
-    N[m+0,m+4] = J1*b1   *ka2_ *t1            + J2*b2pi_*ka12m*t2_
-    N[m+0,m+5] = J1*b1_  *ka2_ *t1_           + J2*b2i  *ka12p_*t2_
+    N[m+0,m+1] = J1*b1p  *ka1  *t1_ 
+    N[m+0,m+2] = J1*b1p_       *t1  
+    N[m+0,m+4] = J1*b1   *ka2_ *t1  
+    N[m+0,m+5] = J1*b1_  *ka2_ *t1_ 
     N[m+1,m+2] = J1*(b1        *t1  + b1p*ka1_*t1_)
-    N[m+1,m+3] = J1*b1_        *t1_           + J2*b2p  *ka1_*t2
-    N[m+1,m+5] =                                J2*(b2_ *ka12p_*t2 + b2p_*t2_)
-    N[m+2,m+3] = J1*b1         *t1            + J2*b2_  *ka1*t2
-    N[m+2,m+4] =                                J2*(b2p *ka2_*t2 + b2i *ka1*t2_)
-    N[m+3,m+4] = J1*b1pi *ka1  *t1_           + J2*b2_*t2
-    N[m+3,m+5] = J1*b1p_       *t1            + J2*b2pi *ka1*t2
+    N[m+1,m+3] = J1*b1_        *t1_ 
+    N[m+2,m+3] = J1*b1         *t1  
+    N[m+3,m+4] = J1*b1pi *ka1  *t1_ 
+    N[m+3,m+5] = J1*b1p_       *t1  
     N[m+4,m+5] = J1*(b1        *t1  + b1pi*ka1_*t1_)
-
-    N[m+0,m+0] = J3*b3i *ka1_ *t3_
-    N[m+3,m+3] = J3*b3  *ka1_ *t3_
-    N[m+1,m+4] = J3*(b3 *ka2_ *t3_ + b3_  *t3)
-    N[m+2,m+5] = J3*(b3_*ka12p_  *t3  + b3i *ka1*t3_)
     ######################################## A
     a1 =    A1
     a1p =   A1*np.exp(1j*phiA1p)
     a1pi =  A1*np.exp(1j*(phiA1p+p1*np.pi))
-    a2 =    A2*np.exp(1j*phiA2)
-    a2i =   A2*np.exp(1j*(phiA2+p1*np.pi))
-    a2p =   A2*np.exp(1j*phiA2p)
-    a2pi =  A2*np.exp(1j*(phiA2p+p1*np.pi))
-    a3 =    A3*np.exp(1j*phiA3)
-    a3i =   A3*np.exp(1j*(phiA3+p1*np.pi))
-    N[0,m+1] = - J1*a1p *ka1 *t1_           +J2*a2*t2
-    N[0,m+2] =   J1*a1p      *t1            -J2*a2p  *ka1*t2
-    N[0,m+4] = - J1*a1  *ka2_*t1            +J2*a2pi *ka12m*t2_
-    N[0,m+5] =   J1*a1  *ka2_*t1_           -J2*a2i  *ka12p_*t2_
+    N[0,m+1] = - J1*a1p *ka1 *t1_  
+    N[0,m+2] =   J1*a1p      *t1   
+    N[0,m+4] = - J1*a1  *ka2_*t1   
+    N[0,m+5] =   J1*a1  *ka2_*t1_  
     N[1,m+2] = - J1*(a1      *t1   +a1p*ka1_*t1_)
-    N[1,m+3] =   J1*a1       *t1_           -J2*a2p  *ka1_*t2
-    N[1,m+5] =                               J2*(a2  *ka12p_*t2  +a2p*t2_)
-    N[2,m+3] = - J1*a1       *t1            +J2*a2   *ka1*t2
-    N[2,m+4] =                              -J2*(a2p *ka2_*t2  +a2i*ka1*t2_)
-    N[3,m+4] = - J1*a1pi*ka1 *t1_           +J2*a2*t2
-    N[3,m+5] =   J1*a1p      *t1            -J2*a2pi *ka1*t2
+    N[1,m+3] =   J1*a1       *t1_ 
+    N[2,m+3] = - J1*a1       *t1  
+    N[3,m+4] = - J1*a1pi*ka1 *t1_ 
+    N[3,m+5] =   J1*a1p      *t1  
     N[4,m+5] = - J1*(a1      *t1   +a1pi*ka1_*t1_)
-
-    N[0,m+0] = - J3*a3i *ka1_*t3_
-    N[3,m+3] = - J3*a3  *ka1_*t3_
-    N[1,m+4] = - J3*(a3 *ka2_*t3_  -a3 *t3)
-    N[2,m+5] = - J3*(a3i*ka1*t3_  -a3 *ka12p_ *t3)
     #not the diagonal
-    N[1,m]   =   J1*a1p *ka1_*t1            -J2*a2*t2_
-    N[2,m]   = - J1*a1p      *t1_           +J2*a2p  *ka1_*t2_
-    N[4,m]   =   J1*a1  *ka2 *t1_           -J2*a2pi *ka12m_*t2
-    N[5,m]   = - J1*a1  *ka2 *t1            +J2*a2i  *ka12p*t2
+    N[1,m]   =   J1*a1p *ka1_*t1  
+    N[2,m]   = - J1*a1p      *t1_ 
+    N[4,m]   =   J1*a1  *ka2 *t1_ 
+    N[5,m]   = - J1*a1  *ka2 *t1  
     N[2,m+1] =   J1*(a1      *t1_  +a1p*ka1 *t1)
-    N[3,m+1] = - J1*a1       *t1            +J2*a2p  *ka1_*t2_
-    N[5,m+1] =                              -J2*(a2  *ka12p*t2_   +a2p*t2)
-    N[3,m+2] =   J1*a1       *t1_           -J2*a2   *ka1_*t2_
-    N[4,m+2] =                               J2*(a2p *ka2*t2_   +a2i*ka1_*t2)
-    N[4,m+3] =   J1*a1pi*ka1_*t1            -J2*a2*t2_
-    N[5,m+3] = - J1*a1p      *t1_           +J2*a2pi *ka1_*t2_
+    N[3,m+1] = - J1*a1       *t1  
+    N[3,m+2] =   J1*a1       *t1_ 
+    N[4,m+3] =   J1*a1pi*ka1_*t1  
+    N[5,m+3] = - J1*a1p      *t1_ 
     N[5,m+4] =   J1*(a1      *t1_  +a1pi*ka1 *t1)
-
-    N[0,m+0] +=  J3*a3i *ka1  *t3
-    N[3,m+3] +=  J3*a3  *ka1  *t3
-    N[4,m+1] =   J3*(a3 *ka2 *t3   -a3 *t3_)
-    N[5,m+2] =   J3*(a3i*ka1_ *t3   -a3 *ka12p *t3_)
     #################################### HERMITIAN MATRIX
     #N += np.conjugate(N.transpose((1,0,2,3)))
     for i in range(2*m):

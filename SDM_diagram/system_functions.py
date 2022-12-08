@@ -49,7 +49,9 @@ def FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_):
         if ans in list(P.keys()):
             done[ans] = 1
             continue
-        P[ans] = Pi_[ans]
+        P[ans] = []
+        for i in Pi_[ans].keys():
+            P[ans].append(Pi_[ans][i])
         done[ans] = 0
     return P, done
 

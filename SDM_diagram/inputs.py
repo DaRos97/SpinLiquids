@@ -25,7 +25,11 @@ header = {'1a':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B
           }
 num_phi = {'1a':1,'1b':1,'1c':1,'1d':1,'1e':2,'1f':2}
 shame2 = 100
-
+list_A2 = []
+list_A3 = []
+list_B2 = []
+list_B3 = []
+z = [4,4,2]
 
 
 

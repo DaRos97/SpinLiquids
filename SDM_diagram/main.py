@@ -8,6 +8,7 @@ import numpy as np
 import inputs as inp
 import system_functions as sf
 import functions as fs
+from scipy.optimize import differential_evolution as d_e
 from time import time as t
 import sys
 import getopt
@@ -34,9 +35,11 @@ DM_max = 0.5
 S_pts = 10
 DM_pts = 15
 S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
+DM_list = list(np.logspace(-5,np.log(DM_max),DM_pts,base = np.e))
+DM_list.insert(0, 0)
 S = S_list[J%S_pts]
 DM = DM_list[J//S_pts]
+print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM; DM2 = 0; DM3 = 2*DM
 #Filenames
 DirName = '/home/users/r/rossid/SDM_Data/'
@@ -74,12 +77,17 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
-Pi_ = { '1a':{'A1':0.4,'B1':0.1,'phiB1':np.pi},
-        '1b':{'A1':0.4,'B1':0.1,'phiB1':np.pi},
-        '1c':{'A1':0.4,'B1':0.1,'phiB1':np.pi},
-        '1d':{'A1':0.4,'B1':0.1,'phiB1':np.pi},
-        '1e':{'A1':0.4,'B1':0.1,'phiA1':0,'phiB1':np.pi},
-        '1f':{'A1':0.4,'B1':0.1,'phiA1':0,'phiB1':np.pi},
+minP = 0
+maxA = (2*S+1)/2
+maxB = S
+Ai = maxA/2
+Bi = maxB/2
+Pi_ = { '1a':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
+        '1b':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
+        '1c':{'A1':Ai,'B1':Bi,'phiB1':np.pi+t_0},
+        '1d':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
+        '1e':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
+        '1f':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
        }
 ansatze = sf.CheckCsv(csvfile)
 Pinitial, done  = sf.FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_)
@@ -87,10 +95,9 @@ Pinitial, done  = sf.FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_)
 bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
-    minP = 0
-    maxA = (2*S+1)/2
-    maxB = S
     phase_step = 0.2
+    if ans == '1c' or ans == '1d':
+        phase_step = np.pi
     #bounds
     for param in inp.header[ans][8:]:
         if param[0] == 'A':
@@ -100,7 +107,11 @@ for ans in inp.list_ans:
         elif param[:3] == 'phi':
             bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
         bounds_[ans][param] = bb
-Bnds = bounds_
+Bnds = {}
+for ans in bounds_.keys():
+    Bnds[ans] = []
+    for i in bounds_[ans].keys():
+        Bnds[ans].append(bounds_[ans][i])
 #Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 DerRange = sf.ComputeDerRanges(ansatze)
 
@@ -116,12 +127,12 @@ for ans in ansatze:
     Tti = t()   #Initial time of the ansatz
     header = inp.header[ans]
     hess_sign = {}
-    pars = Pinitial[ans].keys()
+    pars = list(Pi_[ans].keys())
     for par in pars:
         hess_sign[par] = 1 if ('A' in [*par]) else -1
     #
     is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
-    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
+    Args = (ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
     DataDic = {}
     #Actual minimization
     result = d_e(fs.Sigma,
