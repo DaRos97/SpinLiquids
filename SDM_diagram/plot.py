@@ -21,13 +21,16 @@ Color = {'1a': ['r','orange'],
          }
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "K:")
+    opts, args = getopt.getopt(argv, "K:",["plot="])
+    plot = 'lin'
 except:
     print("Error in inputs")
     exit()
 for opt, arg in opts:
     if opt in ['-K']:
         K = int(arg)
+    if opt == "--plot":
+        plot = arg
 
 dirname = '../Data/SDM/'+str(K)+'/' 
 #
@@ -85,8 +88,10 @@ for i in range(DM_pts+1):
             OL = 0
         c = Color[D[i,j][:-2]][OL]
         plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
-plt.xlim(-0.001,0.1)
-#plt.xscale('log')
+if plot == 'log':
+    plt.xscale('log')
+else:
+    plt.xlim(-0.001,0.1)
 #Legenda
 list_leg = []
 for col in Color.keys():

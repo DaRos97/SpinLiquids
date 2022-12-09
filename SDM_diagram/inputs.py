@@ -2,7 +2,7 @@ import numpy as np
 m = 6
 ####
 mp_cpu = 16
-list_ans = ['1a','1b','1c','1d','1f']
+list_ans = ['1a','1b','1c','1d','1e','1f','1f0','1f1','1f2','1f3','1f4']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids

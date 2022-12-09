@@ -35,8 +35,10 @@ DM_max = 0.5
 S_pts = 10
 DM_pts = 15
 S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = list(np.logspace(-5,np.log(DM_max),DM_pts,base = np.e))
-DM_list.insert(0, 0)
+DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
+DM_list_neg = np.flip(-DM_list)#.reverse()
+DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
+DM_list = np.concatenate((DM_list_neg,DM_list))
 S = S_list[J%S_pts]
 DM = DM_list[J//S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
@@ -77,7 +79,7 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
-minP = 1e-4
+minP = 0.00085
 maxA = (2*S+1)/2
 maxB = S
 Ai = maxA/2
@@ -86,7 +88,7 @@ Pi_ = { '1a':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1b':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1c':{'A1':Ai,'B1':Bi,'phiB1':np.pi+t_0},
         '1d':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
-        '1e':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
+        '1e':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
         '1f':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
         '1f0':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
         '1f1':{'A1':Ai,'B1':Bi,'phiA1':t_0,'phiB1':np.pi},
@@ -101,7 +103,7 @@ bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
     phase_step = 0.2
-    if ans == '1c' or ans == '1d' or ans == '1e':
+    if ans == '1c' or ans == '1d':
         phase_step = np.pi
     #bounds
     for param in inp.header[ans][8:]:
