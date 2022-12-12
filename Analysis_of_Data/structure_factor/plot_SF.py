@@ -6,7 +6,7 @@ import sys
 import getopt
 
 list_ans = ['3x3','q0','cb1','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '104':np.pi/3, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '104':np.pi/3, '209':2*np.pi/3}
 S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]
@@ -63,8 +63,32 @@ for i in range(Kx):
         K[:,i,j] = np.array([kxg[i],kyg[j]])
 #
 plt.figure()
-figManager = plt.get_current_fig_manager()
-figManager.window.showMaximized()
+plt.gca().set_aspect('equal')
+#
+plt.plot(fs.X1,fs.fu1(fs.X1),'k-')
+plt.hlines(2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
+plt.plot(fs.X2,fs.fu3(fs.X2),'k-')
+plt.plot(fs.X1,fs.fd1(fs.X1),'k-')
+plt.hlines(-2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
+plt.plot(fs.X2,fs.fd3(fs.X2),'k-')
+#
+plt.plot(fs.X3,fs.Fu1(fs.X3),'k-')
+plt.hlines(4*np.pi/np.sqrt(3), -4*np.pi/3,4*np.pi/3, color = 'k')
+plt.plot(fs.X4,fs.Fu3(fs.X4),'k-')
+plt.plot(fs.X3,fs.Fd1(fs.X3),'k-')
+plt.hlines(-4*np.pi/np.sqrt(3), -4*np.pi/3,4*np.pi/3, color = 'k')
+plt.plot(fs.X4,fs.Fd3(fs.X4),'k-')
+#
+plt.scatter(K[0],K[1],c=SFxy+SFzz,cmap = cm.get_cmap('plasma_r'))
+plt.colorbar()
+plt.show()
+###
+###
+###
+###
+plt.figure()
+#figManager = plt.get_current_fig_manager()
+#figManager.window.showMaximized()
 title = ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+')'
 plt.suptitle(title)
 #plt.axis('off')

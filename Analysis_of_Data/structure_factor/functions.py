@@ -164,7 +164,7 @@ def Nk(K,par,args):
     ka2 = np.exp(1j*np.dot(a2,K));   ka2_ = np.conjugate(ka2);
     ka12p = np.exp(1j*np.dot(a12p,K));   ka12p_ = np.conjugate(ka12p);
     ka12m = np.exp(1j*np.dot(a12m,K));   ka12m_ = np.conjugate(ka12m);
-    J1,J2,J3,ans,DM = args
+    J1,J2,J3,ans,DM,is_SU2 = args
     DM1 = DM
     DM2 = 0
     DM3 = 2*DM1
@@ -185,7 +185,7 @@ def Nk(K,par,args):
         p104 = 1
     A1 = p104*P[0]
     #parameters of the various ansatze
-    if ans == '3x3':      #3
+    if ans == '3x3' and is_SU2:      #3
         A2 = 0;     phiA2 = 0;    phiA2p = 0;
         A3 = P[1*j3]*j3
         B1 = P[2*j3]*j3 + P[1]*(1-j3)
@@ -195,7 +195,7 @@ def Nk(K,par,args):
         phiA1p = np.pi
         phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, 0, 0, np.pi)
         p1 = 0
-    elif ans == 'q0':     #1
+    elif ans == 'q0' and is_SU2:     #1
         A3 = 0; phiA3 = 0
         A2 = P[1]*j2
         B1 = P[2*j2]*j2+P[1]*(1-j2)
@@ -205,7 +205,7 @@ def Nk(K,par,args):
         phiA1p, phiA2p = (0, phiA2)
         phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, np.pi, np.pi, 0)
         p1 = 0
-    elif ans == 'cb1':
+    elif ans == 'cb1' and is_SU2:
         B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
@@ -216,7 +216,7 @@ def Nk(K,par,args):
         phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
         phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
         p1 = 1
-    elif ans == 'cb1_nc':
+    elif ans == 'cb1_nc' and is_SU2:
         B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
@@ -227,7 +227,7 @@ def Nk(K,par,args):
         phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2+np.pi)
         phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
         p1 = 1
-    elif ans == 'cb2':
+    elif ans == 'cb2' and is_SU2:
         B3 = 0; phiB3 = 0
         A2 = P[1*j2]*j2
         A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
@@ -238,7 +238,7 @@ def Nk(K,par,args):
         phiA1p, phiA2p, phiA3 = (0, -phiA2, 0)
         phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
         p1 = 1
-    elif ans == 'oct':
+    elif ans == 'oct' and is_SU2:
         A3 = 0; phiA3 = 0
         A2 = P[1]*j2
         B1 = P[2*j2]*j2+P[1]*(1-j2)
@@ -248,6 +248,18 @@ def Nk(K,par,args):
         phiB2 = P[-1]*j2
         phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
         phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
+        p1 = 1
+    elif ans == 'cb1' and not is_SU2:
+        B3 = 0; phiB3 = 0
+        A2 = P[1*j2]*j2
+        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
+        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
+        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
+        phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
+        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
+        phiB2 = P[-1]*j2
+        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
+        phiB1p, phiB2p= (phiB1 ,-phiB2)
         p1 = 1
     B1 *= p104
     ################

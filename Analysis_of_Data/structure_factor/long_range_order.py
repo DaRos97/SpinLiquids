@@ -6,7 +6,7 @@ import getopt
 import sys
 
 list_ans = ['3x3','q0','cb1','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48,'104':np.pi/3, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48,'104':np.pi/3, '209':2*np.pi/3}
 S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]
@@ -37,17 +37,19 @@ for opt, arg in opts:
         if ans not in list_ans:
             print('Error in -ans choice')
             exit()
-    if opt == '-kpts':
+    if opt == '--kpts':
         pts = arg
 S = S_dic[txt_S]
 DM_angle = DM_list[DM]
+is_SU2 = True if DM in ['000','104','209'] else False
 #Arguments
-args = (1,J2,J3,ans,DM_angle)
+args = (1,J2,J3,ans,DM_angle,is_SU2)
 ########################################
 ########################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 #import data from file
-filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+filename = '../../Data/S'+txt_S+'/phi'+DM+'/40_n2.csv'
+#filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
 data = fs.import_data(ans,filename)
 #compute the Ks of the minimum band
 Nx = 37     #points for looking at minima in BZ
