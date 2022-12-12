@@ -86,7 +86,9 @@ Ai = maxA/2
 Bi = maxB/2
 Pi_ = { '1a':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1b':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
-        '1c':{'A1':Ai,'B1':Bi,'phiB1':np.pi+t_0},
+        '1c':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
+        '1c1':{'A1':Ai,'B1':Bi,'phiB1':np.pi-t_0},
+        '1c2':{'A1':Ai,'B1':Bi,'phiB1':np.pi+t_0},
         '1d':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1e':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
         '1f':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
@@ -103,8 +105,10 @@ bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
     phase_step = 0.2
-    if ans == '1c' or ans == '1d':
+    if ans == '1d':
         phase_step = np.pi
+    if ans[:2] == '1c':
+        phase_step = 0.5
     #bounds
     for param in inp.header[ans][8:]:
         if param[0] == 'A':

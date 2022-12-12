@@ -121,7 +121,7 @@ def big_Nk(P,L,args):
         phiA1p = np.pi
         phiB1p = -phiB1
         p1 = 0
-    if ans == '1c':      #3
+    if ans[:2] == '1c':      #3
         phiA1p = 0
         phiB1p = -phiB1
         p1 = 1

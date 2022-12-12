@@ -11,7 +11,7 @@ for filename in os.listdir(dirname):
     delete = []
     for i in range(N_):
         data = lines[i*2+1].split(',')
-        if float(data[9]) < 0.00085:
+        if data[0] == '1d' and float(data[9]) < 0.001:
             print(filename,data[0])
             n += 1
 print(n)

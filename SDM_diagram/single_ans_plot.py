@@ -6,10 +6,6 @@ import sys
 import getopt
 from matplotlib import cm
 
-Color = {'1a': ['red','firebrick'],
-         '1b':  ['yellow','y'],
-         '1f':  ['lime','limegreen'],
-         }
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "K:a:",["plot"])
@@ -33,15 +29,17 @@ DM_max = 0.5
 S_pts = 10
 DM_pts = 15
 S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = list(np.logspace(-5,np.log(DM_max),DM_pts,base = np.e))
-DM_list.insert(0, 0)
+DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
+DM_list_neg = np.flip(-DM_list)#.reverse()
+DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
+DM_list = np.concatenate((DM_list_neg,DM_list))
 X,Y = np.meshgrid(DM_list,S_list)
 Head = inp.header[ans][3:]
 head = []
 for h in Head:
     head.append(h)
 for h in head:
-    D[h] = np.zeros((DM_pts+1,S_pts))
+    D[h] = np.zeros((2*DM_pts+1,S_pts))
     D[h][:] = np.nan
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
@@ -68,11 +66,11 @@ for filename in os.listdir(dirname):
                     except:
                         print("not good: ",h,dm,s)
             break
-print("Non converged points: ",int((DM_pts+1)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
+print("Non converged points: ",int((2*DM_pts+1)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
 for i in range(nP):
     temp = []
-    for l in range(DM_pts+1):
+    for l in range(2*DM_pts+1):
         for j in range(S_pts):
             if D[head[i]][l,j] == 0:
                 D[head[i]][l,j] = np.nan

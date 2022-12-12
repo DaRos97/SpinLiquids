@@ -10,7 +10,9 @@ from matplotlib.lines import Line2D
 Color = {'1a': ['r','orange'],
          '1b':  ['blue','aqua'],
          '1c':  ['pink','aqua'],
-         '1d':  ['grey','aqua'],
+         #'1c1':  ['pink','aqua'],
+         #'1c2':  ['pink','aqua'],
+         '1d':  ['orange','aqua'],
          '1f':  ['forestgreen','lime'],
          '1f0':  ['yellow','lime'],
          '1f1':  ['red','lime'],
@@ -39,10 +41,12 @@ DM_max = 0.5
 S_pts = 10
 DM_pts = 15
 S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = list(np.logspace(-5,np.log(DM_max),DM_pts,base = np.e))
-DM_list.insert(0, 0)
+DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
+DM_list_neg = np.flip(-DM_list)#.reverse()
+DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
+DM_list = np.concatenate((DM_list_neg,DM_list))
 X,Y = np.meshgrid(DM_list,S_list)
-D = np.ndarray((DM_pts+1,S_pts),dtype='object')
+D = np.ndarray((2*DM_pts+1,S_pts),dtype='object')
 DD_none = D[0,0]
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
@@ -77,21 +81,31 @@ pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(8,4))
 plt.title("DM diagram")
 #plt.gca().set_aspect('equal')
-for i in range(DM_pts+1):
+for i in range(DM_pts,-1,-1):
     for j in range(S_pts):
-        if D[i,j] == DD_none:
+        if D[DM_pts+i,j] == DD_none:
             continue
-        OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
-        m = 'o' if D[i,j][-2] == 'g' else 'x'
-        if D[i,j][-1] == 'n':
+        if D[DM_pts-i,j] == DD_none:
+            continue
+        OL = 1 if D[DM_pts+i,j][-1] == 'L' else 0       #Order or Liquid
+        m = 'o' if D[DM_pts+i,j][-2] == 'g' else 'x'
+        if D[DM_pts+i,j][-1] == 'n':
             m = 'o'
             OL = 0
-        c = Color[D[i,j][:-2]][OL]
-        plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
+        c = Color[D[DM_pts+i,j][:-2]][OL]
+        plt.scatter(DM_list[DM_pts+i],S_list[j],color=c,marker=m)
+        #
+        OL = 1 if D[DM_pts-i,j][-1] == 'L' else 0       #Order or Liquid
+        m = 'o' if D[DM_pts-i,j][-2] == 'g' else 'x'
+        if D[DM_pts-i,j][-1] == 'n':
+            m = 'o'
+            OL = 0
+        c = Color[D[DM_pts-i,j][:-2]][OL]
+        plt.scatter(DM_list[DM_pts-i],S_list[j],color=c,marker=m)
 if plot == 'log':
-    plt.xscale('log')
+    plt.xscale('symlog')
 else:
-    plt.xlim(-0.001,0.1)
+    plt.xlim(-0.1,0.1)
 #Legenda
 list_leg = []
 for col in Color.keys():

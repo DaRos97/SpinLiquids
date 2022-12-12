@@ -2,7 +2,7 @@ import numpy as np
 m = 6
 ####
 mp_cpu = 16
-list_ans = ['1a','1b','1c','1d','1e','1f','1f0','1f1','1f2','1f3','1f4']
+list_ans = ['1a','1b','1c','1c1','1c2','1d','1e','1f','1f0','1f1','1f2','1f3','1f4']
 #derivative
 s_b_modulus = 0.01 #bound on values given by smaller grids
 s_b_phase   = 0.1 #bound on values given by smaller grids
@@ -19,6 +19,8 @@ L_b_2 = 0.01
 header = {'1a':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'], 
           '1b':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1c':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
+          '1c1':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
+          '1c2':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1d':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1e':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
           '1f':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
@@ -28,7 +30,7 @@ header = {'1a':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B
           '1f3':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
           '1f4':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
           }
-num_phi = {'1a':1,'1b':1,'1c':1,'1d':1,'1e':2,'1f':2,'1f0':2,'1f1':2,'1f2':2,'1f3':2,'1f4':2}
+num_phi = {'1a':1,'1b':1,'1c':1,'1c1':1,'1c2':1,'1d':1,'1e':2,'1f':2,'1f0':2,'1f1':2,'1f2':2,'1f3':2,'1f4':2}
 shame2 = 100
 list_A2 = []
 list_A3 = []
