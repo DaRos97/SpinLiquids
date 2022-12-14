@@ -87,7 +87,7 @@ Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
         'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
         'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
         }
-Pinitial, done  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
+Pinitial, done, L_dic  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)            ####################
 #Find the bounds to the free parameters for each ansatz
 bounds_ = {}
 for ans in inp.list_ans:
@@ -146,7 +146,7 @@ for ans in ansatze:
             else:
                 hess_sign[par] = 1
     is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
-    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
+    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S,L_dic[ans])
     DataDic = {}
     #Actual minimization
     result = d_e(cf.Sigma,

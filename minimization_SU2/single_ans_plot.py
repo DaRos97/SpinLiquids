@@ -38,7 +38,7 @@ for opt, arg in opts:
 #S = '05'
 #S = '03'
 #ans = sys.argv[1]
-phi = "{:3.2f}".format(float(phi)).replace('.','')
+#phi = "{:3.2f}".format(float(phi)).replace('.','')
 dirname = '../Data/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
 D = {}
 Ji = -0.3

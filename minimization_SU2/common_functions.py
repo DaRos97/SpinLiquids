@@ -20,10 +20,10 @@ for i in range(inp.m):
 # Check also Hessians on the way --> more time (1 general + 2 energy evaluations for each P).
 # Calls only the totE func
 def Sigma(P,*Args):
-    J1,J2,J3,ans,der_range,pars,hess_sign,is_min,KM,Tau,K_,S = Args         #extract arguments
+    J1,J2,J3,ans,der_range,pars,hess_sign,is_min,KM,Tau,K_,S,L_initial = Args         #extract arguments
     j2 = int(np.sign(J2)*np.sign(int(np.abs(J2)*1e8)) + 1)      #j < 0 --> 0, j == 0 --> 1, j > 0 --> 2
     j3 = int(np.sign(J3)*np.sign(int(np.abs(J3)*1e8)) + 1)
-    L_bounds = inp.L_bounds                                     #bounds on Lagrange multiplier set by default
+    L_bounds = (L_initial-inp.L_bnd_ref,L_initial+inp.L_bnd_ref) if L_initial else inp.L_bounds       #bounds on Lagrange multiplier set by default
     args = (J1,J2,J3,ans,L_bounds,KM,Tau,K_,S)                              #arguments to pass to totE
     init = totE(P,args)                                         #compute the initial point        #1
     if init[2] > 9 or np.abs(init[1]-L_bounds[0]) < 1e-3:       #check whether is good (has to be)

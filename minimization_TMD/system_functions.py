@@ -29,6 +29,7 @@ def CheckCsv(csvf):
 def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
     P = {}  #parameters
     done = {}
+    L = {}
     if Path(ReferenceDir).is_dir():
         for file_ in os.listdir(ReferenceDir):     #find file in dir
             j2 = float(file_[7:-5].split('_')[0])/10000  #specific for the name of the file
@@ -41,6 +42,7 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
                     for i in range(N):
                         data = lines[i*2+1].split(',')
                         if data[0] == Ans:              #correct ansatz
+                            L[data[0]] = float(data[7])
                             P[data[0]] = data[8:]
                             for j in range(len(P[data[0]])):    #cast to float
                                 P[data[0]][j] = float(P[data[0]][j])
@@ -59,6 +61,7 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
             done[ans] = 1
             continue
         P[ans] = []
+        L[ans] = 0
         for par in Pi_[ans].keys():
             if par[-1] == '1':
                 P[ans].append(Pi_[ans][par])
@@ -67,7 +70,7 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
             elif par[-1] == '3' and j3:
                 P[ans].append(Pi_[ans][par])
         done[ans] = 0
-    return P, done
+    return P, done, L
 
 #Constructs the bounds of the specific ansatz depending on the number and type of parameters involved in the minimization
 def FindBounds(J2,J3,ansatze,done,Pin,Pi_,bounds_):
