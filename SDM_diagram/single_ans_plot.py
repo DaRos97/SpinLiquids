@@ -22,17 +22,15 @@ for opt, arg in opts:
         K = arg
     if opt == '--plot':
         plot = True
-dirname = '../Data/SDM/'+K+'/'
+#dirname = '../Data/SDM/'+K+'/'
+dirname = '../Data/sdm/13/'
 D = {}
 S_max = 0.5
-DM_max = 0.5
-S_pts = 10
-DM_pts = 15
-S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
-DM_list_neg = np.flip(-DM_list)#.reverse()
-DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
-DM_list = np.concatenate((DM_list_neg,DM_list))
+DM_max = 0.3
+S_pts = 30
+DM_pts = 30
+S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
+DM_list = np.linspace(0,DM_max,DM_pts,endpoint=True)
 X,Y = np.meshgrid(DM_list,S_list)
 Head = inp.header[ans][3:]
 head = []
@@ -70,7 +68,7 @@ print("Non converged points: ",int((2*DM_pts+1)*S_pts-np.sum(~np.isnan(D['Conver
 nP = len(head)
 for i in range(nP):
     temp = []
-    for l in range(2*DM_pts+1):
+    for l in range(DM_pts):
         for j in range(S_pts):
             if D[head[i]][l,j] == 0:
                 D[head[i]][l,j] = np.nan

@@ -7,46 +7,45 @@ import getopt
 from matplotlib import cm
 from matplotlib.lines import Line2D
 
-Color = {'1a': ['r','orange'],
-         '1b':  ['blue','aqua'],
+Color = {'1b': ['r','orange'],
+         '1a':  ['blue','aqua'],
          '1c':  ['pink','aqua'],
          #'1c1':  ['pink','aqua'],
          #'1c2':  ['pink','aqua'],
          '1d':  ['orange','aqua'],
+         '1e':  ['yellow','aqua'],
          '1f':  ['forestgreen','lime'],
-         '1f0':  ['yellow','lime'],
-         '1f1':  ['red','lime'],
-         '1f2':  ['aqua','lime'],
-         '1f3':  ['gold','lime'],
-         '1f4':  ['limegreen','lime'],
+#         '1f0':  ['yellow','lime'],
+#         '1f1':  ['red','lime'],
+#         '1f2':  ['aqua','lime'],
+#         '1f3':  ['gold','lime'],
+#         '1f4':  ['limegreen','lime'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "K:",["plot="])
-    plot = 'lin'
+    opts, args = getopt.getopt(argv, "K:")
+    K = 0
 except:
     print("Error in inputs")
     exit()
 for opt, arg in opts:
     if opt in ['-K']:
         K = int(arg)
-    if opt == "--plot":
-        plot = arg
-
-dirname = '../Data/SDM/'+str(K)+'/' 
+if K:
+    dirname = '../Data/SDM/'+str(K)+'/' 
+else: 
+    dirname = '../Data/SDM/final_SDM/' 
+dirname = '../Data/sdm/13/'
 #
 S_max = 0.5
-DM_max = 0.5
-S_pts = 10
-DM_pts = 15
-S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
-DM_list_neg = np.flip(-DM_list)#.reverse()
-DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
-DM_list = np.concatenate((DM_list_neg,DM_list))
+DM_max = 0.3
+S_pts = 30
+DM_pts = 30
+S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
+DM_list = np.linspace(0,DM_max,DM_pts,endpoint=True)
 X,Y = np.meshgrid(DM_list,S_list)
-D = np.ndarray((2*DM_pts+1,S_pts),dtype='object')
+D = np.ndarray((DM_pts,S_pts),dtype='object')
 DD_none = D[0,0]
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
@@ -81,31 +80,17 @@ pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(8,4))
 plt.title("DM diagram")
 #plt.gca().set_aspect('equal')
-for i in range(DM_pts,-1,-1):
+for i in range(DM_pts):
     for j in range(S_pts):
-        if D[DM_pts+i,j] == DD_none:
-            continue
-        if D[DM_pts-i,j] == DD_none:
-            continue
-        OL = 1 if D[DM_pts+i,j][-1] == 'L' else 0       #Order or Liquid
-        m = 'o' if D[DM_pts+i,j][-2] == 'g' else 'x'
-        if D[DM_pts+i,j][-1] == 'n':
+        OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
+        m = 'o' if D[i,j][-2] == 'g' else 'x'
+        if D[i,j][-1] == 'n':
             m = 'o'
             OL = 0
-        c = Color[D[DM_pts+i,j][:-2]][OL]
-        plt.scatter(DM_list[DM_pts+i],S_list[j],color=c,marker=m)
-        #
-        OL = 1 if D[DM_pts-i,j][-1] == 'L' else 0       #Order or Liquid
-        m = 'o' if D[DM_pts-i,j][-2] == 'g' else 'x'
-        if D[DM_pts-i,j][-1] == 'n':
-            m = 'o'
-            OL = 0
-        c = Color[D[DM_pts-i,j][:-2]][OL]
-        plt.scatter(DM_list[DM_pts-i],S_list[j],color=c,marker=m)
-if plot == 'log':
-    plt.xscale('symlog')
-else:
-    plt.xlim(-0.1,0.1)
+        c = Color[D[i,j][:-2]][OL]
+        plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
+plt.ylim(0,0.501)
+plt.xlim(-0.001,0.1)
 #Legenda
 list_leg = []
 for col in Color.keys():

@@ -8,11 +8,10 @@ from scipy.optimize import curve_fit
 
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05, '104':np.pi/3*2, '209':2*np.pi/3}
 argv = sys.argv[1:]
-#try:
-if 1:
-    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax='])
+try:
+    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax=',"fit="])
     S = 0.5
     txt_S = '50'
     J2 = 0
@@ -20,14 +19,14 @@ if 1:
     DM = '000'
     ans = '3x3'
     N_max = 13
-#except:
-else:
+    fit = 'lin'
+except:
     print("Error in input parameters")
     exit()
 for opt, arg in opts:
     if opt in ['-S']:
         txt_S = arg
-        S_dic = {'50':0.5,'36':(np.sqrt(3)-1)/2,'30':0.3,'20':0.2}
+        S_dic = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
         if txt_S not in S_dic.keys():
             print('Error in -S argument')
             exit()
@@ -41,6 +40,7 @@ for opt, arg in opts:
         if DM not in DM_list.keys():
             print('Not computed DM angle')
             exit()
+        type_of_ans = 'SU2' if DM in ['000','104','209'] else 'TMD'
     if opt == '--ans':
         ans = arg 
         if ans not in list_ans:
@@ -48,10 +48,13 @@ for opt, arg in opts:
             exit()
     if opt == '--Nmax':
         N_max = int(arg)
+    if opt == '--fit':
+        fit = arg
+
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 #import data
 arguments = (ans,DM,J2,J3,txt_S)
-arg2 = (ans,DM_list[DM],J2,J3,txt_S)
+arg2 = (ans,DM_list[DM],J2,J3,txt_S,type_of_ans)
 data = []
 gaps1 = []
 gaps2 = []
@@ -82,17 +85,13 @@ def exp_decay(x,a,b,c):
     return a*np.exp(b*x) + c
 def linear(x,a,b):
     return a/x + b
-
-
-if 0:
-    z = np.polyfit(N_,gaps2,2)
-    conv = 1
-if 0:
-    pars,cov = curve_fit(exp_decay,N_,gaps2,p0=[1,-1,0],bounds=(-1e5,np.inf))
-    print("Fitted")
-    conv = 1
+def quadratic(x,a,b):
+    return a/x**2 + b
+def sqrt(x,a,b):
+    return a/np.sqrt(x) + b
+fit_curve_def = {'exp':exp_decay,'lin':linear,'quad':quadratic,'sqrt':sqrt}
 try:
-    pars,cov = curve_fit(linear,N_,gaps2,p0=[1,0],bounds=(-1e5,np.inf))
+    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=[1,0],bounds=(0,np.inf))
     print("Fitted")
     conv = 1
 except:

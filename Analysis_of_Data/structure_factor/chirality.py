@@ -3,7 +3,7 @@ import sys
 import getopt
 
 list_ans = ['3x3','q0','cb1','cb2','oct']
-DM_list = {'000':0, '006':np.pi/48, '013':2*np.pi/48, '019':3*np.pi/48, '026':4*np.pi/48, '032':5*np.pi/48, '039':6*np.pi/48,'104':np.pi/3, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05,'104':np.pi/3, '209':2*np.pi/3}
 S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]

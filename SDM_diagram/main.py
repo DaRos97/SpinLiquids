@@ -31,14 +31,11 @@ J2 = 0
 J3 = 0
 #S and DM
 S_max = 0.5
-DM_max = 0.5
-S_pts = 10
-DM_pts = 15
-S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
-DM_list_neg = np.flip(-DM_list)#.reverse()
-DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
-DM_list = np.concatenate((DM_list_neg,DM_list))
+DM_max = 0.3
+S_pts = 30
+DM_pts = 30
+S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
+DM_list = np.linspace(0,DM_max,DM_pts,endpoint=True)
 S = S_list[J%S_pts]
 DM = DM_list[J//S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
