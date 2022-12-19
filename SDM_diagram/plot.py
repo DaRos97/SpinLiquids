@@ -89,7 +89,7 @@ for i in range(DM_pts):
             OL = 0
         c = Color[D[i,j][:-2]][OL]
         plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
-plt.ylim(0,0.501)
+plt.ylim(0.035,0.301)
 plt.xlim(-0.001,0.1)
 #Legenda
 list_leg = []

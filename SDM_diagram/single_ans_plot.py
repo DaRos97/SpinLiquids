@@ -23,7 +23,7 @@ for opt, arg in opts:
     if opt == '--plot':
         plot = True
 #dirname = '../Data/SDM/'+K+'/'
-dirname = '../Data/sdm/13/'
+dirname = '../Data/sdm/'+K+'/'
 D = {}
 S_max = 0.5
 DM_max = 0.3
@@ -37,7 +37,7 @@ head = []
 for h in Head:
     head.append(h)
 for h in head:
-    D[h] = np.zeros((2*DM_pts+1,S_pts))
+    D[h] = np.zeros((DM_pts,S_pts))
     D[h][:] = np.nan
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:

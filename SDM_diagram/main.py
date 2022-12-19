@@ -31,7 +31,7 @@ J2 = 0
 J3 = 0
 #S and DM
 S_max = 0.5
-DM_max = 0.3
+DM_max = 0.15
 S_pts = 30
 DM_pts = 30
 S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
@@ -76,7 +76,7 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
-minP = 0.00085
+minP = 0
 maxA = (2*S+1)/2
 maxB = S
 Ai = maxA/2
@@ -84,16 +84,9 @@ Bi = maxB/2
 Pi_ = { '1a':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1b':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
         '1c':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
-        '1c1':{'A1':Ai,'B1':Bi,'phiB1':np.pi-t_0},
-        '1c2':{'A1':Ai,'B1':Bi,'phiB1':np.pi+t_0},
         '1d':{'A1':Ai,'B1':Bi,'phiB1':np.pi},
-        '1e':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
+        '1e':{'A1':Ai,'B1':Bi,'phiA1':5.3,'phiB1':np.pi},
         '1f':{'A1':Ai,'B1':Bi,'phiA1':2*t_0,'phiB1':np.pi},
-        '1f0':{'A1':Ai,'B1':Bi,'phiA1':0,'phiB1':np.pi},
-        '1f1':{'A1':Ai,'B1':Bi,'phiA1':t_0,'phiB1':np.pi},
-        '1f2':{'A1':Ai,'B1':Bi,'phiA1':2.6,'phiB1':np.pi},
-        '1f3':{'A1':Ai,'B1':Bi,'phiA1':np.pi,'phiB1':np.pi},
-        '1f4':{'A1':Ai,'B1':Bi,'phiA1':2*np.pi-2*t_0,'phiB1':np.pi},
        }
 ansatze = sf.CheckCsv(csvfile)
 Pinitial, done  = sf.FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_)
@@ -101,20 +94,20 @@ Pinitial, done  = sf.FindInitialPoint(S,DM,ansatze,ReferenceDir,Pi_)
 bounds_ = {}
 for ans in inp.list_ans:
     bounds_[ans] = {}
-    phase_step = 0.2
-    if ans == '1d':
-        phase_step = np.pi
-    if ans[:2] == '1c':
-        phase_step = 0.5
+    phase_step = 0.1
     #bounds
     for param in inp.header[ans][8:]:
         if param[0] == 'A':
             bb = (minP,maxA)
         elif param[0] == 'B':
             bb = (minP,maxB)
-        elif param[:3] == 'phi':
+        elif param == 'phiB1':
             bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
         bounds_[ans][param] = bb
+    if ans == '1e':
+        bounds_[ans]['phiA1'] = 0.3
+    if ans == '1f':
+        bounds_[ans]['phiA1'] = 0.3
 Bnds = {}
 for ans in bounds_.keys():
     Bnds[ans] = []
