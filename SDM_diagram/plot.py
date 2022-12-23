@@ -36,10 +36,11 @@ if K:
     dirname = '../Data/SDM/'+str(K)+'/' 
 else: 
     dirname = '../Data/SDM/final_SDM/' 
-dirname = '../Data/sdm/13/'
+
+#dirname = '../Data/sdm/13/'
 #
 S_max = 0.5
-DM_max = 0.3
+DM_max = 0.15
 S_pts = 30
 DM_pts = 30
 S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)

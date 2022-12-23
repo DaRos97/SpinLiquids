@@ -19,18 +19,11 @@ L_b_2 = 0.01
 header = {'1a':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'], 
           '1b':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1c':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
-          '1c1':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
-          '1c2':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1d':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiB1'],
           '1e':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
           '1f':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
-          '1f0':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
-          '1f1':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
-          '1f2':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
-          '1f3':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
-          '1f4':    ['ans','S','DM','Converge','Energy','Sigma','gap','L','A1','B1','phiA1','phiB1'],
           }
-num_phi = {'1a':1,'1b':1,'1c':1,'1c1':1,'1c2':1,'1d':1,'1e':2,'1f':2,'1f0':2,'1f1':2,'1f2':2,'1f3':2,'1f4':2}
+num_phi = {'1a':1,'1b':1,'1c':1,'1d':1,'1e':2,'1f':2}
 shame2 = 100
 list_A2 = []
 list_A3 = []

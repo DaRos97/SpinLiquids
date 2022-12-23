@@ -22,11 +22,11 @@ for opt, arg in opts:
         K = arg
     if opt == '--plot':
         plot = True
-#dirname = '../Data/SDM/'+K+'/'
-dirname = '../Data/sdm/'+K+'/'
+dirname = '../Data/SDM/'+K+'/'
+#dirname = '../Data/sdm/'+K+'/'
 D = {}
 S_max = 0.5
-DM_max = 0.3
+DM_max = 0.15
 S_pts = 30
 DM_pts = 30
 S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
@@ -64,7 +64,7 @@ for filename in os.listdir(dirname):
                     except:
                         print("not good: ",h,dm,s)
             break
-print("Non converged points: ",int((2*DM_pts+1)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
+print("Non converged points: ",int((DM_pts)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
 for i in range(nP):
     temp = []

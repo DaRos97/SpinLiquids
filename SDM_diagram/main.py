@@ -105,9 +105,9 @@ for ans in inp.list_ans:
             bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
         bounds_[ans][param] = bb
     if ans == '1e':
-        bounds_[ans]['phiA1'] = 0.3
+        bounds_[ans]['phiA1'] = (Pinitial[ans]-0.3,Pinitial[ans]+0.3)
     if ans == '1f':
-        bounds_[ans]['phiA1'] = 0.3
+        bounds_[ans]['phiA1'] = (Pinitial[ans]-0.3,Pinitial[ans]+0.3)
 Bnds = {}
 for ans in bounds_.keys():
     Bnds[ans] = []
