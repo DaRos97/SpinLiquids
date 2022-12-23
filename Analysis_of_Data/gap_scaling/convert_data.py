@@ -9,7 +9,7 @@ import csv
 
 #Takes the data in Data/final_S_DM and converts the "Converge" value from True to TrueL (SL) or TrueO (LRO) depending on the final value of the gap
 #In order to work, final_S_DM has to contain all the ansatze, so that then we can compare it in the phase diagram using effort_DM/plot.py
-cutoff_gap = 1e-6
+cutoff_gap = 1e-3
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
 DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
@@ -33,13 +33,10 @@ for opt, arg in opts:
             print('Not computed DM angle')
             exit()
         type_of_ans = 'SU2' if DM in ['000','104','209'] else 'TMD'
-N_max = 37
+
 print("Using arguments: Dm angle = ",DM," spin S = ",S," and cutoff: ",cutoff_gap)
 #import data
 data_dirname = '../../Data/final_'+txt_S+'_'+DM+'/'
-##### 
-m_ans = {'q0':1, '3x3':3, 'cb1':4, 'cb1_nc':4}
-m_ans_gauge = {'q0':3, '3x3':3, 'cb1':12, 'cb1_nc':12}
 ########
 for filename in os.listdir(data_dirname):
     data_name = data_dirname + filename
@@ -54,23 +51,14 @@ for filename in os.listdir(data_dirname):
         header = lines[i*2].split(',')
         header[-1] = header[-1][:-1]
         #
-        if data[3][0] == 'F' or data[3][-1] in ['L','O']:
+        if data[3][0] == 'F':# or data[3][-1] in ['L','O']:       #if the point did not converge or has already been computed the phase, skip it
             continue
         # Go to data directory and compute gap scaling up to this point
         ans = data[0]
         J2 = float(data[1])
         J3 = float(data[2])
-        if DM != '209':
-            m_ = m_ans[ans]
-        else:
-            m_ = m_ans_gauge[ans]
-        N_reference = np.arange(13,N_max - (N_max-13)%m_ + m_,m_,dtype = int)
-        NN_n_ = []
-        for n in N_reference:
-            if n>25 and n<37:
-                continue
-            NN_n_.append(n)
-        N_reference = NN_n_
+        #
+        N_reference = [13,25,37,49]
         #list directories to find list of Ns
         Data_dir = '../../Data/S'+txt_S+'/phi'+DM+'/'
         Ns = []
@@ -95,11 +83,12 @@ for filename in os.listdir(data_dirname):
         N_N = np.sort(Ns)
         for nnn_ in N_N:
             gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_list[DM],J2,J3,txt_S,type_of_ans]))
+        #
         try:
-            parameters, covariance = curve_fit(fs.linear, N_N, gaps, p0=(1,0))
+            parameters, covariance = curve_fit(fs.quadratic, N_N, gaps, p0=(1,0))
         except:
             print("Not fitted ",ans,"at ",J2,J3)
-            fitted_ = fs.linear(np.linspace(N_N[0],N_N[-1],100),parameters[0],parameters[1])
+            fitted_ = fs.quadratic(np.linspace(N_N[0],N_N[-1],100),parameters[0],parameters[1])
             plt.figure()
             plt.plot(N_N,gaps,'ro')
             plt.plot(np.linspace(N_N[0],N_N[-1],100),fitted_,'g-')
@@ -107,8 +96,11 @@ for filename in os.listdir(data_dirname):
             plt.title(ans+"__"+str(J2)+"_"+str(J3))
             plt.show()
         #Change True -> TrueL or TrueO
-        order = 'L' if parameters[1] > cutoff_gap else 'O'
-        data[3] = data[3] + order
+        #order = 'L' if parameters[1] > cutoff_gap else 'O'     #old version
+        #Sofisticate: check if either at N = 49 the gap is above the fitting line (->SL) with at the same time b > cutoff OR if the fit did not converge (case of flat line)
+        order = 'L' if ((gaps[-1] - fs.quadratic(N_N[-1],parameters[0],parameters[1]) > 0 and parameters[1] > cutoff_gap)
+                        or parameters[0] < 1e-3) else 'O'
+        data[3] = data[3][:-1] + order if data[3][-1] in ['L','O'] else data[3] + order
         #fill lines[2*i+1]
         lines[2*i+1] = ''
         for ini,a_ in enumerate(data):

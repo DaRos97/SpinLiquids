@@ -5,10 +5,11 @@ import sys
 import getopt
 import functions as fs
 from scipy.optimize import curve_fit
+import scipy.odr as odr
 
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
-DM_list = {'000':0, '005':0.05, '104':np.pi/3*2, '209':2*np.pi/3}
+DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax=',"fit="])
@@ -59,51 +60,33 @@ data = []
 gaps1 = []
 gaps2 = []
 #### N list for different ansatze depending on gap closing points
-m_ans = {'q0':1, '3x3':3, 'cb1':4}
-m_ans_gauge = {'q0':3, '3x3':3, 'cb1':12}
-if DM != '209':
-    m_ = m_ans[ans]
-else:
-    m_ = m_ans_gauge[ans]
-N_ = np.arange(13,N_max - (N_max-13)%m_ + m_,m_,dtype = int)
-NN = []
-for n in N_:
-    if n>25 and n < 37:
-        continue
-    NN.append(n)
-N_ = NN
-#Just 13,25,37
-N_ = [13,25,37]
+N_ = [13,25,37] if N_max == 13 else [13,25,37,49]
 ###
 for n in N_:
     data.append(fs.get_data(arguments,n))
     gap = fs.find_gap(data[-1],n,arg2)
-    gaps1.append(data[-1][0])
-    gaps2.append(gap)
+    gaps1.append(data[-1][0])           #gap in .csv file
+    gaps2.append(gap)                   #gap evaluated at the moment
+
 #fit
-def exp_decay(x,a,b,c):
-    return a*np.exp(b*x) + c
-def linear(x,a,b):
-    return a/x + b
-def quadratic(x,a,b):
-    return a/x**2 + b
-def sqrt(x,a,b):
-    return a/np.sqrt(x) + b
-fit_curve_def = {'exp':exp_decay,'lin':linear,'quad':quadratic,'sqrt':sqrt}
+fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
 try:
-    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=[1,0],bounds=(0,np.inf))
-    print("Fitted")
+    pin = [1,1,0] if fit == 'ql' else [1,0]
+    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=pin,bounds=(0,np.inf))
+    #print("Fitted")
+    #print(pars,'\n',cov)
     conv = 1
 except:
     print("Not fitted")
     conv = 0
 
 plt.figure()
-#plt.plot(N_,gaps1,'b*')
+plt.title(ans+': DM = '+DM+', S = '+txt_S+', (J2,J3) = '+str(J2)+','+str(J3)+'. Fit: '+fit)
 plt.plot(N_,gaps2,'ro')
+plt.plot(N_,gaps1,'b*')
 if conv:
     N_steps = np.linspace(N_[0],N_[-1],100)
-    plt.plot(N_steps,linear(N_steps,*pars),'g--')
+    plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
     plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
 if 0:
     func = np.poly1d(z)
@@ -113,5 +96,6 @@ if 0:
         fitted.append(func(n))
     plt.plot(N_steps,fitted,'g-')
     limit = func(100)
-    plt.hlines(limit,N_[0],N_[-1],color='green',linestyles='--')
+    plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
+plt.text(30,abs(gaps2[0]+gaps2[1])/2,'a:  '+str(pars[0])+'\nb:  '+str(pars[1]))
 plt.show()

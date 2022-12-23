@@ -5,8 +5,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-def linear2(x,a,b):
-    return a/x**2 + b
+def quadratic(x,a,b):
+    return a/(3*x**2) + b
+def ql(x,a,b,c):
+    return a/(3*x**2) + c/x + b
 def linear(x,a,b):
     return a/x + b
 
