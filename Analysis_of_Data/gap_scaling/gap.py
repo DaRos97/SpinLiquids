@@ -21,6 +21,7 @@ try:
     ans = '3x3'
     N_max = 13
     fit = 'lin'
+    type_of_ans = 'SU2'
 except:
     print("Error in input parameters")
     exit()
@@ -72,7 +73,7 @@ for n in N_:
 fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
 try:
     pin = [1,1,0] if fit == 'ql' else [1,0]
-    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=pin,bounds=(0,np.inf))
+    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=pin,bounds=(-100,100))
     #print("Fitted")
     #print(pars,'\n',cov)
     conv = 1
@@ -81,13 +82,13 @@ except:
     conv = 0
 
 plt.figure()
-plt.title(ans+': DM = '+DM+', S = '+txt_S+', (J2,J3) = '+str(J2)+','+str(J3)+'. Fit: '+fit)
+plt.title(ans+': DM = '+DM+', S = '+txt_S+', (J2,J3) = '+str(J2)+','+str(J3))#+'. Fit: '+fit)
 plt.plot(N_,gaps2,'ro')
-plt.plot(N_,gaps1,'b*')
+#plt.plot(N_,gaps1,'b*')
 if conv:
     N_steps = np.linspace(N_[0],N_[-1],100)
     plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
-    plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
+    plt.hlines(pars[1],N_[0],N_[-1],color='blue',linestyles='--')
 if 0:
     func = np.poly1d(z)
     N_steps = np.linspace(N_[0],100,1000)
@@ -97,5 +98,7 @@ if 0:
     plt.plot(N_steps,fitted,'g-')
     limit = func(100)
     plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
-plt.text(30,abs(gaps2[0]+gaps2[1])/2,'a:  '+str(pars[0])+'\nb:  '+str(pars[1]))
+plt.xlabel('L',fontsize=16)
+plt.ylabel('gap',fontsize=16)
+plt.text(30,abs(gaps2[0]+gaps2[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
 plt.show()

@@ -8,10 +8,10 @@ from matplotlib import cm
 from matplotlib.lines import Line2D
 
 Color = {'3x3': ['r','orange'],
-         'q0':  ['blue','aqua'],
+         'q0':  ['blue','y'],
          'cb1':  ['forestgreen','lime'],
          #'cb1_2':  ['blue','red'],
-         'cb1_nc':  ['yellow','y'],
+         #'cb1_nc':  ['yellow','y'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -75,7 +75,7 @@ for filename in os.listdir(dirname):
         delta[i2,i3] = np.nan
 ##########
 pts = len(os.listdir(dirname))
-fig = plt.figure(figsize=(8,4))
+fig = plt.figure(figsize=(4,4))
 #plt.subplot(2,2,1)
 plt.title(title)
 plt.gca().set_aspect('equal')
@@ -91,6 +91,7 @@ for i in range(9):
             m = '^'
             OL = 0
         c = Color[D[i,j][:-2]][OL]
+        m = '*' if (m=='o' and OL == 1) else 'o'
         J2 = -0.3+i*0.6/8
         J3 = -0.3+j*0.6/8
         plt.scatter(J2,J3,color=c,marker=m)
@@ -112,7 +113,7 @@ for col in Color.values():
     legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[0]))
     legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[1]))
 
-plt.legend(legend_lines,list_leg,loc='upper left',bbox_to_anchor=(1,1),fancybox=True)
+#plt.legend(legend_lines,list_leg,loc='upper left',bbox_to_anchor=(1,1),fancybox=True)
 #
 plt.show()
 

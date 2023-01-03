@@ -7,8 +7,8 @@ import getopt
 from matplotlib import cm
 from matplotlib.lines import Line2D
 
-Color = {'1b': ['r','orange'],
-         '1a':  ['blue','aqua'],
+Color = {'1a':  ['blue','aqua'],
+         '1b': ['r','orange'],
          '1c':  ['pink','aqua'],
          #'1c1':  ['pink','aqua'],
          #'1c2':  ['pink','aqua'],
@@ -74,8 +74,8 @@ for filename in os.listdir(dirname):
             minE2 = float(data[4])
         elif float(data[4]) < minE3:
             minE3 = float(data[4])
-    if abs(minE2 - minE1) < 1e-5 and abs(minE1 - minE3) < 1e-5:
-        print(filename)
+#    if abs(minE2 - minE1) < 1e-5 and abs(minE1 - minE3) < 1e-5:
+#        print(filename)
 ##########
 pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(8,4))
@@ -86,21 +86,23 @@ for i in range(DM_pts):
         OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
         m = 'o' if D[i,j][-2] == 'g' else 'x'
         if D[i,j][-1] == 'n':
-            m = 'o'
+            m = '^'
             OL = 0
+        OL = 0
         c = Color[D[i,j][:-2]][OL]
+        m = '*' if (m=='o' and OL == 1) else 'o'
         plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
-plt.ylim(0.035,0.301)
+plt.ylim(0.00,0.501)
 plt.xlim(-0.001,0.1)
 #Legenda
 list_leg = []
 for col in Color.keys():
     if col == 'labels':
         continue
-    list_leg.append(col+' LRO')
-    list_leg.append(col+' SL')
-list_leg.append('just energy')
-list_leg.append('TD limit')
+    list_leg.append(col)
+    #list_leg.append(col+' SL')
+list_leg.append('LRO')
+list_leg.append('SL')
 legend_lines = []
 for col in Color.values():
     if col == ['k','k']:
@@ -108,9 +110,9 @@ for col in Color.values():
         legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[1]))
         continue
     legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[0]))
-    legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[1]))
+    #legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col[1]))
 
-plt.legend(legend_lines,list_leg,loc='upper left',bbox_to_anchor=(1,1),fancybox=True)
+plt.legend(legend_lines,list_leg,loc='upper right',bbox_to_anchor=(1,1),fancybox=True)
 #
 plt.show()
 
