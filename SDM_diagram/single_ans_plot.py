@@ -64,7 +64,8 @@ for filename in os.listdir(dirname):
                     except:
                         print("not good: ",h,dm,s)
             break
-print("Non converged points: ",int((DM_pts)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
+print("Non converged points: ",int((DM_pts)*S_pts-np.sum(~np.isnan(D['Converge'].ravel()))))
+#print(D['Converge'])
 nP = len(head)
 for i in range(nP):
     temp = []

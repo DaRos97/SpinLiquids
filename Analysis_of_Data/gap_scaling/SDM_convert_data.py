@@ -7,20 +7,17 @@ import functions as fs
 from scipy.optimize import curve_fit
 import csv
 
-#Takes the data in Data/final_S_DM and converts the "Converge" value from True to TrueL (SL) or TrueO (LRO) depending on the final value of the gap
+#Takes the data in Data/final_SDM and converts the "Converge" value from True to TrueL (SL) or TrueO (LRO) depending on the final value of the gap
 #In order to work, final_S_DM has to contain all the ansatze, so that then we can compare it in the phase diagram using effort_DM/plot.py
 cutoff_gap = 1e-6
 #parameters are: ansatz, j2,j3, DM angle, Spin
-list_ans = ['1a','1b','1c','1f']
+list_ans = ['1a','1b','1c','1d','1e','1f']
 S_max = 0.5
-DM_max = 0.5
-S_pts = 10
-DM_pts = 15
-S_list = np.linspace(0.05,S_max,S_pts,endpoint=True)
-DM_list = np.logspace(-5,np.log(DM_max),DM_pts,base = np.e)
-DM_list_neg = np.flip(-DM_list)#.reverse()
-DM_list_neg = np.append(DM_list_neg,np.array([0]),axis = 0)
-DM_list = np.concatenate((DM_list_neg,DM_list))
+DM_max = 0.15
+S_pts = 30
+DM_pts = 30
+S_list = np.linspace(0.01,S_max,S_pts,endpoint=True)
+DM_list = np.linspace(0,DM_max,DM_pts,endpoint=True)
 
 data_dirname = '../../Data/SDM/final_SDM/'
 ##### 
@@ -40,7 +37,7 @@ for filename in os.listdir(data_dirname):
         S = float(data[1])
         DM = float(data[2])
         #
-        if data[3][0] == 'F' or data[3][-1] in ['L','O']:
+        if data[3][0] == 'F':# or data[3][-1] in ['L','O']:
             continue
         # Go to data directory and compute gap scaling up to this point
         ans = data[0]
@@ -72,9 +69,8 @@ for filename in os.listdir(data_dirname):
         for nnn_ in N_N:
             DM_val = DM_list[list(DM_list).index(DM)]
             gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_val,0,0,'0',type_of_ans]))
-
         try:
-            parameters, covariance = curve_fit(fs.linear, N_N, gaps, p0=(1,0))
+            parameters, covariance = curve_fit(fs.quadratic, N_N, gaps, p0=(1,0))
         except:
             print("Not fitted ",ans," at ",S,DM)
             fitted_ = fs.linear(np.linspace(N_N[0],N_N[-1],100),parameters[0],parameters[1])
@@ -85,8 +81,9 @@ for filename in os.listdir(data_dirname):
             plt.title(ans+"__"+str(S)+"_"+str(DM))
             plt.show()
         #Change True -> TrueL or TrueO
-        order = 'L' if parameters[1] > cutoff_gap else 'O'
-        data[3] = data[3] + order
+        order = 'L' if parameters[1] > 1e-3 else 'O'
+        #((gaps[-1] - fs.quadratic(N_N[-1],parameters[0],parameters[1]) > 0 and parameters[1] > cutoff_gap) or parameters[0] < 1e-3) else 'O'
+        data[3] = data[3][:-1] + order if data[3][-1] in ['L','O'] else data[3] + order
         #fill lines[2*i+1]
         lines[2*i+1] = ''
         for ini,a_ in enumerate(data):
