@@ -162,7 +162,7 @@ for ans in ansatze:
     #Compute the final values using the result of the minimization
     Pf = tuple(result.x)
     is_min = False
-    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S)
+    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S,L_dic[ans])
     try:
         Sigma, E, L, gap = cf.Sigma(Pf,*Args)
     except TypeError:
