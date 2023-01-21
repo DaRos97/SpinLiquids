@@ -99,7 +99,8 @@ for filename in os.listdir(data_dirname):
         #order = 'L' if parameters[1] > cutoff_gap else 'O'     #old version
         #Sofisticate: check if either at N = 49 the gap is above the fitting line (->SL) with at the same time b > cutoff OR if the fit did not converge (case of flat line)
         order = 'L' if ((gaps[-1] - fs.quadratic(N_N[-1],parameters[0],parameters[1]) > 0 and parameters[1] > cutoff_gap)
-                        or parameters[0] < 1e-3) else 'O'
+                        or parameters[0] < 1e-3
+                        or parameters[1] > cutoff_gap) else 'O'         #this makes the first useless
         data[3] = data[3][:-1] + order if data[3][-1] in ['L','O'] else data[3] + order
         #fill lines[2*i+1]
         lines[2*i+1] = ''

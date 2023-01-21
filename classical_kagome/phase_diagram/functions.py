@@ -69,94 +69,94 @@ def ferro(j,spin_angles,DM_angles,DM):
     m = 6
     L = ferro_lattice(spin_angles)
     ferro_energy = energy(L,m,j,DM_angles,DM)
-    return ferro_energy,0
+    return ferro_energy
 def s3x3(j,spin_angles,DM_angles,DM):
     m = 6
     L = s3x3_lattice(spin_angles)
     s3x3_energy = energy(L,m,j,DM_angles,DM)
-    return s3x3_energy,1
+    return s3x3_energy
 def s3x3_g1(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = s3x3_lattice(spin_angles)
     L = gauge_trsf(L_base)
     s3x3_energy = energy(L,m,j,DM_angles,DM)
-    return s3x3_energy,2
+    return s3x3_energy
 #ORBIT: q0->q0_g1->q0_g2
 def q0(j,spin_angles,DM_angles,DM):
     m = 6
     L = q0_lattice(spin_angles)
     q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy,3
+    return q0_energy
 def q0_g1(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = q0_lattice(spin_angles)
     L = gauge_trsf(L_base)
     q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy,4
+    return q0_energy
 def q0_g2(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = q0_lattice(spin_angles)
     L_g1 = gauge_trsf(L_base)
     L = gauge_trsf(L_g1)
     q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy,5
+    return q0_energy
 #Chiral orders -> difficult to compute by hand the energy (especially after the gauge transformation) -> automate the process
 def octa(j,spin_angles,DM_angles,DM):
     m = 6
     L = oct_lattice(spin_angles)
     octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy,6
+    return octa_energy
 def octa_g1(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = oct_lattice(spin_angles)
     L = gauge_trsf(L_base)
     octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy,7
+    return octa_energy
 def octa_g2(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = oct_lattice(spin_angles)
     L_g1 = gauge_trsf(L_base)
     L = gauge_trsf(L_g1)
     octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy,8
+    return octa_energy
 #
 def cb1(j,spin_angles,DM_angles,DM):
     m = 6
     L = cb1_lattice(spin_angles)
     cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy,9
+    return cb1_energy
 def cb1_g1(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = cb1_lattice(spin_angles)
     L = gauge_trsf(L_base)
     cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy,10
+    return cb1_energy
 def cb1_g2(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = cb1_lattice(spin_angles)
     L_g1 = gauge_trsf(L_base)
     L = gauge_trsf(L_g1)
     cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy,11
+    return cb1_energy
 #
 def cb2(j,spin_angles,DM_angles,DM):
     m = 6
     L = cb2_lattice(spin_angles)
     cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy,12
+    return cb2_energy
 def cb2_g1(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = cb2_lattice(spin_angles)
     L = gauge_trsf(L_base)
     cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy,13
+    return cb2_energy
 def cb2_g2(j,spin_angles,DM_angles,DM):
     m = 6
     L_base = cb2_lattice(spin_angles)
     L_g1 = gauge_trsf(L_base)
     L = gauge_trsf(L_g1)
     cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy,14
+    return cb2_energy
 ########################
 ########################
 ########################
@@ -374,7 +374,7 @@ def R_y(t):
 #define the search for the energy of the spiral states at a given J1,J2,J3
 def spiral(j):
     spiral_energy = 100
-    return spiral_energy,6
+    return spiral_energy
 
 #define function for evaluation of minimal energy
 def hopping_matrix(q,*args):

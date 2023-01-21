@@ -29,8 +29,9 @@ for opt, arg in opts:
         phi_t = arg
 phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
-dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
-#dirname = '../Data/S50/phi000/13/'
+
+#dirname = '../Data/approx/final_'+txt_S+'_'+phi_t+'/' 
+dirname = '../Data/approx/S30/phi'+phi_t+'/49/'
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')

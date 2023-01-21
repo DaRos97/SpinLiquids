@@ -15,7 +15,9 @@ def linear(x,a,b):
 def get_data(Args,N):
     ans, DM, J2, J3, txt_S = Args
     filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+#approx    #filename = '../../Data/approx/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
     if not Path(filename).is_file():
+        print("Filename does not exist")
         return np.nan
     with open(filename, 'r') as f:
         lines = f.readlines()

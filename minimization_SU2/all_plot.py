@@ -8,12 +8,13 @@ from matplotlib import cm
 from matplotlib.lines import Line2D
 
 Color = {'3x3': ['r','orange'],
-         'q0':  ['blue','dodgerblue'],
-         'cb1':  ['forestgreen','lime'],
+         'q0':  ['blue','aqua'],
+         'cb1':  ['lime','forestgreen'],
          #'cb1_nc':  ['yellow','y'],
          #'labels':  ['k','k']
          }
 S_l = ['50','36','34','30','20']
+#S_l = ['50','36','30','20']
 DM_l = ['000','104','209']
 list_plots = []
 for s in S_l:
@@ -23,13 +24,13 @@ phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 xxx_dm = {'000':1,'104':2, '209':3}
 yyy_s  = {'50':1,'36':2,'34':3,'30':4,'20':5}
 fig = plt.figure(figsize=(7,8))
+fit_classical = np.load("../classical_kagome/phase_diagram/fit_000_101.npy")
 for s,dm in list_plots:
     phi = phi_label[dm]
     dirname = '../Data/final_'+s+'_'+dm+'/' 
-    #dirname = '../Data/S50/phi000/13/'
-    title_DM = {'000':'0','104': '\pi/3', '209':'2*\pi/3'}
-    title_dm = r"Phi = "+title_DM[dm]
-    title_s = r"S = 0."+s
+    title_DM = {'000':r'$0$','104': r'$\pi/3$', '209':r'$2\pi/3$'}
+    title_dm = r'$\phi = $'+title_DM[dm]
+    title_s = r'$S = 0.$'+s
     #
     D = np.ndarray((9,9),dtype='object')
     delta = np.zeros((9,9))
@@ -95,15 +96,21 @@ for s,dm in list_plots:
         for j in range(9):
             if D[i,j] == DD_none:
                 continue
-            OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
-            m = 'o' if D[i,j][-2] == 'g' else 'x'
-            if D[i,j][-1] == 'n':
+            if D[i,j][-1] == 'L':
+                c = Color[D[i,j][:-2]][1]
+                m = '*'
+            elif D[i,j][-1] == 'O':
+                c = Color[D[i,j][:-2]][0]
+                m = 'o'
+            else:
+                c = 'k'
                 m = '^'
-                OL = 0
-            c = Color[D[i,j][:-2]][OL]
             J2 = -0.3+i*0.6/8
             J3 = -0.3+j*0.6/8
             plt.scatter(J2,J3,color=c,marker=m)
+    for i in range(3):
+        x = np.linspace(fit_classical[i][2],fit_classical[i][3],100)
+        plt.plot(x,fit_classical[i][0]*x+fit_classical[i][1],'k-',alpha = 0.5,zorder=0)
 #Legenda
 #plt.figure()
 #plt.subplot(1,3,2)

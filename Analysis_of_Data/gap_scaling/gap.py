@@ -20,7 +20,7 @@ try:
     DM = '000'
     ans = '3x3'
     N_max = 13
-    fit = 'lin'
+    fit = 'quad'
     type_of_ans = 'SU2'
 except:
     print("Error in input parameters")
@@ -61,19 +61,23 @@ data = []
 gaps1 = []
 gaps2 = []
 #### N list for different ansatze depending on gap closing points
-N_ = [13,25,37] if N_max == 13 else [13,25,37,49]
+N_ = [13,25,37] if N_max == 37 else [13,25,37,49]
 ###
 for n in N_:
     data.append(fs.get_data(arguments,n))
-    gap = fs.find_gap(data[-1],n,arg2)
-    gaps1.append(data[-1][0])           #gap in .csv file
-    gaps2.append(gap)                   #gap evaluated at the moment
+    #gap = fs.find_gap(data[-1],n,arg2)
+    try:
+        gaps1.append(data[-1][0])           #gap in .csv file
+    except:
+        gaps1.append(gaps1[-1])
+        print("N=",n," is not correct")
+    #gaps2.append(gap)                   #gap evaluated at the moment
 
 #fit
 fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
 try:
     pin = [1,1,0] if fit == 'ql' else [1,0]
-    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps2,p0=pin,bounds=(-100,100))
+    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps1,p0=pin,bounds=(-100,100))
     #print("Fitted")
     #print(pars,'\n',cov)
     conv = 1
@@ -82,11 +86,13 @@ except:
     conv = 0
 
 plt.figure()
+N_steps = np.linspace(N_[0],N_[-1],100)
+#plt.xscale('log')
+#plt.yscale('log')
 plt.title(ans+': DM = '+DM+', S = '+txt_S+', (J2,J3) = '+str(J2)+','+str(J3))#+'. Fit: '+fit)
-plt.plot(N_,gaps2,'ro')
-#plt.plot(N_,gaps1,'b*')
+#plt.plot(N_,gaps2,'ro')
+plt.plot(N_,gaps1,'b*')
 if conv:
-    N_steps = np.linspace(N_[0],N_[-1],100)
     plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
     plt.hlines(pars[1],N_[0],N_[-1],color='blue',linestyles='--')
 if 0:
@@ -100,5 +106,5 @@ if 0:
     plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
 plt.xlabel('L',fontsize=16)
 plt.ylabel('gap',fontsize=16)
-plt.text(30,abs(gaps2[0]+gaps2[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
+plt.text(30,abs(gaps1[0]+gaps1[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
 plt.show()

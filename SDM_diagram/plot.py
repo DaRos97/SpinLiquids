@@ -7,14 +7,14 @@ import getopt
 from matplotlib import cm
 from matplotlib.lines import Line2D
 
-Color = {'1a':  ['blue','aqua'],
+Color = {'1a':  ['blue','k'],
          '1b': ['r','orange'],
-         '1c':  ['pink','aqua'],
+         '1c':  ['pink','grey'],
          #'1c1':  ['pink','aqua'],
          #'1c2':  ['pink','aqua'],
-         '1d':  ['orange','aqua'],
+         '1d':  ['orange','purple'],
          '1e':  ['aqua','aqua'],
-         '1f':  ['forestgreen','lime'],
+         '1f':  ['lime','forestgreen'],
 #         '1f0':  ['yellow','lime'],
 #         '1f1':  ['red','lime'],
 #         '1f2':  ['aqua','lime'],
@@ -75,7 +75,7 @@ plt.title("DM diagram")
 for i in range(DM_pts):
     for j in range(S_pts):
         if D[i,j][-1] == 'L':
-            c = Color[D[i,j][:-1]][0]
+            c = Color[D[i,j][:-1]][1]
             m = '*'
         elif D[i,j][-1] == 'O':
             c = Color[D[i,j][:-1]][0]
