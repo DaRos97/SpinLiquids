@@ -13,7 +13,7 @@ Color = {'3x3': ['r','orange'],
          #'cb1_nc':  ['yellow','y'],
          #'labels':  ['k','k']
          }
-S_l = ['50','36','34','30','20']
+S_l = ['30']
 #S_l = ['50','36','30','20']
 DM_l = ['000','104','209']
 list_plots = []
@@ -22,12 +22,12 @@ for s in S_l:
         list_plots.append([s,dm])
 phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 xxx_dm = {'000':1,'104':2, '209':3}
-yyy_s  = {'50':1,'36':2,'34':3,'30':4,'20':5}
-fig = plt.figure(figsize=(14,16))
+yyy_s  = {'30':1}
+fig = plt.figure(figsize=(14,8))
 fit_classical = np.load("../classical_kagome/phase_diagram/fit_000_101.npy")
 for s,dm in list_plots:
     phi = phi_label[dm]
-    dirname = '../Data/final_'+s+'_'+dm+'/' 
+    dirname = '../Data/approx/final_'+s+'_'+dm+'/' 
     title_DM = {'000':r'$0$','104': r'$\pi/3$', '209':r'$2\pi/3$'}
     title_dm = r'$\phi = $'+title_DM[dm]
     title_s = r'$S = 0.$'+s
@@ -105,7 +105,7 @@ for s,dm in list_plots:
                 c = Color[D[i,j][:-2]][0]
                 m = 'o'
             else:
-                c = 'k'
+                c = Color[D[i,j][:-2]][0]
                 m = '^'
             J2 = -0.3+i*0.6/8
             J3 = -0.3+j*0.6/8

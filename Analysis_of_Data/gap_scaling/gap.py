@@ -12,7 +12,7 @@ list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
 DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax=',"fit="])
+    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax=',"fit=","data="])
     S = 0.5
     txt_S = '50'
     J2 = 0
@@ -22,6 +22,7 @@ try:
     N_max = 13
     fit = 'quad'
     type_of_ans = 'SU2'
+    dataType = 'real'
 except:
     print("Error in input parameters")
     exit()
@@ -52,16 +53,20 @@ for opt, arg in opts:
         N_max = int(arg)
     if opt == '--fit':
         fit = arg
+    if opt == '--data':
+        dataType = arg
 
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
+print("On data: ",dataType)
 #import data
-arguments = (ans,DM,J2,J3,txt_S)
+arguments = (ans,DM,J2,J3,txt_S,dataType)
 arg2 = (ans,DM_list[DM],J2,J3,txt_S,type_of_ans)
 data = []
 gaps1 = []
 gaps2 = []
 #### N list for different ansatze depending on gap closing points
 N_ = [13,25,37] if N_max == 37 else [13,25,37,49]
+bad_N = []
 ###
 for n in N_:
     data.append(fs.get_data(arguments,n))
@@ -69,14 +74,27 @@ for n in N_:
     try:
         gaps1.append(data[-1][0])           #gap in .csv file
     except:
-        gaps1.append(gaps1[-1])
         print("N=",n," is not correct")
+        #gaps1.append(0)
+        bad_N.append(n)
+        continue
+        try:
+            gaps1.append(gaps1[-1])
+        except:
+            continue
     #gaps2.append(gap)                   #gap evaluated at the moment
+    print("N = ",n," :",gaps1[-1])
 
 #fit
 fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
 try:
     pin = [1,1,0] if fit == 'ql' else [1,0]
+    new_N = []
+    for n in N_:
+        if n in bad_N:
+            continue
+        new_N.append(n)
+    N_ = new_N
     pars,cov = curve_fit(fit_curve_def[fit],N_,gaps1,p0=pin,bounds=(-100,100))
     #print("Fitted")
     #print(pars,'\n',cov)

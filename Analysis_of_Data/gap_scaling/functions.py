@@ -13,9 +13,14 @@ def linear(x,a,b):
     return a/x + b
 
 def get_data(Args,N):
-    ans, DM, J2, J3, txt_S = Args
-    filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
-#approx    #filename = '../../Data/approx/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+    ans, DM, J2, J3, txt_S, dataType = Args
+    if dataType == 'real':
+        filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+    elif dataType == 'app':
+        filename = '../../Data/approx/S'+txt_S+'/phi'+DM+'/'+str(N)+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+    else:
+        print("Unknown datatype")
+        exit()
     if not Path(filename).is_file():
         print("Filename does not exist")
         return np.nan
@@ -34,6 +39,23 @@ def get_data(Args,N):
             if float(d) != 0.0:
                 P.append(float(d))
     return P
+
+def decide_phase(pars,Ns,gaps,cutoff_gap,cutoff_chi):
+    chi2 = 0
+    for i in range(len(Ns)):
+        N = Ns[i]
+        gap = gaps[i]
+        chi2 += (gap-quadratic(N,pars[0],pars[1]))**2
+    if (pars[0] < 0     #a < 0
+        or pars[1] > cutoff_gap     #b > cutoff
+        or chi2 > cutoff_chi):    #chi > cutoff_chi -> fit is not good
+        res = 'L'
+    else:
+        res = 'O'
+    #print("a: ",pars[0],"\tb:",pars[1],"\tchi:",chi2)
+    #print("res = ",res)
+    #input()
+    return res
 
 def find_gap(data,N,arguments):
     kxg = np.linspace(0,1,N)

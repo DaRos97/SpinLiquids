@@ -9,7 +9,8 @@ import csv
 
 #Takes the data in Data/final_S_DM and converts the "Converge" value from True to TrueL (SL) or TrueO (LRO) depending on the final value of the gap
 #In order to work, final_S_DM has to contain all the ansatze, so that then we can compare it in the phase diagram using effort_DM/plot.py
-cutoff_gap = 1e-3
+cutoff_gap = 0.001
+cutoff_chi = 1e-2
 #parameters are: ansatz, j2,j3, DM angle, Spin
 list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
 DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
@@ -96,11 +97,9 @@ for filename in os.listdir(data_dirname):
             plt.title(ans+"__"+str(J2)+"_"+str(J3))
             plt.show()
         #Change True -> TrueL or TrueO
-        #order = 'L' if parameters[1] > cutoff_gap else 'O'     #old version
-        #Sofisticate: check if either at N = 49 the gap is above the fitting line (->SL) with at the same time b > cutoff OR if the fit did not converge (case of flat line)
-        order = 'L' if ((gaps[-1] - fs.quadratic(N_N[-1],parameters[0],parameters[1]) > 0 and parameters[1] > cutoff_gap)
-                        or parameters[0] < 1e-3
-                        or parameters[1] > cutoff_gap) else 'O'         #this makes the first useless
+        #order = 'L' if parameters[1] > cutoff_gap else 'O'
+        #print(ans,":")
+        order = fs.decide_phase(parameters,N_N,gaps,cutoff_gap,cutoff_chi)
         data[3] = data[3][:-1] + order if data[3][-1] in ['L','O'] else data[3] + order
         #fill lines[2*i+1]
         lines[2*i+1] = ''
