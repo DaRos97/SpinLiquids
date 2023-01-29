@@ -55,15 +55,13 @@ for i in range(Nx):
         kkg[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
         kkgp[0,i,j] = kxg[i]*2*np.pi
         kkgp[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
-kkg_p = kkg;        kkg_m = -kkg
 #### vectors of 1nn, 2nn and 3nn
 a1 = (1,0)
 a2 = (-1,np.sqrt(3))
 a12p = (a1[0]+a2[0],a1[1]+a2[1])
 a12m = (a1[0]-a2[0],a1[1]-a2[1])
 #### product of lattice vectors with K-matrix
-KM_p = cf.KM(kkg_p,a1,a2,a12p,a12m)
-KM_m = cf.KM(kkg_m,a1,a2,a12p,a12m)
+KM = cf.KM(kkg,a1,a2,a12p,a12m)
 #### DM
 t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
@@ -80,7 +78,7 @@ t_0 = np.arctan(np.sqrt(2))
 #Put initial values by classical paramters !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Pi_ = { '3x3':{'A1':0.5, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
+Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':0.5, 'B1':0.25, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
         'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA2': np.pi},
         'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
         'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
@@ -135,13 +133,13 @@ for ans in ansatze:
             pars.append(pPp)
     is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
     L_bounds = (L_dic[ans]-inp.L_bnd_ref,L_dic[ans]+inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds       #bounds on Lagrange multiplier set by default
-    Args_L = (J1,J2,J3,ans,KM_p,Tau,K,S,L_dic[ans],L_bounds)
+    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_dic[ans],L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
-    Args_O = (J1,J2,J3,ans,KM_p,KM_m,Tau,K,S,pars)
+    Args_O = (J1,J2,J3,ans,KM,Tau,K,S,pars)
     DataDic = {}
     O_progres = np.zeros((2,len(Pinitial[ans])))  #progress list, 2 is enough
     O_progres[1] = Pinitial[ans]
@@ -170,6 +168,7 @@ for ans in ansatze:
         O_progres[1] = new_O
         step += 1
         print("Step ",step,": ",L_progres[1],",",O_progres[1])
+        #exit()
         #Check if all parameters are stable up to precision
         for i in range(len(new_O)):
             if np.abs(O_progres[0][i]-O_progres[1][i]) < cutoff_O:

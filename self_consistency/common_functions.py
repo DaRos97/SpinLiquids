@@ -90,72 +90,46 @@ def total_energy(P,L,args):
 #Compute new set of O using old O and new L
 def compute_O(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    J1,J2,J3,ans,KM_p,KM_m,Tau,K_,S,pars = args
+    J1,J2,J3,ans,KM,Tau,K_,S,pars = args
     #Compute first the transformation matrix M at each needed K
-    args_Mp = (J1,J2,J3,ans,KM_p,Tau,K_)
-    args_Mm = (J1,J2,J3,ans,KM_m,Tau,K_)
+    args_M = (J1,J2,J3,ans,KM,Tau,K_)
     m = 6
-    N_p = big_Nk(old_O,L,args_Mp)
-    N_m = big_Nk(old_O,L,args_Mm)
-    M_p = np.zeros(N_p.shape,dtype=complex)
-    M_m = np.zeros(N_m.shape,dtype=complex)
+    N = big_Nk(old_O,L,args_M)
+    M = np.zeros(N.shape,dtype=complex)
     for i in range(K_):
         for j in range(K_):
-            N_k = N_p[:,:,i,j]
+            N_k = N[:,:,i,j]
             Ch = LA.cholesky(N_k) #upper triangular
             w,U = LA.eigh(np.dot(np.dot(Ch,J_),np.conjugate(Ch.T)))
             w = np.diag(np.sqrt(np.einsum('ij,j->i',J_,w)))
-            M_p[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
-            #
-            N_k = N_m[:,:,i,j]
-            Ch = LA.cholesky(N_k) #upper triangular
-            w,U = LA.eigh(np.dot(np.dot(Ch,J_),np.conjugate(Ch.T)))
-            w = np.diag(np.sqrt(np.einsum('ij,j->i',J_,w)))
-            M_m[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
+            M[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
     #for each parameter need to know what it is
     dic_O = {'A1':compute_A1,'A2':compute_A2,'A3':compute_A3,'B1':compute_B1,'B2':compute_B2,'B3':compute_B3}
-    for i in range(len(pars)):
-        par = pars[i]
-        print(par)
+    kxg = np.linspace(0,1,K_)
+    kyg = np.linspace(0,1,K_)
+    for p in range(len(pars)):
+        res = 0
+        par = pars[p]
+        func = dic_O[par[-2:]]
+        for i in range(K_):
+            for j in range(K_):
+                U,X,V,Y = split(M[:,:,i,j],inp.m,inp.m)
+                U_,X_,V_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
+                k = np.array([kxg[i]*2*np.pi,(kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)]) 
+                res += func(U,X,V,Y,U_,X_,V_,Y_,k,Tau)
+        res /= (2*K_**2)
         if par[0] == 'p':
-            new_O[i] = np.imag(dic_O[par[-2:]](M_p,M_m,Tau))
+            new_O[p] = np.angle(res)
         else:
-            print('real')
-            new_O[i] = np.real(dic_O[par[-2:]](M_p,M_m,Tau))
+            new_O[p] = np.absolute(res)
     return new_O
 
-def compute_A1(M_p,M_m,Tau):
-    res = 0
-    K_ = M_p.shape[-1]
-    kxg = np.linspace(0,1,K_)
-    kyg = np.linspace(0,1,K_)
-    for i in range(K_):
-        for j in range(K_):
-            Up,Xp,Vp,Yp = split(M_p[:,:,i,j],inp.m,inp.m)
-            Up_,Xp_,Vp_,Yp_ = split(np.conjugate(M_p[:,:,i,j].T),inp.m,inp.m)
-            Um,Xm,Vm,Ym = split(M_m[:,:,i,j],inp.m,inp.m)
-            Um_,Xm_,Vm_,Ym_ = split(np.conjugate(M_m[:,:,i,j].T),inp.m,inp.m)
-            k = np.array([kxg[i]*2*np.pi,(kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)]) 
-            res += (np.einsum('ln,nm->lm',Up,Vp_)*Tau[1] 
-                    - np.einsum('nl,mn->lm',Ym_,Xm)*Tau[0])[1,2]
-    res /= (K_**2)
-    return res
-def compute_B1(M_p,M_m,Tau):
-    res = 0
-    K_ = M_p.shape[-1]
-    kxg = np.linspace(0,1,K_)
-    kyg = np.linspace(0,1,K_)
-    for i in range(K_):
-        for j in range(K_):
-            Up,Xp,Vp,Yp = split(M_p[:,:,i,j],inp.m,inp.m)
-            Up_,Xp_,Vp_,Yp_ = split(np.conjugate(M_p[:,:,i,j].T),inp.m,inp.m)
-            Um,Xm,Vm,Ym = split(M_m[:,:,i,j],inp.m,inp.m)
-            Um_,Xm_,Vm_,Ym_ = split(np.conjugate(M_m[:,:,i,j].T),inp.m,inp.m)
-            k = np.array([kxg[i]*2*np.pi,(kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)]) 
-            res += (np.einsum('ln,nm->lm',Vm,Vm_)*Tau[1] 
-                    + np.einsum('nl,mn->lm',Xp_,Xp)*Tau[0])[1,2]
-    res /= (K_**2)
-    return res
+def compute_A1(U,X,V,Y,U_,X_,V_,Y_,k,Tau):
+    return (np.einsum('ln,nm->lm',X,Y_)*Tau[1] 
+                    - np.einsum('nl,mn->lm',Y_,X)*Tau[0])[0,2]
+def compute_B1(U,X,V,Y,U_,X_,V_,Y_,k,Tau):
+    return (np.einsum('ln,nm->lm',Y,Y_)*Tau[1] 
+                    + np.einsum('nl,mn->lm',U_,U)*Tau[0])[0,2]
 def compute_A2():
     return 0
 def compute_A3():
@@ -171,110 +145,84 @@ def split(array, nrows, ncols):
                  .swapaxes(1, 2)
                  .reshape(-1, nrows, ncols))
 
+def ans_3x3(P,j2,j3):
+    A2 = 0;     phiA2 = 0;    phiA2p = 0;
+    A3 = P[1*j3]*j3
+    B1 = P[2*j3]*j3 + P[1]*(1-j3)
+    B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
+    B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
+    phiA3 = P[-1]*j3
+    phiA1p = np.pi
+    phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, 0, 0, np.pi)
+    p1 = 0
+    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
+def ans_q0(P,j2,j3):
+    A3 = 0; phiA3 = 0
+    A2 = P[1]*j2
+    B1 = P[2*j2]*j2+P[1]*(1-j2)
+    B2 = P[3*j2]*j2
+    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
+    phiA2 = P[-1]*j2
+    phiA1p, phiA2p = (0, phiA2)
+    phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, np.pi, np.pi, 0)
+    p1 = 0
+    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
+def ans_cb1(P,j2,j3):
+    B3 = 0; phiB3 = 0
+    A2 = P[1*j2]*j2
+    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
+    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
+    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
+    phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
+    phiB2 = P[-1]*j2
+    phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
+    phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
+    p1 = 1
+    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
+def ans_cb2(P,j2,j3):
+    B3 = 0; phiB3 = 0
+    A2 = P[1*j2]*j2
+    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
+    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
+    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
+    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
+    phiA2 = P[-1]*j2
+    phiA1p, phiA2p, phiA3 = (0, -phiA2, 0)
+    phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
+    p1 = 1
+    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
+def ans_oct(P,j2,j3):
+    A3 = 0; phiA3 = 0
+    A2 = P[1]*j2
+    B1 = P[2*j2]*j2+P[1]*(1-j2)
+    B2 = P[3*j2]*j2
+    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
+    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
+    phiB2 = P[-1]*j2
+    phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
+    phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
+    p1 = 1
+    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
 
 #### Ansatze encoded in the matrix
 def big_Nk(P,L,args):
     m = inp.m
     J1,J2,J3,ans,KM,Tau,K_ = args
-    ka1 = KM[0]; ka1_=KM[1]; ka2=KM[2]; ka2_=KM[3]; ka12p=KM[4]; ka12p_=KM[5]; ka12m=KM[6]; ka12m_=KM[7]
-    t1 = Tau[0]; t1_ = Tau[1]; t2 = Tau[2]; t2_ = Tau[3]; t3 = Tau[4]; t3_ = Tau[5];
+    ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_ = KM
+    t1,t1_,t2,t2_,t3,t3_ = Tau
     J1 /= 2.
     J2 /= 2.
     J3 /= 2.
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or not --> problem with VERY small J2,J3
     j3 = np.sign(int(np.abs(J3)*1e8))
+    ans_func = {'3x3': ans_3x3, 'q0': ans_q0, 'cb1': ans_cb1, 'cb2': ans_cb2, 'oct': ans_oct}
     if -np.angle(t1) < np.pi/3+1e-4 and -np.angle(t1) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
         p104 = -1
     else:
         p104 = 1
     A1 = p104*P[0]
+    p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3 = ans_func[ans](P,j2,j3)
     #parameters of the various ansatze
-    if ans == '3x3':      #3
-        A2 = 0;     phiA2 = 0;    phiA2p = 0;
-        A3 = P[1*j3]*j3
-        B1 = P[2*j3]*j3 + P[1]*(1-j3)
-        B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
-        B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
-        phiA3 = P[-1]*j3
-        phiA1p = np.pi
-        phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, 0, 0, np.pi)
-        p1 = 0
-    elif ans == 'q0':     #1
-        A3 = 0; phiA3 = 0
-        A2 = P[1]*j2
-        B1 = P[2*j2]*j2+P[1]*(1-j2)
-        B2 = P[3*j2]*j2
-        B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-        phiA2 = P[-1]*j2
-        phiA1p, phiA2p = (0, phiA2)
-        phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, np.pi, np.pi, 0)
-        p1 = 0
-    elif ans == 'cb1':
-        B3 = 0; phiB3 = 0
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
-        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
-        p1 = 1
-    elif ans == 'cb1_nc':
-        B3 = 0; phiB3 = 0
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2+np.pi)
-        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
-        p1 = 1
-    elif ans == 'cb1_2':
-        B3 = 0; phiB3 = 0
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2, phiA1p/2)
-        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
-        p1 = 1
-    elif ans == 'cb1_nc2':
-        B3 = 0; phiB3 = 0
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2, phiA1p/2+np.pi)
-        phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
-        p1 = 1
-    elif ans == 'cb2':
-        B3 = 0; phiB3 = 0
-        A2 = P[1*j2]*j2
-        A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-        B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-        B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiA2 = P[-1]*j2
-        phiA1p, phiA2p, phiA3 = (0, -phiA2, 0)
-        phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
-        p1 = 1
-    elif ans == 'oct':
-        A3 = 0; phiA3 = 0
-        A2 = P[1]*j2
-        B1 = P[2*j2]*j2+P[1]*(1-j2)
-        B2 = P[3*j2]*j2
-        B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-        phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-        phiB2 = P[-1]*j2
-        phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
-        phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
-        p1 = 1
     B1 *= p104
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
