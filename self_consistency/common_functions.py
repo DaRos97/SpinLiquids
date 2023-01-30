@@ -131,7 +131,10 @@ def compute_O(old_O,L,args):
         else:
             new_O[p] = np.absolute(res)
     return new_O
-dic_indexes = {'1': (1,2), '1p': (2,0), '2': (1,0), '2p': (5,1), '3': (1,4)}
+dic_indexes = { '1': (1,2), '1p': (2,0), 
+                '2': (1,0), '2p': (5,1), 
+                '3': (4,1)
+                }
 def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_):
     if li_==2 and lj_ == 0:
         Tau = np.conjugate(Tau)

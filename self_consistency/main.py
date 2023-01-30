@@ -127,6 +127,7 @@ for ans in ansatze:
     initial_L = 0;  new_L = 0
     continue_loop = True
     conv = 0
+    #print("Parameters are ",pars)
     while continue_loop:
         #print("Step ",step,": ",new_L,new_O)
         #input()
