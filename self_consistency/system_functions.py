@@ -134,9 +134,6 @@ def ComputeDerRanges(J2,J3,ansatze):
 
 #Save the dictionaries in the file given, rewriting the already existing data if precision is better
 def SaveToCsv(Data,csvfile):
-    if not Data['Converge']:
-        print('Not saving because it did not converge')
-        return 0
     N_ = 0
     if Path(csvfile).is_file():
         with open(csvfile,'r') as f:

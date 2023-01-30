@@ -4,6 +4,8 @@ m = 6
 mp_cpu = 16
 list_ans = ['3x3','q0','cb1']#,'cb1_nc','cb1_2','cb1_nc2']#,'cb2','oct']
 #derivative
+cutoff_L = 1e-6
+cutoff_O = 1e-6
 MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-12      #min difference b/w phase diagram points to be considered the same
@@ -19,14 +21,14 @@ for i in range(Jpts):
     for j in range(Jpts):
         J.append((J2i+(J2f-J2i)/(Jpts-1)*i,J3i+(J3f-J3i)/(Jpts-1)*j))
 #initial point
-header = {'3x3':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A3','B1','B2','B3','phiA3'],  #3x3
-          'q0':     ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiA2'],  #q0
-          'cb1':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
-          'cb1_nc':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
-          'cb1_2':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
-          'cb1_nc2':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
-          'cb2':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','A3','B1','B2','phiB1','phiA2'],
-          'oct':    ['ans','J2','J3','Converge','Energy','Sigma','gap','L','A1','A2','B1','B2','B3','phiB1','phiB2']
+header = {'3x3':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A3','B1','B2','B3','phiA3'],  #3x3
+          'q0':     ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','B1','B2','B3','phiA2'],  #q0
+          'cb1':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
+          'cb1_nc':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
+          'cb1_2':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
+          'cb1_nc2':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','A3','B1','B2','phiA1','phiB2'],
+          'cb2':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','A3','B1','B2','phiB1','phiA2'],
+          'oct':    ['ans','J2','J3','Converge','Energy','gap','L','A1','A2','B1','B2','B3','phiB1','phiB2']
           }
 num_phi = {'3x3':1,'q0':1,'cb1':2,'cb1_nc':2,'cb1_2':2,'cb1_nc2':2,'cb2':2,'oct':2}
 list_A2 = []

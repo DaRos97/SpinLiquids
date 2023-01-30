@@ -19,7 +19,7 @@ for i in range(inp.m):
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
 def compute_L(P,args):
-    res = minimize_scalar(lambda l: -total_energy(P,l,args),  #maximize energy wrt L with fixed P
+    res = minimize_scalar(lambda l: -total_energy(P,l,args)[0],  #maximize energy wrt L with fixed P
             method = inp.L_method,          #can be 'bounded' or 'Brent'
             bracket = args[-1],             
             options={'xtol':inp.prec_L}
@@ -68,10 +68,11 @@ def total_energy(P,L,args):
                 Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
             except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
                 r4 = -3+(L-L_bounds[0])
-                return Res+r4           #if that's the case even for a single k in the grid, return a defined value
+                return Res+r4,10           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
             res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
     #Now fit the energy values found with a spline curve in order to have a better solution
+    gap = np.amin(res[0].ravel())           #the gap is the lowest value of the lowest gap (not in the fitting if not could be negative in principle)
     r2 = 0
     for i in range(inp.m):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
@@ -79,7 +80,7 @@ def total_energy(P,L,args):
     r2 /= inp.m                             #normalize
     #r2 = res.ravel().sum()
     #r2 /= len(res.ravel())
-    return Res + r2
+    return Res + r2, gap
 
 #Compute new set of O using old O and new L
 def compute_O(old_O,L,args):

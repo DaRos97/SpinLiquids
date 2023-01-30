@@ -40,7 +40,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -147,16 +148,15 @@ for ans in ansatze:
     O_progres[1] = Pinitial[ans]
     L_progres = np.zeros((2,1))
     L_progres[1] = L_dic[ans]
-    #Put these in inputs.py
-    cutoff_L = 1e-6
-    cutoff_O = 1e-6
     #
     step = 0
     initial_O = Pinitial[ans]
     initial_L = 0
-    while True:
-        L_stable = False
-        O_stable = False
+    continue_loop = True
+    conv = 0
+    while continue_loop:
+        L_stable = 0
+        O_stable = 1
         #Chose initial O
         #Compute L
         new_L = cf.compute_L(initial_O,Args_L)
@@ -169,52 +169,37 @@ for ans in ansatze:
         initial_O = new_O
         step += 1
         #Check if all parameters are stable up to precision
-        if np.abs(old_L-new_L) < cutoff_L:
-            L_stable = True
-        else:
-            continue
+        if np.abs(old_L-new_L) < inp.cutoff_L:
+            L_stable = 1
         for i in range(len(new_O)):
-            if np.abs(old_O[i]-new_O[i]) < cutoff_O:
-                O_stable = True
-            else:
-                O_stable = False
-                break
+            if np.abs(old_O[i]-new_O[i]) > inp.cutoff_O:
+                O_stable *= 0
         if L_stable and O_stable:
-            break
-        if step > 100*len(pars):
+            continue_loop = False
+        if step > inp.MaxIter*len(pars):
             prec = np.abs(old_L-new_L)
             for i in range(len(pars)):
                 prec += np.abs(old_O[i]-new_O[i])
+            conv = prec
             print("Not converged, precision = ",prec)
+            break
     print("Found pars: ",new_L,new_O)
     print("\nNumber of iterations: ",step,'\n')
-    continue
-
-    #Compute the final values using the result of the minimization
-    Pf = tuple(result.x)
-    is_min = False
-    Args = (J1,J2,J3,ans,DerRange[ans],pars,hess_sign,is_min,KM,Tau,K,S,L_dic[ans])
-    try:
-        Sigma, E, L, gap = cf.Sigma(Pf,*Args)
-    except TypeError:
-        print("!!!!!!!!!!!!!!!Initial point not correct!!!!!!!!!!!!!!!!")
-        print("Found values: Pf=",Pf,"\nSigma = ",result.fun)
-        print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
-        continue
-    conv = cf.IsConverged(Pf,pars,Bnds[ans],Sigma)      #check whether the convergence worked and it is not too close to the boudary of the bounds
+#    continue
+    if not conv:
+        E,gap = cf.total_energy(new_O,new_L,Args_L)
+    else:
+        E,gap = (np.nan,np.nan)
     #Format the parameters in order to have 0 values in the non-considered ones
-    newP = cf.FormatParams(Pf,ans,J2,J3)
+    newP = cf.FormatParams(new_O,ans,J2,J3)
     #Store the files in a dictionary
-    data = [ans,J2,J3,conv,E,Sigma,gap,L]
+    data = [ans,J2,J3,conv,E,new_L]
     for ind in range(len(data)):
         DataDic[header[ind]] = data[ind]
     for ind2 in range(len(newP)):
         DataDic[header[len(data)+ind2]] = newP[ind2]
     #Save values to an external file
     print(DataDic)
-    if not conv:
-        print("!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!\\Hessian sign not Correct")
-        continue
     print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
     sf.SaveToCsv(DataDic,csvfile)
 
