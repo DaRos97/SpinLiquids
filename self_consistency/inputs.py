@@ -2,14 +2,8 @@ import numpy as np
 m = 6
 ####
 mp_cpu = 16
-list_ans = ['3x3','q0','cb1','cb1_nc','cb1_2','cb1_nc2']#,'cb2','oct']
+list_ans = ['3x3','q0','cb1']#,'cb1_nc','cb1_2','cb1_nc2']#,'cb2','oct']
 #derivative
-s_b_modulus = 0.01 #bound on values given by smaller grids
-s_b_phase   = 0.1 #bound on values given by smaller grids
-der_par = 1e-6
-der_phi = 1e-5
-der_lim = 1  #limit under which compute the Hessian for that parameter
-cutoff = 1e-8   ############      #accettable value of Sigma to accept result as converged
 MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-12      #min difference b/w phase diagram points to be considered the same
@@ -46,7 +40,6 @@ for ans in list_ans:
         list_A3.append(ans)
     if 'B3' in lPar:
         list_B3.append(ans)
-shame2 = 100
 
 
 

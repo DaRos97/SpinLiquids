@@ -21,7 +21,7 @@ for i in range(inp.m):
 def compute_L(P,args):
     res = minimize_scalar(lambda l: -total_energy(P,l,args),  #maximize energy wrt L with fixed P
             method = inp.L_method,          #can be 'bounded' or 'Brent'
-            bracket = args[-1],             #bounds = inp.L_bounds,
+            bracket = args[-1],             
             options={'xtol':inp.prec_L}
             )
     L = res.x                       #optimized L
@@ -32,12 +32,6 @@ def compute_L(P,args):
 def total_energy(P,L,args):
     J1,J2,J3,ans,KM,Tau,K_,S,L_initial,L_bounds = args
     #The minimization function sometimes goes out of the given bounds so let it go back inside
-    if L < L_bounds[0] :
-        Res = -5-(L_bounds[0]-L)
-        return Res
-    elif L > L_bounds[1]:
-        Res = -5-(L-L_bounds[1])
-        return Res
     J = (J1,J2,J3)
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or 1 --> problem for VERY small J2,J3 points
     j3 = np.sign(int(np.abs(J3)*1e8))
@@ -83,9 +77,9 @@ def total_energy(P,L,args):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
     r2 /= inp.m                             #normalize
-    #
-    Res += r2                               #sum to the other part of the energy
-    return Res
+    #r2 = res.ravel().sum()
+    #r2 /= len(res.ravel())
+    return Res + r2
 
 #Compute new set of O using old O and new L
 def compute_O(old_O,L,args):
@@ -99,45 +93,45 @@ def compute_O(old_O,L,args):
     for i in range(K_):
         for j in range(K_):
             N_k = N[:,:,i,j]
-            Ch = LA.cholesky(N_k) #upper triangular
+            Ch = LA.cholesky(N_k) #upper triangular-> N_k=Ch^{dag}*Ch
             w,U = LA.eigh(np.dot(np.dot(Ch,J_),np.conjugate(Ch.T)))
             w = np.diag(np.sqrt(np.einsum('ij,j->i',J_,w)))
             M[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
     #for each parameter need to know what it is
-    dic_O = {'A1':compute_A1,'A2':compute_A2,'A3':compute_A3,'B1':compute_B1,'B2':compute_B2,'B3':compute_B3}
+    dic_O = {'A':compute_A,'B':compute_B}
     kxg = np.linspace(0,1,K_)
     kyg = np.linspace(0,1,K_)
     for p in range(len(pars)):
-        res = 0
         par = pars[p]
-        func = dic_O[par[-2:]]
+        par_ = par[-2:] if par[-1]=='p' else par[-1]
+        par_2 = 'A' if 'A' in par else 'B'
+        li_ = dic_indexes[par_][0]
+        lj_ = dic_indexes[par_][1]
+        func = dic_O[par_2]
+        rrr = np.zeros((K_,K_),dtype=complex)
         for i in range(K_):
             for j in range(K_):
                 U,X,V,Y = split(M[:,:,i,j],inp.m,inp.m)
-                U_,X_,V_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
+                U_,V_,X_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
                 k = np.array([kxg[i]*2*np.pi,(kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)]) 
-                res += func(U,X,V,Y,U_,X_,V_,Y_,k,Tau)
-        res /= (2*K_**2)
+                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,k,Tau,li_,lj_)
+        interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
+        res2I = interI.integral(0,1,0,1)
+        interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
+        res2R = interR.integral(0,1,0,1)
+        res = (res2R+1j*res2I)/2
         if par[0] == 'p':
             new_O[p] = np.angle(res)
         else:
             new_O[p] = np.absolute(res)
     return new_O
-
-def compute_A1(U,X,V,Y,U_,X_,V_,Y_,k,Tau):
-    return (np.einsum('ln,nm->lm',X,Y_)*Tau[1] 
-                    - np.einsum('nl,mn->lm',Y_,X)*Tau[0])[0,2]
-def compute_B1(U,X,V,Y,U_,X_,V_,Y_,k,Tau):
-    return (np.einsum('ln,nm->lm',Y,Y_)*Tau[1] 
-                    + np.einsum('nl,mn->lm',U_,U)*Tau[0])[0,2]
-def compute_A2():
-    return 0
-def compute_A3():
-    return 0
-def compute_B2():
-    return 0
-def compute_B3():
-    return 0
+dic_indexes = {'1': (1,2), '1p': (2,0), '2': (1,0), '2p': (5,1), '3': (4,1)}
+def compute_A(U,X,V,Y,U_,X_,V_,Y_,k,Tau,li_,lj_):
+    return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau[1] 
+            - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau[0])
+def compute_B(U,X,V,Y,U_,X_,V_,Y_,k,Tau,li_,lj_):
+    return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau[0] 
+            + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau[1])
 
 def split(array, nrows, ncols):
     r, h = array.shape

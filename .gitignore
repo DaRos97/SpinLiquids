@@ -5,6 +5,7 @@ Analysis_of_Data/structure_factor/SpinOrientations/
 #
 minimization_SU2/__pycache__/
 minimization_TMD/__pycache__/
+self_consistency/__pycache__/
 SDM_diagram/__pycache__/
 #
 bashCodes/

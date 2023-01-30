@@ -78,9 +78,9 @@ t_0 = np.arctan(np.sqrt(2))
 #Put initial values by classical paramters !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':0.5, 'B1':0.25, 'B2': 0.1, 'B3': 0.1, 'phiA3': 0},
-        'q0':{'A1':0.4, 'A2':0.3, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiA2': np.pi},
-        'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
+Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.25, 'phiA3': 0},
+        'q0':{'A1':np.sqrt(3)/4, 'A2':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.25, 'B3': 0.5, 'phiA2': np.pi},
+        'cb1':{'A1':np.sqrt(3)/4, 'A2':0.25, 'A3':0.5, 'B1':0.25, 'B2': np.sqrt(3)/4, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
         'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
         'cb1_2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
         'cb1_nc2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
@@ -139,6 +139,8 @@ for ans in ansatze:
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
+    if 'phiA1' in pars:
+        pars[pars.index('phiA1')] = 'phiA1p'
     Args_O = (J1,J2,J3,ans,KM,Tau,K,S,pars)
     DataDic = {}
     O_progres = np.zeros((2,len(Pinitial[ans])))  #progress list, 2 is enough
@@ -146,56 +148,47 @@ for ans in ansatze:
     L_progres = np.zeros((2,1))
     L_progres[1] = L_dic[ans]
     #Put these in inputs.py
-    cutoff_L = 1e-8
-    cutoff_O = 1e-8
+    cutoff_L = 1e-6
+    cutoff_O = 1e-6
     #
     step = 0
+    initial_O = Pinitial[ans]
+    initial_L = 0
     while True:
         L_stable = False
         O_stable = False
         #Chose initial O
-        initial_O = O_progres[1]
         #Compute L
-        L = cf.compute_L(initial_O,Args_L)
-        L_progres[0] = L_progres[1]
-        L_progres[1] = L
-        if np.abs(L_progres[0]-L_progres[1]) < cutoff_L:
-            L_stable = True
+        new_L = cf.compute_L(initial_O,Args_L)
         #Compute new O
-        new_O = cf.compute_O(initial_O,L,Args_O)
-        #Save it somewhere
-        O_progres[0] = O_progres[1]
-        O_progres[1] = new_O
+        new_O = cf.compute_O(initial_O,new_L,Args_O)
+        #save it
+        old_L = initial_L
+        initial_L = new_L
+        old_O = initial_O
+        initial_O = new_O
         step += 1
-        print("Step ",step,": ",L_progres[1],",",O_progres[1])
-        #exit()
         #Check if all parameters are stable up to precision
+        if np.abs(old_L-new_L) < cutoff_L:
+            L_stable = True
+        else:
+            continue
         for i in range(len(new_O)):
-            if np.abs(O_progres[0][i]-O_progres[1][i]) < cutoff_O:
+            if np.abs(old_O[i]-new_O[i]) < cutoff_O:
                 O_stable = True
             else:
                 O_stable = False
                 break
         if L_stable and O_stable:
             break
-    print("Found pars: ",L_progres[1],O_progres[1])
-    exit()
+        if step > 100*len(pars):
+            prec = np.abs(old_L-new_L)
+            for i in range(len(pars)):
+                prec += np.abs(old_O[i]-new_O[i])
+            print("Not converged, precision = ",prec)
+    print("Found pars: ",new_L,new_O)
+    print("\nNumber of iterations: ",step,'\n')
     continue
-
-    #Actual minimization
-    result = d_e(cf.Sigma,
-        args = Args,
-        x0 = Pinitial[ans],
-        bounds = Bnds[ans],
-        popsize = 21,                               #mbah
-        maxiter = inp.MaxIter*len(Pinitial[ans]),   #max # of iterations
-        #        disp = True,                       #whether to display in-progress results
-        tol = inp.cutoff,
-        atol = inp.cutoff,
-        updating='deferred' if inp.mp_cpu != 1 else 'immediate',    #updating of the population for parallel computation
-        workers = inp.mp_cpu                        #parallelization 
-        )
-    print("\nNumber of iterations: ",result.nit," / ",inp.MaxIter*len(Pinitial[ans]),'\n')
 
     #Compute the final values using the result of the minimization
     Pf = tuple(result.x)
