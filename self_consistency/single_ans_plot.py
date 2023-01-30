@@ -60,10 +60,10 @@ for filename in os.listdir(dirname):
             for n,h in enumerate(head):
                 if n == 0:
                     D[h][i2,i3] = (1 if float(data[n+3])==0 else np.nan)
-                   # if float(data[n+3]) != 0:
-                   #     for h2 in head[1:]:
-                   #         D[h2][i2,i3] = np.nan
-                   #     break
+                    if float(data[n+3]) != 0:
+                        for h2 in head[1:]:
+                            D[h2][i2,i3] = np.nan
+                        break
                 else:
                     try:
                         D[h][i2,i3] = float(data[n+3])
@@ -89,7 +89,7 @@ for i in range(nP):
     except:
         print("Range with only 0 or nan values")
     #print("Range of ",head[i],":",np.amin(D[head[i]][np.nonzero(~np.isnan(D[head[i]]))]),"--",np.amax(D[head[i]][~np.isnan(D[head[i]])]))
-fig = plt.figure()#(figsize=(16,16))
+fig = plt.figure(figsize=(16,16))
 for i in range(nP):
     ax = fig.add_subplot(4,4,i+1,projection='3d')
     ax.plot_surface(X,Y,D[head[i]].T,cmap=cm.coolwarm)

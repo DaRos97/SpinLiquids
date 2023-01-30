@@ -43,7 +43,7 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
                         data = lines[i*2+1].split(',')
                         if data[0] == Ans:              #correct ansatz
                             L[data[0]] = float(data[6])
-                            P[data[0]] = data[7:-1]
+                            P[data[0]] = data[7:-1] if data[-1] == '\n' else data[7:]
                             for j in range(len(P[data[0]])):    #cast to float
                                 P[data[0]][j] = float(P[data[0]][j])
     j2 = np.abs(J2) > inp.cutoff_pts    #bool for j2 not 0

@@ -6,9 +6,9 @@ list_ans = ['3x3','q0','cb1']#,'cb1_nc','cb1_2','cb1_nc2']#,'cb2','oct']
 #derivative
 cutoff_L = 1e-6
 cutoff_O = 1e-6
-MaxIter = 100
+MaxIter = 1000
 prec_L = 1e-10       #precision required in L maximization
-cutoff_pts = 1e-12      #min difference b/w phase diagram points to be considered the same
+cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
 L_bounds = (0.4,1)
 L_bnd_ref = 0.1                     #range for bounds of L when given as initial condition a previous result

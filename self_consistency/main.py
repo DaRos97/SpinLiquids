@@ -79,7 +79,7 @@ t_0 = np.arctan(np.sqrt(2))
 #Put initial values by classical paramters !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.25, 'phiA3': 0},
+Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.5, 'phiA3': 0},
         'q0':{'A1':np.sqrt(3)/4, 'A2':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.25, 'B3': 0.5, 'phiA2': np.pi},
         'cb1':{'A1':np.sqrt(3)/4, 'A2':0.25, 'A3':0.5, 'B1':0.25, 'B2': np.sqrt(3)/4, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
         'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
@@ -106,8 +106,8 @@ for ans in ansatze:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
     is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
-    L_bounds = (L_dic[ans]-inp.L_bnd_ref,L_dic[ans]+inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds       #bounds on Lagrange multiplier set by default
-    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_dic[ans],L_bounds)
+    L_bounds = (inp.L_bounds,)       #bounds on Lagrange multiplier set by default
+    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_bounds[0][1]-L_bounds[0][0],L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
     for pPp in pars2:
@@ -115,7 +115,7 @@ for ans in ansatze:
             pars.append(pPp)
     if 'phiA1' in pars:
         pars[pars.index('phiA1')] = 'phiA1p'
-    Args_O = (J1,J2,J3,ans,KM,Tau,K,S,pars)
+    Args_O = (J1,J2,J3,ans,KM,Tau,K,pars)
     DataDic = {}
     O_progres = np.zeros((2,len(Pinitial[ans])))  #progress list, 2 is enough
     O_progres[1] = Pinitial[ans]
@@ -124,12 +124,12 @@ for ans in ansatze:
     #
     step = 0
     initial_O = Pinitial[ans]; new_O = Pinitial[ans]
-    initial_L = 0;  new_L = 0
+    initial_L = 0;  new_L = Args_L[-2]
     continue_loop = True
     conv = 0
-    #print("Parameters are ",pars)
+#    print("Parameters are ",pars)
     while continue_loop:
-        print("Step ",step,": ",new_L,new_O)
+ #       print("Step ",step,": ",new_L,new_O)
         #input()
         L_stable = 0
         O_stable = 1
@@ -159,6 +159,7 @@ for ans in ansatze:
             conv = prec
             print("Not converged, precision = ",prec)
             break
+        Args_L = (J1,J2,J3,ans,KM,Tau,K,S,new_L,L_bounds)
     print("\n\nFound pars: ",new_L,new_O,"\n\n")
     print("\nNumber of iterations: ",step,'\n')
 #    continue

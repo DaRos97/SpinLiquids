@@ -2,6 +2,7 @@ import inputs as inp
 import numpy as np
 from scipy import linalg as LA
 from scipy.optimize import minimize_scalar
+from scipy.optimize import minimize
 from scipy.interpolate import RectBivariateSpline as RBS
 from pathlib import Path
 import csv
@@ -17,21 +18,8 @@ for i in range(inp.m):
     J_[i,i] = -1
     J_[i+inp.m,i+inp.m] = 1
 
-#### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
-def compute_L(P,args):
-    res = minimize_scalar(lambda l: -total_energy(P,l,args)[0],  #maximize energy wrt L with fixed P
-            method = inp.L_method,          #can be 'bounded' or 'Brent'
-            bracket = args[-1],             
-            options={'xtol':inp.prec_L}
-            )
-    L = res.x                       #optimized L
-    return L
-
-#### Computes the Energy given the paramters P and the Lagrange multiplier L. 
-#### This is the function that does the actual work.
 def total_energy(P,L,args):
     J1,J2,J3,ans,KM,Tau,K_,S,L_initial,L_bounds = args
-    #The minimization function sometimes goes out of the given bounds so let it go back inside
     J = (J1,J2,J3)
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or 1 --> problem for VERY small J2,J3 points
     j3 = np.sign(int(np.abs(J3)*1e8))
@@ -67,8 +55,9 @@ def total_energy(P,L,args):
             try:
                 Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
             except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
+                print("not pos def!!!!!!!!!!!!!!")
                 r4 = -3+(L-L_bounds[0])
-                return Res+r4,10           #if that's the case even for a single k in the grid, return a defined value
+                return np.nan,np.nan           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
             res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
     #Now fit the energy values found with a spline curve in order to have a better solution
@@ -82,10 +71,52 @@ def total_energy(P,L,args):
     #r2 /= len(res.ravel())
     return Res + r2, gap
 
+#### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
+def compute_L(P,args):
+    res = minimize_scalar(lambda l: -optimize_L(P,l,args),  #maximize energy wrt L with fixed P
+            method = inp.L_method,          #can be 'bounded' or 'Brent'
+            #method = 'bounded',
+            bracket = args[-1][0],             
+            #bounds = args[-1],
+            options={'xtol':inp.prec_L}
+            )
+    L = res.x                       #optimized L
+    return L
+
+#### Computes the Energy given the paramters P and the Lagrange multiplier L. 
+#### This is the function that does the actual work.
+def optimize_L(P,L,args):
+    J1,J2,J3,ans,KM,Tau,K_,S,L_initial,L_bounds = args
+    Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
+    #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
+    args2 = (J1,J2,J3,ans,KM,Tau,K_)
+    N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
+    res = np.zeros((inp.m,K_,K_))
+    for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
+        for j in range(K_):
+            Nk = N[:,:,i,j]                 #extract the corresponding matrix
+            try:
+                Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
+            except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
+                r4 = -1+(L-L_bounds[0][0])
+                return Res+r4           #if that's the case even for a single k in the grid, return a defined value
+            temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
+            res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
+    #Now fit the energy values found with a spline curve in order to have a better solution
+    gap = np.amin(res[0].ravel())           #the gap is the lowest value of the lowest gap (not in the fitting if not could be negative in principle)
+    r2 = 0
+    for i in range(inp.m):
+        func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
+        r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
+    r2 /= inp.m                             #normalize
+    #r2 = res.ravel().sum()
+    #r2 /= len(res.ravel())
+    return Res + r2
+
 #Compute new set of O using old O and new L
 def compute_O(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    J1,J2,J3,ans,KM,Tau,K_,S,pars = args
+    J1,J2,J3,ans,KM,Tau,K_,pars = args
     if -np.angle(Tau[0]) < np.pi/3+1e-4 and -np.angle(Tau[0]) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
         p104 = -1
     else:
@@ -130,6 +161,8 @@ def compute_O(old_O,L,args):
             new_O[p] = np.angle(res)
         else:
             new_O[p] = np.absolute(res)
+    #    print(par,res)
+    #input()
     return new_O
 dic_indexes = { '1': (1,2), '1p': (2,0), 
                 '2': (1,0), '2p': (5,1), 
@@ -229,7 +262,6 @@ def big_Nk(P,L,args):
         p104 = 1
     A1 = p104*P[0]
     p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3 = ans_func[ans](P,j2,j3)
-    #parameters of the various ansatze
     B1 *= p104
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
