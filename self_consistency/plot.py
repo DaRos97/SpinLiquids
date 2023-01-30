@@ -11,7 +11,6 @@ Color = {'3x3': ['r','orange'],
          'q0':  ['blue','y'],
          'cb1':  ['forestgreen','lime'],
          #'cb1_2':  ['blue','red'],
-         #'cb1_nc':  ['yellow','y'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -29,12 +28,11 @@ for opt, arg in opts:
         phi_t = arg
 phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
-dirname = '../Data/final_'+txt_S+'_'+phi_t+'/' 
-#dirname = '../Data/S50/phi000/13/'
+#dirname = '../Data/SC_data/final_'+txt_S+'_'+phi_t+'/' 
+dirname = '../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/13/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')
-delta = np.zeros((9,9))
 DD_none = D[0,0]
 Ji = -0.3
 Jf = 0.3
@@ -46,8 +44,6 @@ for filename in os.listdir(dirname):
         lines = f.readlines()
     N = (len(lines)-1)//2 + 1
     minE = 10
-    e1 = 0
-    e2 = 0
     for i in range(N):
         data = lines[i*2+1].split(',')
         if data[0] not in Color.keys():     #not a considered ansatz
@@ -56,10 +52,6 @@ for filename in os.listdir(dirname):
         j3 = float(data[2]) - Ji
         i2 = int(j2*8/(0.6))
         i3 = int(j3*8/(0.6))
-        if data[0] == 'cb1':
-            e1 = float(data[4])
-        if data[0] == 'cb1_2':
-            e2 = float(data[4])
         if float(data[4]) < minE:
             if data[3][-1] in ['L','O']:      #spin Liquid or long range Order
                 txt_SL = data[3][-1]
@@ -69,13 +61,9 @@ for filename in os.listdir(dirname):
                 txt_conv = 'g' if data[3][0] == 'T' else 'b'
             D[i2,i3] = data[0] + txt_conv + txt_SL
             minE = float(data[4])
-    if e1 and e2:
-        delta[i2,i3] = e1-e2
-    else:
-        delta[i2,i3] = np.nan
 ##########
 pts = len(os.listdir(dirname))
-fig = plt.figure(figsize=(4,4))
+fig = plt.figure(figsize=(10,10))
 #plt.subplot(2,2,1)
 plt.title(title)
 plt.gca().set_aspect('equal')
@@ -94,7 +82,7 @@ for i in range(9):
         m = '*' if (m=='o' and OL == 1) else 'o'
         J2 = -0.3+i*0.6/8
         J3 = -0.3+j*0.6/8
-        plt.scatter(J2,J3,color=c,marker=m)
+        plt.scatter(J2,J3,color=c,marker=m,s=100)
 #Legenda
 list_leg = []
 for col in Color.keys():

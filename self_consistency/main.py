@@ -129,7 +129,7 @@ for ans in ansatze:
     conv = 0
     #print("Parameters are ",pars)
     while continue_loop:
-        #print("Step ",step,": ",new_L,new_O)
+        print("Step ",step,": ",new_L,new_O)
         #input()
         L_stable = 0
         O_stable = 1

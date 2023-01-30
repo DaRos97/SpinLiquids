@@ -10,7 +10,7 @@ MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-12      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
-L_bounds = (0.2,1.5)
+L_bounds = (0.4,1)
 L_bnd_ref = 0.1                     #range for bounds of L when given as initial condition a previous result
 L_b_2 = 0.01
 #phase diagram

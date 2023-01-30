@@ -16,7 +16,7 @@ def CheckCsv(csvf):
         N = (len(lines)-1)//2 +1        #2 lines per ansatz
         for i in range(N):
             data = lines[i*2+1].split(',')
-            if data[3] == 'True':
+            if float(data[3]) == 0:
                 ans.append(lines[i*2+1].split(',')[0])
     res = []
     for a in inp.list_ans:
@@ -42,8 +42,8 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
                     for i in range(N):
                         data = lines[i*2+1].split(',')
                         if data[0] == Ans:              #correct ansatz
-                            L[data[0]] = float(data[7])
-                            P[data[0]] = data[8:]
+                            L[data[0]] = float(data[6])
+                            P[data[0]] = data[7:-1]
                             for j in range(len(P[data[0]])):    #cast to float
                                 P[data[0]][j] = float(P[data[0]][j])
     j2 = np.abs(J2) > inp.cutoff_pts    #bool for j2 not 0
@@ -71,66 +71,6 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
                 P[ans].append(Pi_[ans][par])
         done[ans] = 0
     return P, done, L
-
-#Constructs the bounds of the specific ansatz depending on the number and type of parameters involved in the minimization
-def FindBounds(J2,J3,ansatze,done,Pin,Pi_,bounds_):
-    B = {}
-    j2 = np.abs(J2) > inp.cutoff_pts
-    j3 = np.abs(J3) > inp.cutoff_pts
-    for ans in ansatze:
-        if done[ans]:
-            B[ans] = tuple()
-            list_p = list(Pi_[ans].keys())
-            new_list = []
-            for t in list_p:
-                if t[-1] == '2' and j2:
-                    new_list.append(t)
-                elif t[-1] == '3' and j3:
-                    new_list.append(t)
-                elif t[-1] == '1':
-                    new_list.append(t)
-            for n,p in enumerate(Pin[ans]):
-                t = new_list[n]
-                if t[0] == 'p':     #its a phase
-                    s_b = inp.s_b_phase
-                else:
-                    s_b = inp.s_b_modulus
-                mB = p - s_b
-                MB = p + s_b
-                B[ans] += ((mB,MB),)
-            continue
-        B[ans] = (bounds_[ans]['A1'],)
-        for par in Pi_[ans].keys():
-            if par == 'A1':
-                continue
-            if par[-1] == '1':
-                B[ans] = B[ans] + (bounds_[ans][par],)
-            elif par[-1] == '2' and j2:
-                B[ans] = B[ans] + (bounds_[ans][par],)
-            elif par[-1] == '3' and j3:
-                B[ans] = B[ans] + (bounds_[ans][par],)
-    return B
-
-#Compute the derivative ranges for the various parameters of the minimization
-def ComputeDerRanges(J2,J3,ansatze):
-    R = {}
-    j2 = np.abs(J2) > inp.cutoff_pts
-    j3 = np.abs(J3) > inp.cutoff_pts
-    for ans in ansatze:
-        Npar = 2
-        if j2:
-            Npar +=1
-            if ans in inp.list_A2:
-                Npar +=1
-        if j3 and ans in inp.list_A3:
-            Npar +=1
-        if j3 and ans in inp.list_B3:
-            Npar +=1
-        R[ans] = [inp.der_par for i in range(Npar)]
-        for n in range(inp.num_phi[ans]):
-            R[ans].append(inp.der_phi)
-    return R
-
 
 #Save the dictionaries in the file given, rewriting the already existing data if precision is better
 def SaveToCsv(Data,csvfile):
