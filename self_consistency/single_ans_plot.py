@@ -10,14 +10,13 @@ Color = {'3x3': ['red','firebrick'],
          'q0':  ['yellow','y'],
          'cb1':  ['lime','limegreen'],
          'cb1_2':  ['lime','limegreen'],
-         'cb1_nc':  ['k','gray']
          }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:a:p:N:",["plot"])
+    opts, args = getopt.getopt(argv, "S:a:p:K:",["plot"])
     S = '50'
-    N = '13'
+    K = '13'
     ans = '3x3'
     phi = '000'
     plot = False
@@ -31,29 +30,18 @@ for opt, arg in opts:
         ans = arg
     elif opt in ['-p']:
         phi = arg
-    elif opt in ['-N']:
-        N = arg
+    elif opt in ['-K']:
+        K = arg
     if opt == '--plot':
         plot = True
-#S = '05'
-#S = '03'
-#ans = sys.argv[1]
-#phi = "{:3.2f}".format(float(phi)).replace('.','')
-dirname = '../Data/S'+S+'/phi'+phi+'/'+N+'/'; title = 'With DM interactions'
+dirname = '../Data/SC_data/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
 D = {}
 Ji = -0.3
 Jf = 0.3
 J2 = np.linspace(Ji,Jf,9)
 J3 = np.linspace(Ji,Jf,9)
 X,Y = np.meshgrid(J2,J3)
-if ans == 'cb1_nc':
-    ans_ = 'cb1'
-else:
-    ans_ = ans
-Head = inp.header[ans_][3:]
-head = []
-for h in Head:
-    head.append(h)
+head = inp.header[ans][3:]
 for h in head:
     D[h] = np.zeros((9,9))
     D[h][:] = np.nan
@@ -71,11 +59,11 @@ for filename in os.listdir(dirname):
             i3 = int(j3*8/(0.6))
             for n,h in enumerate(head):
                 if n == 0:
-                    D[h][i2,i3] = (1 if data[n+3]=='True' else np.nan)
-                    if data[n+3] == 'False':
-                        for h2 in head[1:]:
-                            D[h2][i2,i3] = np.nan
-                        break
+                    D[h][i2,i3] = (1 if float(data[n+3])==0 else np.nan)
+                   # if float(data[n+3]) != 0:
+                   #     for h2 in head[1:]:
+                   #         D[h2][i2,i3] = np.nan
+                   #     break
                 else:
                     try:
                         D[h][i2,i3] = float(data[n+3])
@@ -87,6 +75,7 @@ for filename in os.listdir(dirname):
 print("Non converged points: ",int(81-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
 for i in range(nP):
+    print(head[i])
     temp = []
     for l in range(9):
         for j in range(9):
@@ -101,9 +90,6 @@ for i in range(nP):
         print("Range with only 0 or nan values")
     #print("Range of ",head[i],":",np.amin(D[head[i]][np.nonzero(~np.isnan(D[head[i]]))]),"--",np.amax(D[head[i]][~np.isnan(D[head[i]])]))
 fig = plt.figure()#(figsize=(16,16))
-figManager = plt.get_current_fig_manager()
-figManager.window.showMaximized()
-plt.axis('off')
 for i in range(nP):
     ax = fig.add_subplot(4,4,i+1,projection='3d')
     ax.plot_surface(X,Y,D[head[i]].T,cmap=cm.coolwarm)

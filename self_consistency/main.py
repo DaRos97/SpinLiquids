@@ -40,8 +40,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
-#DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -82,9 +82,6 @@ t_0 = np.arctan(np.sqrt(2))
 Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.25, 'phiA3': 0},
         'q0':{'A1':np.sqrt(3)/4, 'A2':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.25, 'B3': 0.5, 'phiA2': np.pi},
         'cb1':{'A1':np.sqrt(3)/4, 'A2':0.25, 'A3':0.5, 'B1':0.25, 'B2': np.sqrt(3)/4, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
-        'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
-        'cb1_2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
-        'cb1_nc2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB2': np.pi},
         'cb2':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
         'oct':{'A1':0.4, 'A2':0.1, 'B1':0.1, 'B2': 0.1, 'B3':0.1, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4}
         }
@@ -126,11 +123,13 @@ for ans in ansatze:
     L_progres[1] = L_dic[ans]
     #
     step = 0
-    initial_O = Pinitial[ans]
-    initial_L = 0
+    initial_O = Pinitial[ans]; new_O = Pinitial[ans]
+    initial_L = 0;  new_L = 0
     continue_loop = True
     conv = 0
     while continue_loop:
+        #print("Step ",step,": ",new_L,new_O)
+        #input()
         L_stable = 0
         O_stable = 1
         #Chose initial O
@@ -159,7 +158,7 @@ for ans in ansatze:
             conv = prec
             print("Not converged, precision = ",prec)
             break
-    print("Found pars: ",new_L,new_O)
+    print("\n\nFound pars: ",new_L,new_O,"\n\n")
     print("\nNumber of iterations: ",step,'\n')
 #    continue
     if not conv:
@@ -169,7 +168,7 @@ for ans in ansatze:
     #Format the parameters in order to have 0 values in the non-considered ones
     newP = cf.FormatParams(new_O,ans,J2,J3)
     #Store the files in a dictionary
-    data = [ans,J2,J3,conv,E,new_L]
+    data = [ans,J2,J3,conv,E,gap,new_L]
     for ind in range(len(data)):
         DataDic[header[ind]] = data[ind]
     for ind2 in range(len(newP)):
