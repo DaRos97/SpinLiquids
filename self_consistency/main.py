@@ -40,8 +40,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -90,30 +90,6 @@ Pi_ = { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3':
         }
 Pinitial, done, L_dic  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)            ####################
 #Find the bounds to the free parameters for each ansatz
-bounds_ = {}
-min_dic = {'50':0.01, '36':0.005,'34':0.002, '30':0.002, '20':0.001}
-mM_A1 = {'50':(0.3,0.6), '36':(0.2,0.5),'34':(0.2,0.45), '30':(0.2,0.45), '20':(0.05,0.41)}
-minP = min_dic[txt_S]
-maxA = (2*S+1)/2            #max values given by math
-maxB = S                    #same
-for ans in inp.list_ans:
-    bounds_[ans] = {}
-    bounds_[ans]['A1'] = mM_A1[txt_S]
-    phase_step = 0.4
-    #bounds
-    for param in inp.header[ans][9:]:
-        if param[0] == 'A':
-            bb = (minP,maxA)
-        elif param[0] == 'B':
-            bb = (minP,maxB)
-        elif param[:3] == 'phi':
-            bb = (Pi_[ans][param]-phase_step,Pi_[ans][param]+phase_step)
-        bounds_[ans][param] = bb
-#What is this for????????????????????????
-#???????????????????????????????
-#???????????????????????????????
-Bnds = sf.FindBounds(J2,J3,ansatze,done,Pinitial,Pi_,bounds_)
-#Find the derivative range for the free parameters (different between moduli and phases) for each ansatz
 print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoint in phase diagram(J2,J3) = ('+'{:5.4f}'.format(J2)+',{:5.4f}'.format(J3)+')',
       "\nCuts in BZ: ",K)
 ######################
