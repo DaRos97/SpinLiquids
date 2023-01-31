@@ -93,6 +93,7 @@ print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoi
 ###################### Compute the parameters by self concistency
 ######################
 Ti = t()    #Total initial time
+compute_O = cf.compute_O_sing
 for ans in ansatze:
     print("Computing ansatz ",ans)
     Tti = t()   #Initial time of the ansatz
@@ -105,9 +106,7 @@ for ans in ansatze:
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
-    is_min = True   #needed to tell the Sigma function that we are minimizing and not just computing the final energy
-    L_bounds = (inp.L_bounds,)       #bounds on Lagrange multiplier set by default
-    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_bounds[0][1]-L_bounds[0][0],L_bounds)
+    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,inp.L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
     for pPp in pars2:
@@ -117,52 +116,41 @@ for ans in ansatze:
         pars[pars.index('phiA1')] = 'phiA1p'
     Args_O = (J1,J2,J3,ans,KM,Tau,K,pars)
     DataDic = {}
-    O_progres = np.zeros((2,len(Pinitial[ans])))  #progress list, 2 is enough
-    O_progres[1] = Pinitial[ans]
-    L_progres = np.zeros((2,1))
-    L_progres[1] = L_dic[ans]
     #
     step = 0
-    initial_O = Pinitial[ans]; new_O = Pinitial[ans]
-    initial_L = 0;  new_L = Args_L[-2]
+    new_O = Pinitial[ans]
+    new_L = inp.L_bounds[1]-inp.L_bounds[1]
     continue_loop = True
-    conv = 0
 #    print("Parameters are ",pars)
     while continue_loop:
- #       print("Step ",step,": ",new_L,new_O)
+        print("Step ",step,": ",new_L,new_O)
         #input()
-        L_stable = 0
-        O_stable = 1
-        #Chose initial O
-        #Compute L
-        new_L = cf.compute_L(initial_O,Args_L)
-        #Compute new O
-        new_O = cf.compute_O(initial_O,new_L,Args_O)
-        #save it
-        old_L = initial_L
-        initial_L = new_L
-        old_O = initial_O
-        initial_O = new_O
+        conv = 1
+        old_O = new_O
+        old_L = new_L
+        for i in range(len(pars)):
+            new_L = cf.compute_L(new_O,Args_L)
+            new_O[i] = compute_O(new_O,new_L,Args_O,i)
         step += 1
         #Check if all parameters are stable up to precision
-        if np.abs(old_L-new_L) < inp.cutoff_L:
-            L_stable = 1
+        if np.abs(old_L-new_L) > inp.cutoff_L:
+            conv *= 0
         for i in range(len(new_O)):
             if np.abs(old_O[i]-new_O[i]) > inp.cutoff_O:
-                O_stable *= 0
-        if L_stable and O_stable:
+                conv *= 0
+        if conv:
             continue_loop = False
+        #Margin in number of steps
         if step > inp.MaxIter*len(pars):
             prec = np.abs(old_L-new_L)
             for i in range(len(pars)):
                 prec += np.abs(old_O[i]-new_O[i])
             conv = prec
-            print("Not converged, precision = ",prec)
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged, precision = ",prec)
             break
-        Args_L = (J1,J2,J3,ans,KM,Tau,K,S,new_L,L_bounds)
     print("\n\nFound pars: ",new_L,new_O,"\n\n")
     print("\nNumber of iterations: ",step,'\n')
-#    continue
+    conv = 0 if conv == 1 else conv
     if not conv:
         E,gap = cf.total_energy(new_O,new_L,Args_L)
     else:

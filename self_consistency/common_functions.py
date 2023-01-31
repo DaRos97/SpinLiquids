@@ -19,7 +19,7 @@ for i in range(inp.m):
     J_[i+inp.m,i+inp.m] = 1
 
 def total_energy(P,L,args):
-    J1,J2,J3,ans,KM,Tau,K_,S,L_initial,L_bounds = args
+    J1,J2,J3,ans,KM,Tau,K_,S,L_bounds = args
     J = (J1,J2,J3)
     j2 = np.sign(int(np.abs(J2)*1e8))   #check if it is 0 or 1 --> problem for VERY small J2,J3 points
     j3 = np.sign(int(np.abs(J3)*1e8))
@@ -75,9 +75,7 @@ def total_energy(P,L,args):
 def compute_L(P,args):
     res = minimize_scalar(lambda l: -optimize_L(P,l,args),  #maximize energy wrt L with fixed P
             method = inp.L_method,          #can be 'bounded' or 'Brent'
-            #method = 'bounded',
-            bracket = args[-1][0],             
-            #bounds = args[-1],
+            bracket = args[-1],             
             options={'xtol':inp.prec_L}
             )
     L = res.x                       #optimized L
@@ -86,7 +84,7 @@ def compute_L(P,args):
 #### Computes the Energy given the paramters P and the Lagrange multiplier L. 
 #### This is the function that does the actual work.
 def optimize_L(P,L,args):
-    J1,J2,J3,ans,KM,Tau,K_,S,L_initial,L_bounds = args
+    J1,J2,J3,ans,KM,Tau,K_,S,L_bounds = args
     Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
     args2 = (J1,J2,J3,ans,KM,Tau,K_)
@@ -98,7 +96,7 @@ def optimize_L(P,L,args):
             try:
                 Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
             except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
-                r4 = -1+(L-L_bounds[0][0])
+                r4 = -1+(L-L_bounds[0])
                 return Res+r4           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
             res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
@@ -113,8 +111,7 @@ def optimize_L(P,L,args):
     #r2 /= len(res.ravel())
     return Res + r2
 
-#Compute new set of O using old O and new L
-def compute_O(old_O,L,args):
+def compute_O_all(old_O,L,args,p_):
     new_O = np.zeros(len(old_O))
     J1,J2,J3,ans,KM,Tau,K_,pars = args
     if -np.angle(Tau[0]) < np.pi/3+1e-4 and -np.angle(Tau[0]) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
@@ -164,6 +161,58 @@ def compute_O(old_O,L,args):
     #    print(par,res)
     #input()
     return new_O
+
+#Compute new sing par using old O and new L
+def compute_O_sing(old_O,L,args,p_):
+    new_O = 0
+    J1,J2,J3,ans,KM,Tau,K_,pars = args
+    if -np.angle(Tau[0]) < np.pi/3+1e-4 and -np.angle(Tau[0]) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
+        p104 = -1
+    else:
+        p104 = 1
+    #Compute first the transformation matrix M at each needed K
+    args_M = (J1,J2,J3,ans,KM,Tau,K_)
+    m = 6
+    N = big_Nk(old_O,L,args_M)
+    M = np.zeros(N.shape,dtype=complex)
+    for i in range(K_):
+        for j in range(K_):
+            N_k = N[:,:,i,j]
+            Ch = LA.cholesky(N_k) #upper triangular-> N_k=Ch^{dag}*Ch
+            w,U = LA.eigh(np.dot(np.dot(Ch,J_),np.conjugate(Ch.T)))
+            w = np.diag(np.sqrt(np.einsum('ij,j->i',J_,w)))
+            M[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
+    #for each parameter need to know what it is
+    dic_O = {'A':compute_A,'B':compute_B}
+    par = pars[p_]
+    par_ = par[-2:] if par[-1]=='p' else par[-1]
+    par_2 = 'A' if 'A' in par else 'B'
+    li_ = dic_indexes[par_][0]
+    lj_ = dic_indexes[par_][1]
+    func = dic_O[par_2]
+    #res = 0
+    rrr = np.zeros((K_,K_),dtype=complex)
+    for i in range(K_):
+        for j in range(K_):
+            U,X,V,Y = split(M[:,:,i,j],inp.m,inp.m)
+            U_,V_,X_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
+    #        res += func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
+            rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
+    interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
+    res2I = interI.integral(0,1,0,1)
+    interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
+    res2R = interR.integral(0,1,0,1)
+    res = (res2R+1j*res2I)/2
+    #res /= 2*K_**2
+    res *= p104
+    if par[0] == 'p':
+        new_O = np.angle(res)
+    else:
+        new_O = np.absolute(res)
+#    print(par,res)
+    #input()
+    return new_O
+
 dic_indexes = { '1': (1,2), '1p': (2,0), 
                 '2': (1,0), '2p': (5,1), 
                 '3': (4,1)
