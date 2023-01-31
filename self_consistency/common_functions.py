@@ -85,6 +85,12 @@ def compute_L(P,args):
 #### This is the function that does the actual work.
 def optimize_L(P,L,args):
     J1,J2,J3,ans,KM,Tau,K_,S,L_bounds = args
+    if L < L_bounds[0] :
+        Res = -5-(L_bounds[0]-L)
+        return Res
+    elif L > L_bounds[1]:
+        Res = -5-(L-L_bounds[1])
+        return Res
     Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
     args2 = (J1,J2,J3,ans,KM,Tau,K_)

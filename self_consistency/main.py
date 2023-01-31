@@ -6,7 +6,6 @@ from time import time as t
 from scipy.optimize import differential_evolution as d_e
 import sys
 import getopt
-import matplotlib.pyplot as plt
 ######################
 ###################### Set the initial parameters
 ######################
@@ -105,7 +104,7 @@ for ans in ansatze:
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
-    L_bounds = (L_dic[ans] - inp.L_bnd_ref, L_dic[ans] + inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds[txt_S]
+    L_bounds = (L_dic[ans] - inp.L_bnd_ref, L_dic[ans] + inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds
     Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
@@ -119,11 +118,11 @@ for ans in ansatze:
     #
     step = 0
     new_O = Pinitial[ans]
-    new_L = L_bounds[1]-L_bounds[0]
+    new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0]
     continue_loop = True
 #    print("Parameters are ",pars)
     while continue_loop:
-        #print("Step ",step,": ",new_L,new_O)
+        print("Step ",step,": ",new_L,new_O)
         #input()
         conv = 1
         old_O = new_O
