@@ -35,7 +35,7 @@ def M(K,P,args):
     w,U = LA.eigh(np.dot(np.dot(Ch,J),np.conjugate(Ch.T)))
     w = np.diag(np.sqrt(np.einsum('ij,j->i',J,w)))
     Mk = np.dot(np.dot(LA.inv(Ch),U),w)
-    U,V,X,Y = split(Mk,m,m)
+    U,V,X,Y = split(Mk,m,m)             #ORDER of MATRICES????
     return U,X,V,Y
 ####
 def split(array, nrows, ncols):

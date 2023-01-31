@@ -27,7 +27,7 @@ fig = plt.figure(figsize=(14,16))
 fit_classical = np.load("../classical_kagome/phase_diagram/fit_000_101.npy")
 for s,dm in list_plots:
     phi = phi_label[dm]
-    dirname = '../Data/final_'+s+'_'+dm+'/' 
+    dirname = '../Data/Final_'+s+'_'+dm+'/' 
     title_DM = {'000':r'$0$','104': r'$\pi/3$', '209':r'$2\pi/3$'}
     title_dm = r'$\phi = $'+title_DM[dm]
     title_s = r'$S = 0.$'+s

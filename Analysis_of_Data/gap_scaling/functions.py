@@ -41,6 +41,10 @@ def get_data(Args,N):
     return P
 
 def decide_phase(pars,Ns,gaps,cutoff_gap,cutoff_chi):
+    #if gaps[-1] < 1/(Ns[-1]):
+    #    return 'O'
+    #else:
+    #    return 'L'
     chi2 = 0
     for i in range(len(Ns)):
         N = Ns[i]

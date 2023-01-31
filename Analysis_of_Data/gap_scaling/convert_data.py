@@ -83,19 +83,21 @@ for filename in os.listdir(data_dirname):
         gaps = []
         N_N = np.sort(Ns)
         for nnn_ in N_N:
-            gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_list[DM],J2,J3,txt_S,type_of_ans]))
+            #gaps.append(fs.find_gap(params[str(nnn_)],nnn_,[ans,DM_list[DM],J2,J3,txt_S,type_of_ans]))
+            gaps.append(params[str(nnn_)][0])
         #
         try:
             parameters, covariance = curve_fit(fs.quadratic, N_N, gaps, p0=(1,0))
         except:
+            parameters = [0,0]
             print("Not fitted ",ans,"at ",J2,J3)
-            fitted_ = fs.quadratic(np.linspace(N_N[0],N_N[-1],100),parameters[0],parameters[1])
-            plt.figure()
-            plt.plot(N_N,gaps,'ro')
-            plt.plot(np.linspace(N_N[0],N_N[-1],100),fitted_,'g-')
-            plt.hlines(parameters[1],N_N[0],N_N[-1],color='green',linestyles='--')
-            plt.title(ans+"__"+str(J2)+"_"+str(J3))
-            plt.show()
+            #fitted_ = fs.quadratic(np.linspace(N_N[0],N_N[-1],100),parameters[0],parameters[1])
+            #plt.figure()
+            #plt.plot(N_N,gaps,'ro')
+            #plt.plot(np.linspace(N_N[0],N_N[-1],100),fitted_,'g-')
+            #plt.hlines(parameters[1],N_N[0],N_N[-1],color='green',linestyles='--')
+            #plt.title(ans+"__"+str(J2)+"_"+str(J3))
+            #plt.show()
         #Change True -> TrueL or TrueO
         #order = 'L' if parameters[1] > cutoff_gap else 'O'
         #print(ans,":")
