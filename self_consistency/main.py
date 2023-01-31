@@ -105,7 +105,7 @@ for ans in ansatze:
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
-    L_bounds = (L_dic[ans] - inp.L_bnd_ref, L_dic[ans] + inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds
+    L_bounds = (L_dic[ans] - inp.L_bnd_ref, L_dic[ans] + inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds[txt_S]
     Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
