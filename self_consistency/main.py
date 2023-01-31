@@ -93,7 +93,6 @@ print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoi
 ###################### Compute the parameters by self concistency
 ######################
 Ti = t()    #Total initial time
-compute_O = cf.compute_O_sing
 for ans in ansatze:
     print("Computing ansatz ",ans)
     Tti = t()   #Initial time of the ansatz
@@ -106,7 +105,8 @@ for ans in ansatze:
     for pPp in pars2:
         if (pPp[-1] == '1') or (pPp[-1] == '2' and j2-1) or (pPp[-1] == '3' and j3-1):
             pars.append(pPp)
-    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,inp.L_bounds)
+    L_bounds = (L_dic[ans] - inp.L_bnd_ref, L_dic[ans] + inp.L_bnd_ref) if L_dic[ans] else inp.L_bounds
+    Args_L = (J1,J2,J3,ans,KM,Tau,K,S,L_bounds)
     pars2 = Pi_[ans].keys()
     pars = []
     for pPp in pars2:
@@ -119,18 +119,18 @@ for ans in ansatze:
     #
     step = 0
     new_O = Pinitial[ans]
-    new_L = inp.L_bounds[1]-inp.L_bounds[1]
+    new_L = L_bounds[1]-L_bounds[0]
     continue_loop = True
 #    print("Parameters are ",pars)
     while continue_loop:
-        print("Step ",step,": ",new_L,new_O)
+        #print("Step ",step,": ",new_L,new_O)
         #input()
         conv = 1
         old_O = new_O
         old_L = new_L
         for i in range(len(pars)):
             new_L = cf.compute_L(new_O,Args_L)
-            new_O[i] = compute_O(new_O,new_L,Args_O,i)
+            new_O[i] = cf.compute_O_sing(new_O,new_L,Args_O,i)
         step += 1
         #Check if all parameters are stable up to precision
         if np.abs(old_L-new_L) > inp.cutoff_L:
