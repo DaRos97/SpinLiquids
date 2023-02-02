@@ -16,7 +16,7 @@ def CheckCsv(csvf):
         N = (len(lines)-1)//2 +1        #2 lines per ansatz
         for i in range(N):
             data = lines[i*2+1].split(',')
-            if float(data[3]) == 0:
+            if data[3] == 'True':
                 ans.append(lines[i*2+1].split(',')[0])
     res = []
     for a in inp.list_ans:
@@ -73,7 +73,7 @@ def FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_):
     return P, done, L
 
 #Save the dictionaries in the file given, rewriting the already existing data if precision is better
-def SaveToCsv(Data,csvfile):
+def SaveToCsv(Data,csvfile,PSG):
     N_ = 0
     if Path(csvfile).is_file():
         with open(csvfile,'r') as f:
@@ -89,7 +89,7 @@ def SaveToCsv(Data,csvfile):
             subscribe = True
             N_ = i+1
     ###
-    header = inp.header[ans]
+    header = inp.header[PSG][ans]
     if subscribe:
         with open(csvfile,'w') as f:
             for i in range(2*N_-2):
