@@ -1,5 +1,4 @@
 import numpy as np
-import inputs as inp
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -10,7 +9,8 @@ from matplotlib.lines import Line2D
 Color = {'3x3': ['r','orange'],
          'q0':  ['blue','y'],
          'cb1':  ['forestgreen','lime'],
-         #'cb1_2':  ['blue','red'],
+         'cb2':  ['y','red'],
+         'oct':  ['orange','red'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -26,10 +26,11 @@ for opt, arg in opts:
         txt_S = arg
     if opt == '--DM':
         phi_t = arg
-phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
+phi_label = {'000':0, '005':0.05, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
+PSG = 'SU2' if phi_t == '000' else 'TMD'
 #dirname = '../Data/SC_data/final_'+txt_S+'_'+phi_t+'/' 
-dirname = '../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/49/' 
+dirname = '../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/13/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')

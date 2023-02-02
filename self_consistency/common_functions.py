@@ -109,13 +109,13 @@ def optimize_L(P,L,args):
             res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
     gap = np.amin(res[0].ravel())           #the gap is the lowest value of the lowest gap (not in the fitting if not could be negative in principle)
     #Now fit the energy values found with a spline curve in order to have a better solution
-    #r2 = 0
-    #for i in range(inp.m):
-    #    func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
-    #    r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
-    #r2 /= inp.m                             #normalize
+    r2 = 0
+    for i in range(inp.m):
+        func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
+        r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
+    r2 /= inp.m                             #normalize
     #Summation over k-pts
-    r2 = res.ravel().sum() / len(res.ravel())
+    #r2 = res.ravel().sum() / len(res.ravel())
     result = -(Res+r2)
 #    print('g:\t',L,result)
     return result
@@ -148,24 +148,24 @@ def compute_O_all(old_O,L,args):
         li_ = dic_indexes[par_][0]
         lj_ = dic_indexes[par_][1]
         func = dic_O[par_2]
-        res = 0
-        #rrr = np.zeros((K_,K_),dtype=complex)
+        #res = 0
+        rrr = np.zeros((K_,K_),dtype=complex)
         for i in range(K_):
             for j in range(K_):
                 U,X,V,Y = split(M[:,:,i,j],inp.m,inp.m)
                 U_,V_,X_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
-                res += func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
-        #        rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
-        #interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
-        #res2I = interI.integral(0,1,0,1)
-        #interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
-        #res2R = interR.integral(0,1,0,1)
-        #res = (res2R+1j*res2I)/2
-        res /= 2*K_**2
+#                res += func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
+                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
+        interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
+        res2I = interI.integral(0,1,0,1)
+        interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
+        res2R = interR.integral(0,1,0,1)
+        res = (res2R+1j*res2I)/2
+        #res /= 2*K_**2
         res *= p104
         if par[0] == 'p':
             new_O[p] = np.angle(res)
-            if new_O[p] < 0.2:
+            if new_O[p] < 0:
                 new_O[p] = new_O[p]+ + 2*np.pi
         else:
             new_O[p] = np.absolute(res)

@@ -9,7 +9,8 @@ from matplotlib import cm
 Color = {'3x3': ['red','firebrick'],
          'q0':  ['yellow','y'],
          'cb1':  ['lime','limegreen'],
-         'cb1_2':  ['lime','limegreen'],
+         'cb2':  ['lime','limegreen'],
+         'oct':  ['lime','limegreen'],
          }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
 argv = sys.argv[1:]
@@ -36,12 +37,13 @@ for opt, arg in opts:
         plot = True
 dirname = '../Data/SC_data/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
 D = {}
+PSG = 'SU2' if phi == '000' else 'TMD'
 Ji = -0.3
 Jf = 0.3
 J2 = np.linspace(Ji,Jf,9)
 J3 = np.linspace(Ji,Jf,9)
 X,Y = np.meshgrid(J2,J3)
-head = inp.header[ans][3:]
+head = inp.header[PSG][ans][3:]
 for h in head:
     D[h] = np.zeros((9,9))
     D[h][:] = np.nan
@@ -59,8 +61,8 @@ for filename in os.listdir(dirname):
             i3 = int(j3*8/(0.6))
             for n,h in enumerate(head):
                 if n == 0:
-                    D[h][i2,i3] = (1 if float(data[n+3])==0 else np.nan)
-                    if float(data[n+3]) != 0:
+                    D[h][i2,i3] = (1 if data[n+3]=='True' else np.nan)
+                    if data[n+3] == 'False':
                         for h2 in head[1:]:
                             D[h2][i2,i3] = np.nan
                         break
@@ -91,7 +93,7 @@ for i in range(nP):
     #print("Range of ",head[i],":",np.amin(D[head[i]][np.nonzero(~np.isnan(D[head[i]]))]),"--",np.amax(D[head[i]][~np.isnan(D[head[i]])]))
 fig = plt.figure(figsize=(16,16))
 for i in range(nP):
-    ax = fig.add_subplot(4,4,i+1,projection='3d')
+    ax = fig.add_subplot(3,4,i+1,projection='3d')
     ax.plot_surface(X,Y,D[head[i]].T,cmap=cm.coolwarm)
     ax.set_title(ans)
     ax.set_xlabel("J2")

@@ -44,8 +44,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 Nx = K;     Ny = K
 #Filenames
 #DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
-#DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -133,7 +133,7 @@ for ans in ansatze:
         continue_loop = True
         not_converged = False
         while continue_loop:    #all pars at once
-            #print("Step ",step,": ",new_L,new_O)
+            print("Step ",step,": ",new_L,new_O)
             #input()
             conv = 1
             old_O = new_O
