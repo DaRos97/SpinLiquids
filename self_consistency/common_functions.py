@@ -165,7 +165,7 @@ def compute_O_all(old_O,L,args):
         res *= p104
         if par[0] == 'p':
             new_O[p] = np.angle(res)
-            if new_O[p] < 0:
+            if new_O[p] < 0.5:
                 new_O[p] = new_O[p]+ + 2*np.pi
         else:
             new_O[p] = np.absolute(res)

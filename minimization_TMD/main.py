@@ -74,6 +74,8 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 
+#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
+ansatze = sf.CheckCsv(csvfile)
 #Find the initial point for the minimization for each ansatz
 t_0 = np.arctan(np.sqrt(2))
 Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':np.pi, 'phiA3': 0, 'phiB3': np.pi},
@@ -81,8 +83,10 @@ Pi_ = { '3x3':{'A1':0.4, 'A3':0.5, 'B1':0.1, 'B2': 0.1, 'B3': 0.1, 'phiB1':np.pi
         'cb1':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 2*t_0, 'phiB1':np.pi, 'phiB2': 2*np.pi-t_0},
         'cb1_nc':{'A1':0.4, 'A2':0.1, 'A3':0.43, 'B1':0.1, 'B2': 0.1, 'phiA1': 0, 'phiB1':np.pi, 'phiB2': np.pi}
         }
-#Checks the file (specified by J2 and J3) and tells you which ansatze need to be computed
-ansatze = sf.CheckCsv(csvfile)
+
+
+
+
 Pinitial, done, L_dic  = sf.FindInitialPoint(J2,J3,ansatze,ReferenceDir,Pi_)
 #Find the bounds to the free parameters for each ansatz
 bounds_ = {}

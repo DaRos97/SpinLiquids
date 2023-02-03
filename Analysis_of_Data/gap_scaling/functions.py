@@ -56,9 +56,9 @@ def decide_phase(pars,Ns,gaps,cutoff_gap,cutoff_chi):
         res = 'L'
     else:
         res = 'O'
-    #print("a: ",pars[0],"\tb:",pars[1],"\tchi:",chi2)
-    #print("res = ",res)
-    #input()
+    print("a: ",pars[0],"\tb:",pars[1],"\tchi:",chi2)
+    print("res = ",res)
+    input()
     return res
 
 def find_gap(data,N,arguments):

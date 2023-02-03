@@ -1,5 +1,5 @@
 import numpy as np
-import functions as fs
+import functions_SF as fs
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import sys
@@ -11,13 +11,14 @@ S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','kpts='])
+    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','kpts=','SL'])
     txt_S = '50'
     J2 = 0
     J3 = 0
     DM = '000'
     ans = '3x3'
     pts = '37'
+    ph = 'LRO'
 except:
     print("Error")
 for opt, arg in opts:
@@ -37,20 +38,21 @@ for opt, arg in opts:
         if ans not in list_ans:
             print('Error in -ans choice')
             exit()
-    if opt == '-kpts':
+    if opt == '--kpts':
         pts = arg
+    if opt == '--SL':
+        ph = 'SL'
 S = S_dic[txt_S]
 ################################
 ################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 
-ph = 0 #0->LRO, 1->SL
-if ph == 1:
-    savenameZZ = "SFs/SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
-    savenameXY = "SFs/SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+if ph == 'SL':
+    savenameZZ = "data_SF/SL_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+    savenameXY = "data_SF/SL_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 else:
-    savenameZZ = "LRO_SSF/SSFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
-    savenameXY = "LRO_SSF/SSFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+    savenameZZ = "data_SF/LRO_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+    savenameXY = "data_SF/LRO_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 SFzz = np.load(savenameZZ)
 SFxy = np.load(savenameXY)
 Kx,Ky = SFzz.shape

@@ -3,12 +3,13 @@ import functions_new as fs
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import sys
+import os
 import getopt
 import tqdm
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "g:o:", ["UC=","theta=","phi=","compute_new","save","show"])
+    opts, args = getopt.getopt(argv, "g:o:", ["UC=","theta=","phi=","save","show"])
     order = '3x3'
     gauge = '0'
     theta = 0
@@ -29,8 +30,6 @@ for opt, arg in opts:
         theta = np.pi*float(arg)
     if opt == "--phi":
         phi = np.pi*float(arg)
-    if opt == "--compute_new":
-        compute_new = True
     if opt == "--UC":
         UC = int(arg)
     if opt == "--save":
@@ -96,9 +95,9 @@ a2 = np.array([0,1])
 Sxy = np.zeros(Nx*Ny)
 Sz = np.zeros(Nx*Ny)
 data_dirname = 'data/'
-point_name = order + '_g' + str(gauge_trsf) + '_t' + "{:.4f}".format(theta).replace('.','-') + '_p' + "{:.4f}".format(phi).replace('.','-') 
+point_name = order + '_g' + str(gauge_trsf) + '_t' + "{:.4f}".format(theta).replace('.','-') + '_p' + "{:.4f}".format(phi).replace('.','-') + '_UC' + str(UC) 
 filename = data_dirname + point_name
-if compute_new:
+if not os.path.isfile(filename):
     for i in tqdm.tqdm(range(Nx*Ny)):
        K = np.array([kxs[i], kys[i]])
        Sxy[i], Sz[i] = fs.structure_factor_new(K,lattice,UC,a1,a2)

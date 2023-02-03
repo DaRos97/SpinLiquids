@@ -101,8 +101,6 @@ for i in range(nP):
         print("Range with only 0 or nan values")
     #print("Range of ",head[i],":",np.amin(D[head[i]][np.nonzero(~np.isnan(D[head[i]]))]),"--",np.amax(D[head[i]][~np.isnan(D[head[i]])]))
 fig = plt.figure()#(figsize=(16,16))
-figManager = plt.get_current_fig_manager()
-figManager.window.showMaximized()
 plt.axis('off')
 for i in range(nP):
     ax = fig.add_subplot(4,4,i+1,projection='3d')

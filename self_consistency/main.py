@@ -9,6 +9,7 @@ import getopt
 ######################
 ###################### Set the initial parameters
 ######################
+mix_list = [0, 0.2, 0.4, 0.6]
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
@@ -43,9 +44,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
 csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -125,45 +126,57 @@ for ans in ansatze:
         pars[pars.index('phiA1')] = 'phiA1p'
     Args_O = (J1,J2,J3,ans,KM,Tau,K,PSG,pars)
     #
-    for mix_factor in [0, 0.2, 0.4, 0.6]:
+    new_O = np.longdouble(Pinitial[ans]);      old_O_1 = new_O;      old_O_2 = new_O
+    new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
+    for mix_factor in mix_list:
         print("Using mixing ",mix_factor)
         step = 0
-        new_O = Pinitial[ans]
-        new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0]
         continue_loop = True
         not_converged = False
         while continue_loop:    #all pars at once
-            print("Step ",step,": ",new_L,new_O)
+            #print("Step ",step,": ",new_L,new_O)
             #input()
             conv = 1
-            old_O = new_O
-            old_L = new_L
+            old_O_2 = np.array(old_O_1,dtype=np.longdouble)
+            old_O_1 = np.array(new_O,dtype=np.longdouble)
+#            print(old_O_2,'\n',old_O_1,'\n',new_O)
+#            input()
+            old_L_2 = old_L_1
+            old_L_1 = new_L
             new_L = cf.compute_L(new_O,Args_L)
             temp_O = cf.compute_O_all(new_O,new_L,Args_O)
-            for i in range(len(old_O)):
-                new_O[i] = old_O[i]*mix_factor + temp_O[i]*(1-mix_factor)
+            for i in range(len(old_O_1)):
+                if 0:#pars[i][0] == 'p':
+                    new_O[i] = old_O_1[i]*(1-mix_factor) + temp_O[i]*mix_factor
+                else:
+                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
             step += 1
             #Check if all parameters are stable up to precision
-            if np.abs(old_L-new_L) > inp.cutoff_L:
+            if np.abs(old_L_2-new_L) > inp.cutoff_L:
                 conv *= 0
             #print(old_O,new_O)
             for i in range(len(new_O)):
-                if np.abs(old_O[i]-new_O[i]) > inp.cutoff_O:
-                    conv *= 0
+                if pars[i][0] == 'p':
+                    if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:
+                        conv *= 0
+                else:
+                    if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:
+                        conv *= 0
             if conv:
+                print(old_O_2,'\n',old_O_1,'\n',new_O)
                 continue_loop = False
             #Margin in number of steps
             if step > inp.MaxIter*len(pars):
                 not_converged = True
                 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 break
+#        print("Step ",step,": ",new_L,new_O)
         if not_converged:
             continue
         else:
             break
     ######################################################################################################
     ######################################################################################################
-
     print("\nNumber of iterations: ",step,'\n')
     conv = 'True' if conv == 1 else 'False'
     if conv == 'False':
@@ -173,6 +186,12 @@ for ans in ansatze:
         print("Suspicious L value: ",new_L," NOT saving")
         continue
     E,gap = cf.total_energy(new_O,new_L,Args_L)
+    for i in range(len(new_O)):
+        if pars[i][0] == 'p':
+            if new_O[i] > 2*np.pi:
+                new_O[i] = new_O[i]-2*np.pi
+            if new_O[i] < -0.2:
+                new_O[i] = new_O[i]+2*np.pi
     if E==0:
         print("WTF?? not saving\n\n")
         continue

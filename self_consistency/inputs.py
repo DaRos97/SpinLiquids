@@ -1,16 +1,15 @@
 import numpy as np
 m = 6
 ####
-mp_cpu = 16
 list_ans = ['3x3','q0','cb1','cb2','oct']
 #derivative
 cutoff_L = 1e-8
 cutoff_O = 1e-8
-MaxIter = 50
+MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
-L_bounds = (0.2,1.2)
+L_bounds = (0.3,1.5)
 L_bnd_ref = 0.1                     #range for bounds of L when given as initial condition a previous result
 L_b_2 = 0.01
 #phase diagram
@@ -46,8 +45,6 @@ for ans in list_ans:
         list_A3.append(ans)
     if 'B3' in lPar:
         list_B3.append(ans)
-
-
 
 
 

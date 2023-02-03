@@ -1,9 +1,10 @@
 import numpy as np
-import functions as fs
+import functions_SF as fs
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import getopt
 import sys
+import os
 
 list_ans = ['3x3','q0','cb1','cb2','oct']
 DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
@@ -39,18 +40,26 @@ for opt, arg in opts:
             exit()
     if opt == '--kpts':
         pts = arg
+if os.path.isfile("data_SF/LRO_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'):
+    os.system('python plot_SF.py -S '+txt_S+' --kpts '+pts+' --DM '+DM+' --j2 '+str(J2)+' --j3 '+str(J3)+' --ans '+ans)
+    printed = True
+else:
+    printed = False
+    print("Computing it ....")
 #
+if printed:
+    exit()
 S = S_dic[txt_S]
 DM_angle = DM_list[DM]
-is_SU2 = True if DM in ['000','104','209'] else False
+PSG = 'SU2'if DM == '000' else 'TMD'
 #Arguments
-args = (1,J2,J3,ans,DM_angle,is_SU2)
+args = (1,J2,J3,ans,DM_angle,PSG)
 ########################################
 ########################################
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
 #import data from file
 #filename = '../../Data/S'+txt_S+'/phi'+DM+'/40_n2.csv'
-filename = '../../Data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+filename = '../Data/SC_data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
 data = fs.import_data(ans,filename)
 #compute the Ks of the minimum band
 Nx = 49     #points for looking at minima in BZ
@@ -73,7 +82,7 @@ sigma[1] = np.array([[0,-1j],[1j,0]])
 sigma[2] = np.array([[1,0],[0,-1]])
 a1 = np.array([1,0])
 a2 = np.array([-1,np.sqrt(3)])
-if degenerate:
+if degenerate:                   #FIX degeneracy with multi gap-closing points!!!!!!!!!!!!!!!!!
     if len(K_) > 1:
         print("Not supported multi-gap closing points with degeneracy")
         exit()
@@ -138,7 +147,7 @@ for i in range(1,2):
         print("Big triangles right and left ",i,",",j,": ",Ch_r,"\t",Ch_l)
         print("Big (2nn) triangles a and b ",i,",",j,": ",CH_a,"\t",CH_b)
 #exit()
-savenameS = "SpinOrientations/S_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+savenameS = "data_SpinOrientations/S_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 np.save(savenameS,S)
 print("Spins computed, now compute the spin structure factor")
 #
@@ -159,8 +168,13 @@ for i in range(Kx):
             continue
         SFxy[i,j], SFzz[i,j] = fs.SpinStructureFactor(K[:,i,j],S,UC)
 
-savenameSSFzz = "LRO_SSF/SSFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
-savenameSSFxy = "LRO_SSF/SSFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+savenameSSFzz = "data_SF/LRO_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
+savenameSSFxy = "data_SF/LRO_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 np.save(savenameSSFzz,SFzz)
 np.save(savenameSSFxy,SFxy)
 print("Finished")
+##################################
+
+print("\n\nPlotting...")
+
+os.system('python plot_SF.py -S '+txt_S+' --kpts '+pts+' --DM '+DM+' --j2 '+str(J2)+' --j3 '+str(J3)+' --ans '+ans)
