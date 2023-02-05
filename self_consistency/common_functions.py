@@ -67,7 +67,7 @@ def total_energy(P,L,args):
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
     r2 /= inp.m                             #normalize
     #Summation over k-points
-    #r2 = res.ravel().sum() / len(res.ravel())
+    #r3 = res.ravel().sum() / len(res.ravel())
     return Res + r2, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -101,9 +101,8 @@ def optimize_L(P,L,args):
             try:
                 Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
             except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
-                r4 = -1+(L-L_bounds[0])
+                r4 = -5+(L-L_bounds[0])
                 result = -(Res+r4)
-#                print('e:\t',L,result)
                 return result           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
             res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
@@ -117,16 +116,11 @@ def optimize_L(P,L,args):
     #Summation over k-pts
     #r2 = res.ravel().sum() / len(res.ravel())
     result = -(Res+r2)
-#    print('g:\t',L,result)
     return result
 
 def compute_O_all(old_O,L,args):
     new_O = np.zeros(len(old_O))
     J1,J2,J3,ans,KM,Tau,K_,PSG,pars = args
-    if -np.angle(Tau[0]) < np.pi/3+1e-4 and -np.angle(Tau[0]) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
-        p104 = -1
-    else:
-        p104 = 1
     #Compute first the transformation matrix M at each needed K
     args_M = (J1,J2,J3,ans,KM,Tau,K_,PSG)
     m = 6
@@ -147,6 +141,7 @@ def compute_O_all(old_O,L,args):
         par_2 = 'A' if 'A' in par else 'B'
         li_ = dic_indexes[par_][0]
         lj_ = dic_indexes[par_][1]
+        Tau_ = (Tau[2*(int(par_)-1)],Tau[2*(int(par_)-1)+1])
         func = dic_O[par_2]
         #res = 0
         rrr = np.zeros((K_,K_),dtype=complex)
@@ -155,21 +150,24 @@ def compute_O_all(old_O,L,args):
                 U,X,V,Y = split(M[:,:,i,j],inp.m,inp.m)
                 U_,V_,X_,Y_ = split(np.conjugate(M[:,:,i,j].T),inp.m,inp.m)
 #                res += func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
-                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
+                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau_,li_,lj_)
         interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
         res2I = interI.integral(0,1,0,1)
         interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
         res2R = interR.integral(0,1,0,1)
         res = (res2R+1j*res2I)/2
         #res /= 2*K_**2
-        res *= p104
         if par[0] == 'p':
             new_O[p] = np.angle(res)
+#            if par_2 == 'B' and par[-1] == '1' and new_O[p] < 0 and ans == 'cb2':
+#                new_O[p] *= -1
             if new_O[p] < 0.5:
-                new_O[p] = new_O[p]+ + 2*np.pi
+                new_O[p] = new_O[p] + 2*np.pi
+            if new_O[p] > 6.2:
+                new_O[p] = new_O[p] - 2*np.pi
         else:
             new_O[p] = np.absolute(res)
-#        print(par,res)
+#        print(par,new_O[p])
 #    input()
     return new_O
 
@@ -178,13 +176,13 @@ dic_indexes = { '1': (1,2), '1p': (2,0),
                 '3': (4,1)
                 }
 def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_):
-    if li_==2 and lj_ == 0:
-        Tau = np.conjugate(Tau)
+    if li_== 2 or li_ == 4:
+        Tau = np.conjugate(np.array(Tau))
     return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau[1] 
             - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau[0])
 def compute_B(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_):
-    if li_==2 and lj_ == 0:
-        Tau = np.conjugate(Tau)
+    if li_== 2 or li_ == 4:
+        Tau = np.conjugate(np.array(Tau))
     return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau[0] 
             + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau[1])
 
@@ -209,13 +207,8 @@ def big_Nk(P,L,args):
     ans_func = {'SU2': {'3x3': ans_3x3, 'q0': ans_q0, 'cb1': ans_cb1, 'cb2': ans_cb2, 'oct': ans_oct},
             'TMD': {'3x3': ans_3x3_TMD, 'q0': ans_q0_TMD, 'cb1': ans_cb1_TMD, 'cb2': ans_cb2_TMD, 'oct': ans_oct_TMD},
             }
-    if -np.angle(t1) < np.pi/3+1e-4 and -np.angle(t1) > np.pi/3-1e-4:   #for DM = pi/3(~1.04) A1 and B1 change sign
-        p104 = -1
-    else:
-        p104 = 1
-    A1 = p104*P[0]
+    A1 = P[0]
     p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3 = ans_func[PSG][ans](P,j2,j3)
-    B1 *= p104
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B

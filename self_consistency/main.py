@@ -9,7 +9,7 @@ import getopt
 ######################
 ###################### Set the initial parameters
 ######################
-mix_list = [0, 0.2, 0.4, 0.6]
+mix_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
@@ -35,10 +35,7 @@ J2, J3 = inp.J[N]
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
 DM_list = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
-if txt_DM == '000':
-    PSG = 'SU2'
-else:
-    PSG = 'TMD'
+PSG = 'SU2' if txt_DM == '000' else 'TMD'
 phi = DM_list[txt_DM]
 DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
@@ -128,14 +125,15 @@ for ans in ansatze:
     #
     new_O = np.longdouble(Pinitial[ans]);      old_O_1 = new_O;      old_O_2 = new_O
     new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
+#    print(pars)
     for mix_factor in mix_list:
         print("Using mixing ",mix_factor)
         step = 0
         continue_loop = True
-        not_converged = False
+        exit_mixing = False
         while continue_loop:    #all pars at once
-            #print("Step ",step,": ",new_L,new_O)
-            #input()
+#            print("Step ",step,": ",new_L,*new_O,end='\n')
+            #input():
             conv = 1
             old_O_2 = np.array(old_O_1,dtype=np.longdouble)
             old_O_1 = np.array(new_O,dtype=np.longdouble)
@@ -146,8 +144,8 @@ for ans in ansatze:
             new_L = cf.compute_L(new_O,Args_L)
             temp_O = cf.compute_O_all(new_O,new_L,Args_O)
             for i in range(len(old_O_1)):
-                if 0:#pars[i][0] == 'p':
-                    new_O[i] = old_O_1[i]*(1-mix_factor) + temp_O[i]*mix_factor
+                if pars[i][0] == 'p':
+                    new_O[i] = temp_O[i]
                 else:
                     new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
             step += 1
@@ -165,15 +163,13 @@ for ans in ansatze:
             if conv:
                 print(old_O_2,'\n',old_O_1,'\n',new_O)
                 continue_loop = False
+                exit_mixing = True
             #Margin in number of steps
             if step > inp.MaxIter*len(pars):
-                not_converged = True
                 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 break
 #        print("Step ",step,": ",new_L,new_O)
-        if not_converged:
-            continue
-        else:
+        if exit_mixing:
             break
     ######################################################################################################
     ######################################################################################################
