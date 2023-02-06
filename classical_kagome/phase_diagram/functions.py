@@ -368,21 +368,31 @@ def R_y(t):
 #################################################################################################à
 #################################################################################################à
 #################################################################################################à
+def dots(S_a,S_b,DM):
+    return S_a[2]*S_b[2] + np.cos(2*DM)*(S_a[0]*S_b[0]+S_a[1]*S_b[1]) + np.sin(2*DM)*(S_a[1]*S_b[0]-S_a[0]*S_b[1])
 
 
 def spiral_energy(P,*args):
-    J,I = args
+    J,I,DM = args
     J1,J2,J3 = J
     inv_1, inv_2 = I
+    DM1, DM2, DM3 = DM
     t_0,t_1,p_1,t_2,p_2,P_1,P_2 = P
     p_0 = 0
     S_0 = 0.5*np.array([np.sin(t_0)*np.cos(p_0),np.sin(t_0)*np.sin(p_0),np.cos(t_0)])
     S_1 = 0.5*np.array([np.sin(t_1)*np.cos(p_1),np.sin(t_1)*np.sin(p_1),np.cos(t_1)])
     S_2 = 0.5*np.array([np.sin(t_2)*np.cos(p_2),np.sin(t_2)*np.sin(p_2),np.cos(t_2)])
-    E1 = np.dot(S_0,S_1)+np.dot(S_0,S_2)+np.dot(S_0,inv_1*inv_2*np.tensordot(R_z(-P_1-P_2),S_1,1))+np.dot(S_0,inv_1*np.tensordot(R_z(-P_1),S_2,1)) + np.dot(S_1,S_2)+np.dot(S_1,inv_2*np.tensordot(R_z(P_2),S_2,1))
+    E1 = (  dots(S_0,S_1,-DM1)+dots(S_0,inv_1*inv_2*np.tensordot(R_z(-P_1-P_2),S_1,1),DM1) +
+            dots(S_0,S_2,DM1) +dots(S_0,inv_1*np.tensordot(R_z(-P_1),S_2,1),-DM1) +
+            dots(S_1,S_0,DM1) +dots(S_1,inv_1*inv_2*np.tensordot(R_z(P_1+P_2),S_0,1),-DM1) +
+            dots(S_1,S_2,-DM1)+dots(S_1,inv_2*np.tensordot(R_z(P_2),S_2,1),DM1) +
+            dots(S_2,S_0,-DM1)+dots(S_2,inv_1*np.tensordot(R_z(P_1),S_0,1),DM1) +
+            dots(S_2,S_1,DM1) +dots(S_2,inv_2*np.tensordot(R_z(-P_2),S_1,1),-DM1)         )
     E2 = (  np.dot(S_0,inv_2*np.tensordot(R_z(P_2),S_2,1))+np.dot(S_0,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_2,1))+np.dot(S_0,inv_1*np.tensordot(R_z(-P_1),S_1,1))+np.dot(S_0,inv_2*np.tensordot(R_z(-P_2),S_1,1)) + 
             np.dot(S_1,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1))+np.dot(S_1,inv_1*np.tensordot(R_z(-P_1),S_2,1))      )
-    E3 = np.dot(S_0,inv_2*np.tensordot(R_z(P_2),S_0,1)) + np.dot(S_1,inv_1*np.tensordot(R_z(-P_1),S_1,1)) + np.dot(S_2,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1))
+    E3 = (  dots(S_0,inv_2*np.tensordot(R_z(P_2),S_0,1),DM3) + dots(S_0,inv_2*np.tensordot(R_z(-P_2),S_0,1),-DM3) +
+            dots(S_1,inv_1*np.tensordot(R_z(-P_1),S_1,1),-DM3) + dots(S_1,inv_1*np.tensordot(R_z(P_1),S_1,1),DM3) + 
+            dots(S_2,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1),-DM3) + dots(S_2,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_2,1),DM3)   )
     return (J1*E1+J2*E2+J3*E3)*2/3
 #define the search for the energy of the spiral states at a given J1,J2,J3
 bounds_spiral = (   (0,np.pi),                  #t_0
@@ -401,10 +411,10 @@ def spiral(j,DM_angles):
             minimization = differential_evolution(
                 spiral_energy,
                 bounds = bounds_spiral,
-                args = (j,(inv_1,inv_2)),
+                args = (j,(inv_1,inv_2),DM_angles),
 #                disp = True
             )
-            temp = spiral_energy(minimization.x,*(j,(inv_1,inv_2)))
+            temp = spiral_energy(minimization.x,*(j,(inv_1,inv_2),DM_angles))
             if temp < SS_energy:
                 SS_energy = temp
     return SS_energy
