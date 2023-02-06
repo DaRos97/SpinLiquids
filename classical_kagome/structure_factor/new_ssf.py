@@ -97,7 +97,7 @@ Sz = np.zeros(Nx*Ny)
 data_dirname = 'data/'
 point_name = order + '_g' + str(gauge_trsf) + '_t' + "{:.4f}".format(theta).replace('.','-') + '_p' + "{:.4f}".format(phi).replace('.','-') + '_UC' + str(UC) 
 filename = data_dirname + point_name
-if not os.path.isfile(filename):
+if not os.path.isfile(filename+'_z.npy'):
     for i in tqdm.tqdm(range(Nx*Ny)):
        K = np.array([kxs[i], kys[i]])
        Sxy[i], Sz[i] = fs.structure_factor_new(K,lattice,UC,a1,a2)
@@ -110,52 +110,82 @@ else:
 
 #################
 #################   Plotting
-plt.figure(figsize=(8,6))
-#plt.axis('off')
-plt.suptitle(order+', g='+gauge+', theta='+"{:.4f}".format(theta)+', phi='+"{:.4f}".format(phi))
+dic_order = {   '3x3':r'$\sqrt{3}\times\sqrt{3}$',
+                'q0':r'$\mathbf{Q}=0$',
+                'cb1':r'$cuboc-1$',
+                'cb2':r'$cuboc-2$',
+                'oct':r'$octahedral$',
+                'ferro':r'$ferromagnetic$',
+                }
+plt.figure(figsize=(6,6))
+if 1:
+    #Single SSF plot
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),-np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),-np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.vlines(4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+    plt.vlines(-4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
 
-plt.subplot(1,2,1)
-plt.title('S_xy')
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),-np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),-np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.vlines(2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+    plt.vlines(-2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
 
-plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
-plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),-np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
-plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
-plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),-np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
-plt.vlines(4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
-plt.vlines(-4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+    plt.scatter(kxs,kys,c=Sxy+Sz,cmap = cm.get_cmap('plasma_r'))#, vmin = 0, vmax = 1)
+    plt.gca().set_aspect('equal')
+    plt.colorbar()
+    plt.tick_params(labelleft = False , labelbottom = False, bottom = False, left = False)
+    plt.title(dic_order[order])
 
-plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
-plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),-np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
-plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
-plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),-np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
-plt.vlines(2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
-plt.vlines(-2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+if 0:
+    #plt.axis('off')
+    plt.suptitle(order+', g='+gauge+', theta='+"{:.4f}".format(theta)+', phi='+"{:.4f}".format(phi))
 
-plt.scatter(kxs,kys,c=Sxy,cmap = cm.get_cmap('plasma_r'))#, vmin = 0, vmax = 1)
-plt.gca().set_aspect('equal')
-plt.colorbar()
-###
-plt.subplot(1,2,2)
-plt.title('S_z')
+    plt.subplot(1,2,1)
+    plt.title('S_xy')
 
-plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
-plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),-np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
-plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
-plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),-np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
-plt.vlines(4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
-plt.vlines(-4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),-np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),-np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.vlines(4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+    plt.vlines(-4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
 
-plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
-plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),-np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
-plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
-plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),-np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
-plt.vlines(2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
-plt.vlines(-2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),-np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),-np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.vlines(2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+    plt.vlines(-2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
 
-plt.scatter(kxs,kys,c=Sz,cmap = cm.get_cmap('plasma_r'))#, vmin = 0, vmax = 1)
-plt.gca().set_aspect('equal')
-plt.colorbar()
-####
+    plt.scatter(kxs,kys,c=Sxy,cmap = cm.get_cmap('plasma_r'))#, vmin = 0, vmax = 1)
+    plt.gca().set_aspect('equal')
+    plt.colorbar()
+    ###
+    plt.subplot(1,2,2)
+    plt.title('S_z')
+
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.plot(np.linspace(0,4*np.pi/np.sqrt(3),1000),-np.linspace(0,4*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+8*np.pi/3,'k-')
+    plt.plot(np.linspace(-4*np.pi/np.sqrt(3),0,1000),-np.linspace(-4*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-8*np.pi/3,'k-')
+    plt.vlines(4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+    plt.vlines(-4*np.pi/np.sqrt(3),-4*np.pi/3, 4*np.pi/3, color = 'k')
+
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.plot(np.linspace(0,2*np.pi/np.sqrt(3),1000),-np.linspace(0,2*np.pi/np.sqrt(3),1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)+4*np.pi/3,'k-')
+    plt.plot(np.linspace(-2*np.pi/np.sqrt(3),0,1000),-np.linspace(-2*np.pi/np.sqrt(3),0,1000)*1/np.sqrt(3)-4*np.pi/3,'k-')
+    plt.vlines(2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+    plt.vlines(-2*np.pi/np.sqrt(3),-2*np.pi/3, 2*np.pi/3, color = 'k')
+
+    plt.scatter(kxs,kys,c=Sz,cmap = cm.get_cmap('plasma_r'))#, vmin = 0, vmax = 1)
+    plt.gca().set_aspect('equal')
+    plt.colorbar()
+    ####
 
 fig_dirname = "Figures/"
 the = angles[0]
