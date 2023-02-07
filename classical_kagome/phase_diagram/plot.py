@@ -7,57 +7,39 @@ import sys
 
 #inputs:    DM_angle -> in str, J_pts
 
+lim = float(sys.argv[3])
 J1 = 1
-J2i = -0.3
-J2f = 0.3
-J3i = -0.3
-J3f = 0.3
+J2i = -lim
+J2f = lim
+J3i = -lim
+J3f = lim
 J2pts = J3pts = int(sys.argv[2])
-dirname = 'ferro_j1/' if J1 == -1 else 'antiferro_j1/'
+dirname = 'data/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 DM_angle = dic_DM[sys.argv[1]]
 energies = np.load(filename)
 
-
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
 #gray -> octa, purple -> octa_g1, m -> octa_g2, c -> cb1, cb2, spiral
-Colors = [
-        'k',
-        'red',
-        'firebrick',
-        'blue',
-        'yellow',
-        'khaki',
-        'deeppink',
-        'fuchsia',
-        'violet',
-        'lime',
-        'limegreen',
-        'forestgreen',
-        'orange',
-        'cyan',
-        'cornflowerblue',
-        'grey'
-          ]
 legend_names = {
-#        'ferro':    'k',
+        'ferro':    'k',
         '3x3':      'red',
-#        '3x3_g1',
+                '3x3_g1':   'firebrick',
         'q0':          'blue',
-#        'q=0_g1',
-#        'q=0_g2',
-#        'octa',
-#        'octa_g1',
-#        'octa_g2',
+                'q0_g1':      'royalblue',
+                'q0_g2':      'dodgerblue',
+        'octa':        'magenta' ,
+                'octa_g1':     'hotpink',
+                'octa_g2':     'pink',
         'cb1':      'lime',
-#        'cb1_g1',
-#        'cb1_g2',
-#        'cb2':      'orange',
-#        'cb2_g1',
-#        'cb2_g2',
-#        'spiral'
+                'cb1_g1':      'lawngreen',
+                'cb1_g2':      'chartreuse',
+        'cb2':      'orange',
+                'cb2_g1':      'darkorange',
+                'cb2_g2':      'coral',
+        'spiral':       'aqua',
         }
 legend_lines = []
 for col in legend_names.values():

@@ -393,7 +393,7 @@ def spiral_energy(P,*args):
     E3 = (  dots(S_0,inv_2*np.tensordot(R_z(P_2),S_0,1),DM3) + dots(S_0,inv_2*np.tensordot(R_z(-P_2),S_0,1),-DM3) +
             dots(S_1,inv_1*np.tensordot(R_z(-P_1),S_1,1),-DM3) + dots(S_1,inv_1*np.tensordot(R_z(P_1),S_1,1),DM3) + 
             dots(S_2,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1),-DM3) + dots(S_2,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_2,1),DM3)   )
-    return (J1*E1+J2*E2+J3*E3)*2/3
+    return (J1*E1+J2*E2*2+J3*E3)/3
 #define the search for the energy of the spiral states at a given J1,J2,J3
 bounds_spiral = (   (0,np.pi),                  #t_0
                     (0,np.pi),                  #t_1

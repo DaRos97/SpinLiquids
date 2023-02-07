@@ -1,13 +1,13 @@
 import numpy as np
 import functions as fs
 import sys
-import tqdm
+#import tqdm
 import os
 
 #inputs:    DM_angle -> in str, J_pts
 
 J1 = 1
-lim = 3
+lim = sys.argv[3]
 J2i = -lim
 J2f = lim
 J3i = -lim
@@ -25,15 +25,14 @@ dm_angle_1nn = dic_DM[sys.argv[1]]
 DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
 #
-dirname = 'ferro_j1/' if J1 == -1 else 'antiferro_j1/'
-#dirname = 'af2/'
+dirname = 'data/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
 
 if os.path.isfile(filename):
     print("Already computed")
     exit()
-
-for n2 in tqdm.tqdm(range(J2pts)):
+print('using: ',*sys.argv[1:])
+for n2 in range(J2pts):
     j2 = J2[n2]
     for n3,j3 in enumerate(J3):
         J = np.array([J1,j2,j3])
