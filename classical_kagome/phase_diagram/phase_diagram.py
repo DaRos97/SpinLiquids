@@ -7,10 +7,11 @@ import os
 #inputs:    DM_angle -> in str, J_pts
 
 J1 = 1
-J2i = -0.3
-J2f = 0.3
-J3i = -0.3
-J3f = 0.3
+lim = 3
+J2i = -lim
+J2f = lim
+J3i = -lim
+J3f = lim
 J2pts = J3pts = int(sys.argv[2])
 DM_orientation = 0      #0 for TMD and 1 for Messio
 J2 = np.linspace(J2i,J2f,J2pts)

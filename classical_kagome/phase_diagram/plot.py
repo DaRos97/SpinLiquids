@@ -8,10 +8,10 @@ import sys
 #inputs:    DM_angle -> in str, J_pts
 
 J1 = 1
-J2i = -3
-J2f = 3
-J3i = -3
-J3f = 3
+J2i = -0.3
+J2f = 0.3
+J3i = -0.3
+J3f = 0.3
 J2pts = J3pts = int(sys.argv[2])
 dirname = 'ferro_j1/' if J1 == -1 else 'antiferro_j1/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
@@ -42,7 +42,7 @@ Colors = [
         'grey'
           ]
 legend_names = {
-        'ferro':    'k',
+#        'ferro':    'k',
         '3x3':      'red',
 #        '3x3_g1',
         'q0':          'blue',
@@ -54,7 +54,7 @@ legend_names = {
         'cb1':      'lime',
 #        'cb1_g1',
 #        'cb1_g2',
-        'cb2':      'orange',
+#        'cb2':      'orange',
 #        'cb2_g1',
 #        'cb2_g2',
 #        'spiral'
