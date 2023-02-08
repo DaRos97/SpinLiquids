@@ -19,6 +19,8 @@ J3 = np.linspace(J3i,J3f,J3pts)
 
 
 min_energy = np.zeros((J2pts,J3pts,2,16))
+J2_i = J3_i = 0
+
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 dm_angle_1nn = dic_DM[sys.argv[1]]
@@ -44,12 +46,35 @@ for o in orders:
 
 if os.path.isfile(filename):        ####################
     energies = np.load(filename)
-    print("Already computed")
-    exit()
+    i_ = j_ = J2pts-1
+    bb = False
+    for i in range(J2pts):
+        for j in range(J3pts):
+            if (energies[i,j] == np.zeros((2,16))).all():
+                i_ = i
+                j_ = j
+                bb = True
+            if bb:
+                break
+        if bb:
+            break
+    if i_ == J2pts-1 and j_ == J3pts-1:
+        print("Already computed completely")
+        exit()
+    else:
+        print("Starting from ",i_,j_)
+        J2_i = i_
+        J3_i = j_
+        min_energy = energies
+
 print('using: ',*sys.argv[1:])
-for n2 in range(J2pts):
+for n2 in range(J2_i,J2pts):
     j2 = J2[n2]
-    for n3,j3 in enumerate(J3):
+    for n3 in range(0,J3pts):
+        if n2 == J2_i and n3 < J3_i:
+            continue
+        j3 = J3[n3]
+        print(j2,j3)
         J = np.array([J1,j2,j3])
         step_en = []
         for i in range(15):
