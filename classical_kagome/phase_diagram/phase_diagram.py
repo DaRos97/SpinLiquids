@@ -56,5 +56,5 @@ for n2 in range(J2pts):
         step_en = [ferro, s3x3, s3x3_g1, q0, q0_g1, q0_g2, octa, octa_g1, octa_g2, cb1, cb1_g1, cb1_g2, cb2, cb2_g1, cb2_g2, spiral[0]]
         min_energy[n2,n3,0] = step_en
         min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
-#        print('\n',j2,j3,*step_en,'\n\n')
-np.save(filename,min_energy)
+        with open(filename,'w') as f:
+            np.save(filename,min_energy)

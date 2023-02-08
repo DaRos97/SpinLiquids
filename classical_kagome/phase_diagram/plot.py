@@ -5,6 +5,7 @@ import matplotlib
 from matplotlib.lines import Line2D
 from scipy.optimize import curve_fit
 import sys
+import functions as fs
 
 #inputs:    DM_angle -> in str, J_pts
 
@@ -50,10 +51,12 @@ fig = plt.figure(figsize=(6,6))
 plt.gca().set_aspect('equal')
 #plt.title(Title)
 txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
-
 for i in range(J2pts):
     for j in range(J3pts):
         ens = np.array(energies[i,j,0])
+        if (ens == np.zeros(len(ens))).all():
+            min_E[i,j] = 1e5
+            continue
         aminE = []
         aminE.append(np.argmin(ens))
         minE = ens[aminE[0]]
@@ -75,18 +78,25 @@ for i in range(J2pts):
         ###
         min_E[i,j] = int(np.argmin(energies[i,j,0]))
         if len(ord_E) == 1:
-            color1 = legend_names[orders[aminE[0]]]
+            if ord_E[0] == 'spiral':
+                parameters = energies[i,j,1,:-1]
+                #print('\n\nFinding spiral order at ',J2[i],J3[j])
+                color1 = fs.find_order(parameters)
+                mark = "P"
+            else:
+                color1 = legend_names[ord_E[0]]
+                mark = 'o'
             marker_style = dict(
                     color=color1, 
-                    marker='o',
+                    marker=mark,
                     markerfacecoloralt=color1,
                     markeredgecolor='none',
                     markersize = 15,
                     fillstyle='right'
                     )
         elif len(ord_E) == 2:
-            color1 = legend_names[orders[aminE[0]]]
-            color2 = legend_names[orders[aminE[1]]]
+            color1 = legend_names[ord_E[0]]
+            color2 = legend_names[ord_E[1]]
             marker_style = dict(
                     color=color1, 
                     marker='o',
@@ -122,13 +132,65 @@ plt.ylabel(r'$J_3$')
 used_orders = np.unique(min_E)
 used_o = []
 for i in used_orders:
-    used_o.append(orders[i])
+    if i<100:
+        used_o.append(orders[i])
 legend_lines = []
 for ord_u in used_o:
-    legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=legend_names[ord_u]))
+    if ord_u == 'spiral':
+        legend_lines.append(Line2D([], [], color='none', marker='P', markerfacecolor='k'))
+    else:
+       legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=legend_names[ord_u]))
 plt.legend(legend_lines,used_o,loc='upper left',fancybox=True)#,bbox_to_anchor=(1,1))
 plt.show()
 exit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #plt.contourf(J2,J3,energies[0][:,:,1].T,alpha=0.3,levels=np.arange(0,12))

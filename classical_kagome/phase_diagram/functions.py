@@ -481,3 +481,78 @@ def lower_bound_energy(j):
     min_energy = minimize(hopping_matrix,x0=(0,0),method='Nelder-Mead',bounds=((-2*np.pi,2*np.pi),(-4*np.pi,4*np.pi)),args=arguments)
     return min_energy.fun
 
+
+
+
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+def find_order(P):
+    p_0 = 0
+    inv_1,inv_2,t_0,t_1,p_1,t_2,p_2,t_3,p_3,t_4,p_4,t_5,p_5,P_1,P_2 = P
+#    print('Translations are',*P[-2:])
+    CO = 1e-3
+    p1p = 1 if abs(P_1-np.pi) < CO else 0
+    p2p = 1 if abs(P_2-np.pi) < CO else 0
+    p1z = 1 if (abs(P_1) < CO or abs(P_1-2*np.pi) < CO) else 0
+    p2z = 1 if (abs(P_2) < CO or abs(P_2-2*np.pi) < CO) else 0
+    #pi/3 and 2pi/3
+    p1c = 1 if abs(P_1-np.pi/3) < CO else 0
+    p2c = 1 if abs(P_1-np.pi/3) < CO else 0
+    p1d = 1 if abs(P_1-2*np.pi/3) < CO else 0
+    p2d = 1 if abs(P_1-2*np.pi/3) < CO else 0
+    if (p1p or p1z) and (p2p or p2z):
+        UC = p1p*(1-p2p)*12 + (1-p1p)*p2p*12 + p1p*p2p*24
+#        print('Unit cell is: ',UC)
+        return 'gray'
+    elif (p1c or p1d) and (p2c or p2d):
+        UC = p1c*(1-p2c)*18 + (1-p1c)*p2c*18 + p1c*p2c*54
+#        print('Unit cell is: ',UC)
+        return 'green'
+    else:
+#        print('Translations are not 0 or pi and neither pi/3 or 2pi/3')
+        return 'saddlebrown'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
