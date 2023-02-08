@@ -29,7 +29,21 @@ dirname = 'data/'
 #dirname = '/home/users/r/rossid/code_classical_pd/data/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
 
-if os.path.isfile(filename):
+orders = ['ferro', '3x3', 'q0', 'octa', 'cb1', 'cb2']
+m = [1,3,3,1,3,3,2,6,6,2,6,6,2,6,6]
+func_L = {'ferro': fs.ferro_lattice, 'q0': fs.q0_lattice, 'octa': fs.oct_lattice, 'cb1': fs.cb1_lattice, 'cb2': fs.cb2_lattice}
+lattices = []
+for o in orders:
+    if o == '3x3':
+        continue
+    L = func_L[o](spin_angles)
+    lattices.append(L.copy())
+    for g in range(2):
+        fs.gauge_trsf(L)
+        lattices.append(L.copy())
+
+if os.path.isfile(filename):        ####################
+    energies = np.load(filename)
     print("Already computed")
     exit()
 print('using: ',*sys.argv[1:])
@@ -37,24 +51,19 @@ for n2 in range(J2pts):
     j2 = J2[n2]
     for n3,j3 in enumerate(J3):
         J = np.array([J1,j2,j3])
-        ferro = fs.ferro(J,spin_angles,DM_angles,DM_orientation)
-        s3x3 = fs.s3x3(J,spin_angles,DM_angles,DM_orientation)
-        s3x3_g1 = fs.s3x3_g1(J,spin_angles,DM_angles,DM_orientation)
-        q0 = fs.q0(J,spin_angles,DM_angles,DM_orientation)
-        q0_g1 = fs.q0_g1(J,spin_angles,DM_angles,DM_orientation)
-        q0_g2 = fs.q0_g2(J,spin_angles,DM_angles,DM_orientation)
-        octa = fs.octa(J,spin_angles,DM_angles,DM_orientation)
-        octa_g1 = fs.octa_g1(J,spin_angles,DM_angles,DM_orientation)
-        octa_g2 = fs.octa_g2(J,spin_angles,DM_angles,DM_orientation)
-        cb1 = fs.cb1(J,spin_angles,DM_angles,DM_orientation)
-        cb1_g1 = fs.cb1_g1(J,spin_angles,DM_angles,DM_orientation)
-        cb1_g2 = fs.cb1_g2(J,spin_angles,DM_angles,DM_orientation)
-        cb2 = fs.cb2(J,spin_angles,DM_angles,DM_orientation)
-        cb2_g1 = fs.cb2_g1(J,spin_angles,DM_angles,DM_orientation)
-        cb2_g2 = fs.cb2_g2(J,spin_angles,DM_angles,DM_orientation)
-        spiral = fs.spiral(J,DM_angles)
-        step_en = [ferro, s3x3, s3x3_g1, q0, q0_g1, q0_g2, octa, octa_g1, octa_g2, cb1, cb1_g1, cb1_g2, cb2, cb2_g1, cb2_g2, spiral[0]]
+        step_en = []
+        for i in range(15):
+            step_en.append(fs.energy(lattices[i],6,J, DM_angles))
+        #spiral = fs.spiral(J,DM_angles)
+        spiral = (0,(0,0))
+        step_en.append(spiral[0])
         min_energy[n2,n3,0] = step_en
         min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
         with open(filename,'w') as f:
             np.save(filename,min_energy)
+
+
+
+
+
+

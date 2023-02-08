@@ -32,11 +32,10 @@ def gauge_trsf(L):
 
 Z_ = [4,4,2]
 #define regular orders with DM angles as functions of J1,J2,J3, the DM angle and also a representative spin orientation
-def energy(L,m,j,DM_angles,DM_direction):
+def energy(L,m,j,DM_angles):
     energy_1nn = 0
     energy_2nn = 0
     energy_3nn = 0
-    DM_0 = 1 if DM_direction == 0 else -1
     DM1,DM2,DM3 = DM_angles
     for x in range(6,6+m):
         for y in range(6,6+m):
@@ -47,13 +46,6 @@ def energy(L,m,j,DM_angles,DM_direction):
                             dots(s1,s0,-DM1) + dots(s1,s1_0,DM1) + dots(s1,s2,DM1) + dots(s1,s1_2,-DM1) +
                             dots(s2,s0,DM1) + dots(s2,s2_0,-DM1) + dots(s2,s1,-DM1) + dots(s2,s2_1,DM1)
                             )   * j[0]
-#            energy_1nn += j[0]*(     s0[2]*s0_[2]+s1[2]*s1_[2]+s2[2]*s2_[2] + 
-#                                     s0[2]*s1[2] + s1[2]*s2[2] + s2[2]*s0[2]
-#                                     + np.cos(2*DM_angles[0])*(s0[0]*s0_[0]+s0[1]*s0_[1]+s1[0]*s1_[0]+s1[1]*s1_[1]+s2[0]*s2_[0]+s2[1]*s2_[1] +
-#                                                               s0[0]*s1[0]+s0[1]*s1[1] + s1[0]*s2[0]+s1[1]*s2[1] + s2[0]*s0[0]+s2[1]*s0[1])
-#                                     + np.sin(2*DM_angles[0])*((s0[1]*s0_[0]-s0[0]*s0_[1] + s1[1]*s1_[0]-s1[0]*s1_[1] + s2[1]*s2_[0]-s2[0]*s2_[1])*DM_0 +
-#                                                               s0[1]*s1[0]-s0[0]*s1[1] + s1[1]*s2[0]-s1[0]*s2[1] + s2[1]*s0[0]-s2[0]*s0[1])
-#                                     )
             s0a = L[x,y+1,1];   s0b = L[x,y-1,2]
             s1a = L[x-1,y-1,2]; s1b = L[x+1,y+1,0]
             s2a = L[x+1,y,0];   s2b = L[x-1,y,1]
@@ -68,107 +60,7 @@ def energy(L,m,j,DM_angles,DM_direction):
                             dots(s1,s1_a,DM3) + dots(s1,s1_b,-DM3) +
                             dots(s2,s2_a,DM3) + dots(s2,s2_b,-DM3) 
                             )   *j[2]
-#            s0h = L[x,y+1,0]
-#            s1h = L[x-1,y-1,1]
-#            s2h = L[x+1,y,2]
-#            energy_3nn += j[2]*(s0[2]*s0h[2]+s1[2]*s1h[2]+s2[2]*s2h[2] 
-#                                     + np.cos(2*DM_angles[2])*(s0[0]*s0h[0]+s0[1]*s0h[1]+s1[0]*s1h[0]+s1[1]*s1h[1]+s2[0]*s2h[0]+s2[1]*s2h[1])
-#                                     + np.sin(2*DM_angles[2])*(s0[1]*s0h[0]-s0[0]*s0h[1] + s1[1]*s1h[0]-s1[0]*s1h[1] + s2[1]*s2h[0]-s2[0]*s2h[1])
-#                                     )
     return (energy_1nn + energy_2nn*2 + energy_3nn)/(m*m*3)
-#ORBIT: F->3x3_g1->3x3
-def ferro(j,spin_angles,DM_angles,DM):
-    m = 1
-    L = ferro_lattice(spin_angles)
-    ferro_energy = energy(L,m,j,DM_angles,DM)
-    return ferro_energy
-def s3x3(j,spin_angles,DM_angles,DM):
-    m = 3
-    L = s3x3_lattice(spin_angles)
-    s3x3_energy = energy(L,m,j,DM_angles,DM)
-    return s3x3_energy
-def s3x3_g1(j,spin_angles,DM_angles,DM):
-    m = 3
-    L_base = s3x3_lattice(spin_angles)
-    L = gauge_trsf(L_base)
-    s3x3_energy = energy(L,m,j,DM_angles,DM)
-    return s3x3_energy
-#ORBIT: q0->q0_g1->q0_g2
-def q0(j,spin_angles,DM_angles,DM):
-    m = 1
-    L = q0_lattice(spin_angles)
-    q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy
-def q0_g1(j,spin_angles,DM_angles,DM):
-    m = 3
-    L_base = q0_lattice(spin_angles)
-    L = gauge_trsf(L_base)
-    q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy
-def q0_g2(j,spin_angles,DM_angles,DM):
-    m = 3
-    L_base = q0_lattice(spin_angles)
-    L_g1 = gauge_trsf(L_base)
-    L = gauge_trsf(L_g1)
-    q0_energy = energy(L,m,j,DM_angles,DM)
-    return q0_energy
-#Chiral orders -> difficult to compute by hand the energy (especially after the gauge transformation) -> automate the process
-def octa(j,spin_angles,DM_angles,DM):
-    m = 2
-    L = oct_lattice(spin_angles)
-    octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy
-def octa_g1(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = oct_lattice(spin_angles)
-    L = gauge_trsf(L_base)
-    octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy
-def octa_g2(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = oct_lattice(spin_angles)
-    L_g1 = gauge_trsf(L_base)
-    L = gauge_trsf(L_g1)
-    octa_energy = energy(L,m,j,DM_angles,DM)
-    return octa_energy
-#
-def cb1(j,spin_angles,DM_angles,DM):
-    m = 2
-    L = cb1_lattice(spin_angles)
-    cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy
-def cb1_g1(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = cb1_lattice(spin_angles)
-    L = gauge_trsf(L_base)
-    cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy
-def cb1_g2(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = cb1_lattice(spin_angles)
-    L_g1 = gauge_trsf(L_base)
-    L = gauge_trsf(L_g1)
-    cb1_energy = energy(L,m,j,DM_angles,DM)
-    return cb1_energy
-#
-def cb2(j,spin_angles,DM_angles,DM):
-    m = 2
-    L = cb2_lattice(spin_angles)
-    cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy
-def cb2_g1(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = cb2_lattice(spin_angles)
-    L = gauge_trsf(L_base)
-    cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy
-def cb2_g2(j,spin_angles,DM_angles,DM):
-    m = 6
-    L_base = cb2_lattice(spin_angles)
-    L_g1 = gauge_trsf(L_base)
-    L = gauge_trsf(L_g1)
-    cb2_energy = energy(L,m,j,DM_angles,DM)
-    return cb2_energy
 ########################
 ########################
 ########################

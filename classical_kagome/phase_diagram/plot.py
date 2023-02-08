@@ -5,22 +5,41 @@ import matplotlib
 from matplotlib.lines import Line2D
 from scipy.optimize import curve_fit
 import sys
+import getopt
 import functions as fs
 
+
+
+argv = sys.argv[1:]
+try:
+    opts, args = getopt.getopt(argv, "r:",["DM=","pts="])
+    lim = 3
+    DM = '000'
+    pts = 21
+except:
+    print("Error in input parameters",argv)
+    exit()
+for opt, arg in opts:
+    if opt in ['-r']:
+        lim = float(arg)
+    if opt == '--DM':
+        DM = arg
+    if opt == '--pts':
+        pts = int(arg)
 #inputs:    DM_angle -> in str, J_pts
 
-lim = float(sys.argv[3])
 J1 = 1
 J2i = -lim
 J2f = lim
 J3i = -lim
 J3f = lim
-J2pts = J3pts = int(sys.argv[2])
+J2pts = J3pts = pts
 dirname = 'data/'
-filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
-DM_angle = dic_DM[sys.argv[1]]
+DM_angle = dic_DM[DM]
+
+filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+sys.argv[2]+'.npy'
 energies = np.load(filename)
 min_E = np.zeros((J2pts,J3pts),dtype = int)
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
@@ -54,6 +73,8 @@ txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 for i in range(J2pts):
     for j in range(J3pts):
         ens = np.array(energies[i,j,0])
+        print(ens)
+        exit()
         if (ens == np.zeros(len(ens))).all():
             min_E[i,j] = 1e5
             continue
@@ -76,6 +97,7 @@ for i in range(J2pts):
             ord_E.append(orders[amin])
 #        print('Point: ',J2[i],J3[j],' has orders',*ord_E)
         ###
+
         min_E[i,j] = int(np.argmin(energies[i,j,0]))
         if len(ord_E) == 1:
             if ord_E[0] == 'spiral':
@@ -116,7 +138,7 @@ for i in range(J2pts):
                     fillstyle='right'
                     )
         plt.plot(J2[i],J3[j],**marker_style)
-plt.title('DM = '+txt_dm[sys.argv[1]])
+plt.title('DM = '+txt_dm[DM])
 #plt.yticks([-0.3,0,0.3],['-0.3','0','0.3'])
 #plt.xticks([-0.3,0,0.3],['-0.3','0','0.3'])
 
