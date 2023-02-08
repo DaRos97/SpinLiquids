@@ -37,33 +37,45 @@ def energy(L,m,j,DM_angles,DM_direction):
     energy_2nn = 0
     energy_3nn = 0
     DM_0 = 1 if DM_direction == 0 else -1
+    DM1,DM2,DM3 = DM_angles
     for x in range(6,6+m):
         for y in range(6,6+m):
-            s0 = L[x,y,0]; s0_ = L[x-1,y-1,2]
-            s1 = L[x,y,1]; s1_ = L[x+1,y,0]
-            s2 = L[x,y,2]; s2_ = L[x,y+1,1]
-            energy_1nn += j[0]*(     s0[2]*s0_[2]+s1[2]*s1_[2]+s2[2]*s2_[2] + 
-                                     s0[2]*s1[2] + s1[2]*s2[2] + s2[2]*s0[2]
-                                     + np.cos(2*DM_angles[0])*(s0[0]*s0_[0]+s0[1]*s0_[1]+s1[0]*s1_[0]+s1[1]*s1_[1]+s2[0]*s2_[0]+s2[1]*s2_[1] +
-                                                               s0[0]*s1[0]+s0[1]*s1[1] + s1[0]*s2[0]+s1[1]*s2[1] + s2[0]*s0[0]+s2[1]*s0[1])
-                                     + np.sin(2*DM_angles[0])*((s0[1]*s0_[0]-s0[0]*s0_[1] + s1[1]*s1_[0]-s1[0]*s1_[1] + s2[1]*s2_[0]-s2[0]*s2_[1])*DM_0 +
-                                                               s0[1]*s1[0]-s0[0]*s1[1] + s1[1]*s2[0]-s1[0]*s2[1] + s2[1]*s0[0]-s2[0]*s0[1])
-                                     )
-            s0a = s2_; s0b = L[x,y-1,2]
-            s1a = s0_; s1b = L[x+1,y+1,0]
-            s2a = s1_; s2b = L[x-1,y,1]
+            s0 = L[x,y,0]; s0_2 = L[x-1,y-1,2]; s0_1 = L[x-1,y,1]
+            s1 = L[x,y,1]; s1_0 = L[x+1,y,0];   s1_2 = L[x,y-1,2]
+            s2 = L[x,y,2]; s2_0 = L[x+1,y+1,0]; s2_1 = L[x,y+1,1]
+            energy_1nn += ( dots(s0,s2,-DM1) + dots(s0,s0_2,DM1) + dots(s0,s1,DM1) + dots(s0,s0_1,-DM1) +
+                            dots(s1,s0,-DM1) + dots(s1,s1_0,DM1) + dots(s1,s2,DM1) + dots(s1,s1_2,-DM1) +
+                            dots(s2,s0,DM1) + dots(s2,s2_0,-DM1) + dots(s2,s1,-DM1) + dots(s2,s2_1,DM1)
+                            )   * j[0]
+#            energy_1nn += j[0]*(     s0[2]*s0_[2]+s1[2]*s1_[2]+s2[2]*s2_[2] + 
+#                                     s0[2]*s1[2] + s1[2]*s2[2] + s2[2]*s0[2]
+#                                     + np.cos(2*DM_angles[0])*(s0[0]*s0_[0]+s0[1]*s0_[1]+s1[0]*s1_[0]+s1[1]*s1_[1]+s2[0]*s2_[0]+s2[1]*s2_[1] +
+#                                                               s0[0]*s1[0]+s0[1]*s1[1] + s1[0]*s2[0]+s1[1]*s2[1] + s2[0]*s0[0]+s2[1]*s0[1])
+#                                     + np.sin(2*DM_angles[0])*((s0[1]*s0_[0]-s0[0]*s0_[1] + s1[1]*s1_[0]-s1[0]*s1_[1] + s2[1]*s2_[0]-s2[0]*s2_[1])*DM_0 +
+#                                                               s0[1]*s1[0]-s0[0]*s1[1] + s1[1]*s2[0]-s1[0]*s2[1] + s2[1]*s0[0]-s2[0]*s0[1])
+#                                     )
+            s0a = L[x,y+1,1];   s0b = L[x,y-1,2]
+            s1a = L[x-1,y-1,2]; s1b = L[x+1,y+1,0]
+            s2a = L[x+1,y,0];   s2b = L[x-1,y,1]
             energy_2nn += j[1]*(np.dot(s0,s0a) + np.dot(s0,s0b) +
                                      np.dot(s1,s1a) + np.dot(s1,s1b) +
                                      np.dot(s2,s2a) + np.dot(s2,s2b)
                                      ) 
-            s0h = L[x,y+1,0]
-            s1h = L[x-1,y-1,1]
-            s2h = L[x+1,y,2]
-            energy_3nn += j[2]*(s0[2]*s0h[2]+s1[2]*s1h[2]+s2[2]*s2h[2] 
-                                     + np.cos(2*DM_angles[2])*(s0[0]*s0h[0]+s0[1]*s0h[1]+s1[0]*s1h[0]+s1[1]*s1h[1]+s2[0]*s2h[0]+s2[1]*s2h[1])
-                                     + np.sin(2*DM_angles[2])*(s0[1]*s0h[0]-s0[0]*s0h[1] + s1[1]*s1h[0]-s1[0]*s1h[1] + s2[1]*s2h[0]-s2[0]*s2h[1])
-                                     )
-    return (energy_1nn + energy_2nn + energy_3nn)/(m*m*3)*2
+            s0 = L[x,y,0]; s0_a = L[x,y+1,0]; s0_b = L[x,y-1,0]
+            s1 = L[x,y,1]; s1_a = L[x-1,y-1,1]; s1_b = L[x+1,y+1,1]
+            s2 = L[x,y,2]; s2_a = L[x+1,y,2]; s2_b = L[x-1,y,2]
+            energy_3nn += ( dots(s0,s0_a,DM3) + dots(s0,s0_b,-DM3) + 
+                            dots(s1,s1_a,DM3) + dots(s1,s1_b,-DM3) +
+                            dots(s2,s2_a,DM3) + dots(s2,s2_b,-DM3) 
+                            )   *j[2]
+#            s0h = L[x,y+1,0]
+#            s1h = L[x-1,y-1,1]
+#            s2h = L[x+1,y,2]
+#            energy_3nn += j[2]*(s0[2]*s0h[2]+s1[2]*s1h[2]+s2[2]*s2h[2] 
+#                                     + np.cos(2*DM_angles[2])*(s0[0]*s0h[0]+s0[1]*s0h[1]+s1[0]*s1h[0]+s1[1]*s1h[1]+s2[0]*s2h[0]+s2[1]*s2h[1])
+#                                     + np.sin(2*DM_angles[2])*(s0[1]*s0h[0]-s0[0]*s0h[1] + s1[1]*s1h[0]-s1[0]*s1h[1] + s2[1]*s2h[0]-s2[0]*s2h[1])
+#                                     )
+    return (energy_1nn + energy_2nn*2 + energy_3nn)/(m*m*3)
 #ORBIT: F->3x3_g1->3x3
 def ferro(j,spin_angles,DM_angles,DM):
     m = 1
@@ -371,35 +383,59 @@ def R_y(t):
 def dots(S_a,S_b,DM):
     return S_a[2]*S_b[2] + np.cos(2*DM)*(S_a[0]*S_b[0]+S_a[1]*S_b[1]) + np.sin(2*DM)*(S_a[1]*S_b[0]-S_a[0]*S_b[1])
 
-
-def spiral_energy(P,*args):
+#Sites are numbered counter-clockwise, in two up-pointing small triangles starting from lower left. The two small triangles are along a2->(-1/2,sqrt(3)/2)
+def spiral_energy(P,*args):         
     J,I,DM = args
     J1,J2,J3 = J
     inv_1, inv_2 = I
     DM1, DM2, DM3 = DM
-    t_0,t_1,p_1,t_2,p_2,P_1,P_2 = P
     p_0 = 0
+    t_0,t_1,p_1,t_2,p_2,t_3,p_3,t_4,p_4,t_5,p_5,P_1,P_2 = P
     S_0 = 0.5*np.array([np.sin(t_0)*np.cos(p_0),np.sin(t_0)*np.sin(p_0),np.cos(t_0)])
     S_1 = 0.5*np.array([np.sin(t_1)*np.cos(p_1),np.sin(t_1)*np.sin(p_1),np.cos(t_1)])
     S_2 = 0.5*np.array([np.sin(t_2)*np.cos(p_2),np.sin(t_2)*np.sin(p_2),np.cos(t_2)])
-    E1 = (  dots(S_0,S_1,-DM1)+dots(S_0,inv_1*inv_2*np.tensordot(R_z(-P_1-P_2),S_1,1),DM1) +
-            dots(S_0,S_2,DM1) +dots(S_0,inv_1*np.tensordot(R_z(-P_1),S_2,1),-DM1) +
-            dots(S_1,S_0,DM1) +dots(S_1,inv_1*inv_2*np.tensordot(R_z(P_1+P_2),S_0,1),-DM1) +
-            dots(S_1,S_2,-DM1)+dots(S_1,inv_2*np.tensordot(R_z(P_2),S_2,1),DM1) +
-            dots(S_2,S_0,-DM1)+dots(S_2,inv_1*np.tensordot(R_z(P_1),S_0,1),DM1) +
-            dots(S_2,S_1,DM1) +dots(S_2,inv_2*np.tensordot(R_z(-P_2),S_1,1),-DM1)         )
-    E2 = (  np.dot(S_0,inv_2*np.tensordot(R_z(P_2),S_2,1))+np.dot(S_0,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_2,1))+np.dot(S_0,inv_1*np.tensordot(R_z(-P_1),S_1,1))+np.dot(S_0,inv_2*np.tensordot(R_z(-P_2),S_1,1)) + 
-            np.dot(S_1,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1))+np.dot(S_1,inv_1*np.tensordot(R_z(-P_1),S_2,1))      )
-    E3 = (  dots(S_0,inv_2*np.tensordot(R_z(P_2),S_0,1),DM3) + dots(S_0,inv_2*np.tensordot(R_z(-P_2),S_0,1),-DM3) +
-            dots(S_1,inv_1*np.tensordot(R_z(-P_1),S_1,1),-DM3) + dots(S_1,inv_1*np.tensordot(R_z(P_1),S_1,1),DM3) + 
-            dots(S_2,inv_2*inv_1*np.tensordot(R_z(P_1+P_2),S_2,1),-DM3) + dots(S_2,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_2,1),DM3)   )
-    return (J1*E1+J2*E2*2+J3*E3)/3
+    S_3 = 0.5*np.array([np.sin(t_3)*np.cos(p_3),np.sin(t_3)*np.sin(p_3),np.cos(t_3)])
+    S_4 = 0.5*np.array([np.sin(t_4)*np.cos(p_4),np.sin(t_4)*np.sin(p_4),np.cos(t_4)])
+    S_5 = 0.5*np.array([np.sin(t_5)*np.cos(p_5),np.sin(t_5)*np.sin(p_5),np.cos(t_5)])
+    E1 = (dots(S_0,S_2,-DM1)    +dots(S_0,inv_1*inv_2*np.tensordot(R_z(-P_1-P_2),S_5,1),DM1) +
+          dots(S_0,S_1,DM1)     +dots(S_0,inv_1*np.tensordot(R_z(-P_1),S_1,1),-DM1)+
+          dots(S_1,S_0,-DM1)    +dots(S_1,inv_1*np.tensordot(R_z(P_1),S_0,1),DM1) +
+          dots(S_1,S_2,DM1)     +dots(S_1,inv_2*np.tensordot(R_z(-P_2),S_5,1),-DM1) +
+          dots(S_2,S_0,DM1)     +dots(S_2,inv_1*np.tensordot(R_z(P_1),S_3,1),-DM1) +
+          dots(S_2,S_1,-DM1)    +dots(S_2,S_4,DM1) + 
+          dots(S_3,S_5,-DM1)    +dots(S_3,inv_1*np.tensordot(R_z(-P_1),S_2,1),DM1) +
+          dots(S_3,S_4,DM1)     +dots(S_3,inv_1*np.tensordot(R_z(-P_1),S_4,1),-DM1) +
+          dots(S_4,S_3,-DM1)    +dots(S_4,inv_1*np.tensordot(R_z(P_1),S_3,1),DM1) +
+          dots(S_4,S_5,DM1)     +dots(S_4,S_2,-DM1)         +
+          dots(S_5,S_3,DM1)     +dots(S_5,inv_1*inv_2*np.tensordot(R_z(P_1+P_2),S_0,1),-DM1) +
+          dots(S_5,S_4,-DM1)    +dots(S_5,inv_2*np.tensordot(R_z(P_2),S_1,1),DM1)         )
+    E2 = (  np.dot(S_0,inv_2*inv_1*np.tensordot(R_z(-P_1-P_2),S_4,1))   +np.dot(S_0,inv_2*np.tensordot(R_z(-P_2),S_5,1)) +
+            np.dot(S_0,inv_1*np.tensordot(R_z(-P_1),S_2,1))             +np.dot(S_0,S_4) + 
+            np.dot(S_1,inv_2*np.tensordot(R_z(-P_2),S_3,1))             +np.dot(S_1,inv_1*inv_2*np.tensordot(R_z(-P_2-P_1),S_5,1))  +
+            np.dot(S_1,inv_1*np.tensordot(R_z(P_1),S_3,1))              +np.dot(S_1,inv_1*np.tensordot(R_z(P_1),S_2,1))      +
+            np.dot(S_2,S_3)                                             +np.dot(S_2,inv_1*np.tensordot(R_z(P_1),S_4,1))      +
+            np.dot(S_5,inv_1*np.tensordot(R_z(-P_1),S_4,1))             +np.dot(S_5,inv_1*np.tensordot(R_z(P_1),S_3,1))
+            )
+    E3 = (  dots(S_0,S_3,DM3)       + dots(S_0,inv_2*np.tensordot(R_z(-P_2),S_3,1),-DM3) +
+            dots(S_1,inv_1*inv_2*np.tensordot(R_z(-P_1-P_2),S_4,1),DM3)     + dots(S_1,inv_1*np.tensordot(R_z(P_1),S_4,1),-DM3) + 
+            dots(S_2,inv_1*np.tensordot(R_z(-P_1),S_2,1),-DM3)      + dots(S_2,inv_1*np.tensordot(R_z(P_1),S_2,1),DM3)  + 
+            dots(S_3,S_0,-DM3)      + dots(S_3,inv_2*np.tensordot(R_z(P_2),S_0,1),DM3) +
+            dots(S_4,inv_1*np.tensordot(R_z(-P_1),S_1,1),DM3)       + dots(S_4,inv_1*inv_2*np.tensordot(R_z(P_1+P_2),S_1,1),-DM3) + 
+            dots(S_5,inv_1*np.tensordot(R_z(-P_1),S_5,1),-DM3)      + dots(S_5,inv_1*np.tensordot(R_z(P_1),S_5,1),DM3)   
+            )
+    return (J1*E1+J2*E2*2+J3*E3)/6
 #define the search for the energy of the spiral states at a given J1,J2,J3
 bounds_spiral = (   (0,np.pi),                  #t_0
                     (0,np.pi),                  #t_1
                     (0,2*np.pi),                #p_1
                     (0,np.pi),                  #t_2
                     (0,2*np.pi),                #p_2
+                    (0,np.pi),                  #t_3
+                    (0,2*np.pi),                #p_3
+                    (0,np.pi),                  #t_4
+                    (0,2*np.pi),                #p_4
+                    (0,np.pi),                  #t_5
+                    (0,2*np.pi),                #p_5
                     (0,2*np.pi),                #P_1
                     (0,2*np.pi),                #P_2
                     )
@@ -412,12 +448,16 @@ def spiral(j,DM_angles):
                 spiral_energy,
                 bounds = bounds_spiral,
                 args = (j,(inv_1,inv_2),DM_angles),
+#                workers = -1,
+#                updating = 'deferred'
 #                disp = True
             )
             temp = spiral_energy(minimization.x,*(j,(inv_1,inv_2),DM_angles))
             if temp < SS_energy:
                 SS_energy = temp
-    return SS_energy
+                inv_final = np.array([inv_1,inv_2])
+#            print(inv_1,inv_2,temp,*minimization.x)
+    return SS_energy,np.append(inv_final,minimization.x)
 
 #define function for evaluation of minimal energy
 def hopping_matrix(q,*args):

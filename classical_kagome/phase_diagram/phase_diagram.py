@@ -7,7 +7,7 @@ import os
 #inputs:    DM_angle -> in str, J_pts
 
 J1 = 1
-lim = sys.argv[3]
+lim = float(sys.argv[3])
 J2i = -lim
 J2f = lim
 J3i = -lim
@@ -18,7 +18,7 @@ J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 
 
-min_energy = np.zeros((J2pts,J3pts,16))
+min_energy = np.zeros((J2pts,J3pts,2,16))
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 dm_angle_1nn = dic_DM[sys.argv[1]]
@@ -26,6 +26,7 @@ DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
 #
 dirname = 'data/'
+#dirname = '/home/users/r/rossid/code_classical_pd/data/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
 
 if os.path.isfile(filename):
@@ -52,7 +53,8 @@ for n2 in range(J2pts):
         cb2_g1 = fs.cb2_g1(J,spin_angles,DM_angles,DM_orientation)
         cb2_g2 = fs.cb2_g2(J,spin_angles,DM_angles,DM_orientation)
         spiral = fs.spiral(J,DM_angles)
-        step_en = [ferro, s3x3, s3x3_g1, q0, q0_g1, q0_g2, octa, octa_g1, octa_g2, cb1, cb1_g1, cb1_g2, cb2, cb2_g1, cb2_g2, spiral]
-        min_energy[n2,n3] = step_en
-
+        step_en = [ferro, s3x3, s3x3_g1, q0, q0_g1, q0_g2, octa, octa_g1, octa_g2, cb1, cb1_g1, cb1_g2, cb2, cb2_g1, cb2_g2, spiral[0]]
+        min_energy[n2,n3,0] = step_en
+        min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
+#        print('\n',j2,j3,*step_en,'\n\n')
 np.save(filename,min_energy)
