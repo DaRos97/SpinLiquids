@@ -66,15 +66,14 @@ orders = list(legend_names.keys())
 #
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(16,16))
 plt.gca().set_aspect('equal')
 #plt.title(Title)
 txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
+used_o = []
 for i in range(J2pts):
     for j in range(J3pts):
         ens = np.array(energies[i,j,0])
-        print(ens)
-        exit()
         if (ens == np.zeros(len(ens))).all():
             min_E[i,j] = 1e5
             continue
@@ -95,10 +94,14 @@ for i in range(J2pts):
         ord_E = []
         for amin in aminE:
             ord_E.append(orders[amin])
+        if ord_E[0] == 'spiral' and len(ord_E) > 1:
+            ord_E = list(ord_E[1:])
 #        print('Point: ',J2[i],J3[j],' has orders',*ord_E)
         ###
-
-        min_E[i,j] = int(np.argmin(energies[i,j,0]))
+        for e in ord_E:
+            if e not in used_o:
+                used_o.append(e)
+        min_E[i,j] = orders.index(ord_E[0])
         if len(ord_E) == 1:
             if ord_E[0] == 'spiral':
                 parameters = energies[i,j,1,:-1]
@@ -111,33 +114,28 @@ for i in range(J2pts):
             marker_style = dict(
                     color=color1, 
                     marker=mark,
-                    markerfacecoloralt=color1,
                     markeredgecolor='none',
-                    markersize = 15,
-                    fillstyle='right'
+                    markersize = 20,
                     )
-        elif len(ord_E) == 2:
-            color1 = legend_names[ord_E[0]]
-            color2 = legend_names[ord_E[1]]
-            marker_style = dict(
-                    color=color1, 
-                    marker='o',
-                    markerfacecoloralt=color2,
-                    markeredgecolor='none',
-                    markersize = 15,
-                    fillstyle='right'
-                    )
+            plt.plot(J2[i],J3[j],**marker_style)
+        elif len(ord_E) > 1:
+            r = [0.25]
+            for t in range(len(ord_E)):
+                color = legend_names[ord_E[t]]
+                r.append(r[-1] + 1/len(ord_E))
+                x1 = np.cos(2 * np.pi * np.linspace(r[-2], r[-1]))
+                y1 = np.sin(2 * np.pi * np.linspace(r[-2], r[-1]))
+                xy1 = np.row_stack([[0, 0], np.column_stack([x1, y1])])
+                plt.plot(J2[i],J3[j],marker=xy1,markersize=20,markerfacecolor=color, markeredgecolor='none',linestyle='none')
         else:
             color1 = 'brown'
             marker_style = dict(
                     color=color1, 
                     marker='*',
-                    markerfacecoloralt=color1,
                     markeredgecolor='none',
                     markersize = 15,
-                    fillstyle='right'
                     )
-        plt.plot(J2[i],J3[j],**marker_style)
+            plt.plot(J2[i],J3[j],**marker_style)
 plt.title('DM = '+txt_dm[DM])
 #plt.yticks([-0.3,0,0.3],['-0.3','0','0.3'])
 #plt.xticks([-0.3,0,0.3],['-0.3','0','0.3'])
@@ -151,17 +149,12 @@ plt.ylim(J3i-lp,J3f+lp)
 plt.xlabel(r'$J_2$')
 plt.ylabel(r'$J_3$')
 
-used_orders = np.unique(min_E)
-used_o = []
-for i in used_orders:
-    if i<100:
-        used_o.append(orders[i])
 legend_lines = []
 for ord_u in used_o:
     if ord_u == 'spiral':
         legend_lines.append(Line2D([], [], color='none', marker='P', markerfacecolor='k'))
     else:
-       legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=legend_names[ord_u]))
+       legend_lines.append(Line2D([], [], color='none', marker='o', markerfacecolor=legend_names[ord_u]))
 plt.legend(legend_lines,used_o,loc='upper left',fancybox=True)#,bbox_to_anchor=(1,1))
 plt.show()
 exit()
