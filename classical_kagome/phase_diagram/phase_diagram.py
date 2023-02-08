@@ -18,7 +18,7 @@ J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 
 
-min_energy = np.zeros((J2pts,J3pts))
+min_energy = np.zeros((J2pts,J3pts,16))
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 dm_angle_1nn = dic_DM[sys.argv[1]]
@@ -53,6 +53,6 @@ for n2 in range(J2pts):
         cb2_g2 = fs.cb2_g2(J,spin_angles,DM_angles,DM_orientation)
         spiral = fs.spiral(J,DM_angles)
         step_en = [ferro, s3x3, s3x3_g1, q0, q0_g1, q0_g2, octa, octa_g1, octa_g2, cb1, cb1_g1, cb1_g2, cb2, cb2_g1, cb2_g2, spiral]
-        min_energy[n2,n3] = np.argmin(step_en)
+        min_energy[n2,n3] = step_en
 
 np.save(filename,min_energy)
