@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib
 from matplotlib.lines import Line2D
 from scipy.optimize import curve_fit
 import sys
@@ -20,7 +21,7 @@ filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 DM_angle = dic_DM[sys.argv[1]]
 energies = np.load(filename)
-
+min_E = np.zeros((J2pts,J3pts),dtype = int)
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
 #gray -> octa, purple -> octa_g1, m -> octa_g2, c -> cb1, cb2, spiral
 legend_names = {
@@ -41,37 +42,91 @@ legend_names = {
                 'cb2_g2':      'coral',
         'spiral':       'aqua',
         }
-legend_lines = []
-for col in legend_names.values():
-    legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=col))
+orders = list(legend_names.keys())
 #
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
-orders = ['ferro', '3x3', '3x3_g1', 'q0', 'q0_g1', 'q0_g2', 'octa', 'octa_g1', 'octa_g2', 'cb1', 'cb1_g1', 'cb1_g2', 'cb2', 'cb2_g1', 'cb2_g2', 'spiral']
 fig = plt.figure(figsize=(6,6))
 plt.gca().set_aspect('equal')
-j3_label = [0,3,6]
-j2_label = [6,7,8]
-Title = 'J1 = -1 (FM)' if J1 == -1 else 'J1 = 1 (AFM)'
 #plt.title(Title)
 txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 
 for i in range(J2pts):
     for j in range(J3pts):
-        color = legend_names[orders[int(energies[i,j])]]
-        plt.scatter(J2[i],J3[j],color = color,marker = 'o', s=100)
+        ens = np.array(energies[i,j,0])
+        aminE = []
+        aminE.append(np.argmin(ens))
+        minE = ens[aminE[0]]
+        ens[aminE[0]] += 5
+        while True:
+            aminE2 = np.argmin(ens)
+            if aminE2 == len(energies[i,j,0])-1:
+                break
+            minE2 = ens[aminE2]
+            if np.abs(minE-minE2) < 1e-5:
+                aminE.append(aminE2)
+                ens[aminE[-1]] += 5
+                continue
+            break
+        ord_E = []
+        for amin in aminE:
+            ord_E.append(orders[amin])
+#        print('Point: ',J2[i],J3[j],' has orders',*ord_E)
+        ###
+        min_E[i,j] = int(np.argmin(energies[i,j,0]))
+        if len(ord_E) == 1:
+            color1 = legend_names[orders[aminE[0]]]
+            marker_style = dict(
+                    color=color1, 
+                    marker='o',
+                    markerfacecoloralt=color1,
+                    markeredgecolor='none',
+                    markersize = 15,
+                    fillstyle='right'
+                    )
+        elif len(ord_E) == 2:
+            color1 = legend_names[orders[aminE[0]]]
+            color2 = legend_names[orders[aminE[1]]]
+            marker_style = dict(
+                    color=color1, 
+                    marker='o',
+                    markerfacecoloralt=color2,
+                    markeredgecolor='none',
+                    markersize = 15,
+                    fillstyle='right'
+                    )
+        else:
+            color1 = 'brown'
+            marker_style = dict(
+                    color=color1, 
+                    marker='*',
+                    markerfacecoloralt=color1,
+                    markeredgecolor='none',
+                    markersize = 15,
+                    fillstyle='right'
+                    )
+        plt.plot(J2[i],J3[j],**marker_style)
 plt.title('DM = '+txt_dm[sys.argv[1]])
 #plt.yticks([-0.3,0,0.3],['-0.3','0','0.3'])
 #plt.xticks([-0.3,0,0.3],['-0.3','0','0.3'])
 
 plt.axhline(y=0,color='k',zorder=-1,linewidth=0.5)
 plt.axvline(x=0,color='k',zorder=-1,linewidth=0.5)
-plt.xlim(J2i,J2f)
-plt.ylim(J3i,J3f)
+lp = (J2f-J2i)/10
+plt.xlim(J2i-lp,J2f+lp)
+plt.ylim(J3i-lp,J3f+lp)
 
 plt.xlabel(r'$J_2$')
 plt.ylabel(r'$J_3$')
-plt.legend(legend_lines,legend_names.keys(),loc='upper left',fancybox=True)#,bbox_to_anchor=(1,1))
+
+used_orders = np.unique(min_E)
+used_o = []
+for i in used_orders:
+    used_o.append(orders[i])
+legend_lines = []
+for ord_u in used_o:
+    legend_lines.append(Line2D([], [], color="w", marker='o', markerfacecolor=legend_names[ord_u]))
+plt.legend(legend_lines,used_o,loc='upper left',fancybox=True)#,bbox_to_anchor=(1,1))
 plt.show()
 exit()
 
