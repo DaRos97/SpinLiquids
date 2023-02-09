@@ -382,10 +382,42 @@ def lower_bound_energy(j):
 #######################################################################################################################
 #######################################################################################################################
 def find_order(P):
+    CO = 1e-3
+    COc = 1e-2
     p_0 = 0
     inv_1,inv_2,t_0,t_1,p_1,t_2,p_2,t_3,p_3,t_4,p_4,t_5,p_5,P_1,P_2 = P
-#    print('Translations are',*P[-2:])
-    CO = 1e-3
+    T_ = [t_0,t_1,t_2,t_3,t_4,t_5]
+    P_ = [p_0,p_1,p_2,p_3,p_4,p_5]
+    for i in range(6):
+        if np.abs(P_[i] - 2*np.pi) < CO:
+            P_[i] -= 2*np.pi
+    #Find if the solution is O(3) or SO(3)
+    chir = False if inv_1 == 1 and inv_2 == 1 else True
+    #Find if it is a planar spiral
+    planar = True
+    for t in T_:
+        if np.abs(t-np.pi/2) > CO:
+            planar = False
+    #Find if the UC is 3 or 6 sites
+    p1 = 1
+    q0 = False
+    FM = False
+    if planar:
+        p1 = 0
+        for i in range(3):
+            if not(np.abs(P_[i]-P_[i+3]) < CO or np.abs(P_[i]-P_[i+3]-2*np.pi) < CO):
+                p1 =1
+        #Find if spins are ordered in q0 fashion
+        if not p1:
+            q0 = True
+            for p in P_[1:3]:
+                if not (np.abs(p-np.pi/3*2) < CO or np.abs(p-np.pi/3*4) < CO):
+                    q0 = False
+            FM = True
+            for p in P_[1:3]:
+                if not (np.abs(p) < CO):
+                    FM = False
+    #Study rotations: pi and 0
     p1p = 1 if abs(P_1-np.pi) < CO else 0
     p2p = 1 if abs(P_2-np.pi) < CO else 0
     p1z = 1 if (abs(P_1) < CO or abs(P_1-2*np.pi) < CO) else 0
@@ -397,16 +429,50 @@ def find_order(P):
     p2d = 1 if abs(P_1-2*np.pi/3) < CO else 0
     if (p1p or p1z) and (p2p or p2z):
         UC = p1p*(1-p2p)*12 + (1-p1p)*p2p*12 + p1p*p2p*24
-#        print('Unit cell is: ',UC)
-        return 'gray'
+        R = 0
     elif (p1c or p1d) and (p2c or p2d):
         UC = p1c*(1-p2c)*18 + (1-p1c)*p2c*18 + p1c*p2c*54
-#        print('Unit cell is: ',UC)
-        return 'green'
+        R = 1
     else:
-#        print('Translations are not 0 or pi and neither pi/3 or 2pi/3')
-        return 'saddlebrown'
+        R = 2
+    #Compute chirality of single triangles
+    S_0 = 0.5*np.array([np.sin(t_0)*np.cos(p_0),np.sin(t_0)*np.sin(p_0),np.cos(t_0)])
+    S_1 = 0.5*np.array([np.sin(t_1)*np.cos(p_1),np.sin(t_1)*np.sin(p_1),np.cos(t_1)])
+    S_2 = 0.5*np.array([np.sin(t_2)*np.cos(p_2),np.sin(t_2)*np.sin(p_2),np.cos(t_2)])
+    S_3 = 0.5*np.array([np.sin(t_3)*np.cos(p_3),np.sin(t_3)*np.sin(p_3),np.cos(t_3)])
+    S_4 = 0.5*np.array([np.sin(t_4)*np.cos(p_4),np.sin(t_4)*np.sin(p_4),np.cos(t_4)])
+    S_5 = 0.5*np.array([np.sin(t_5)*np.cos(p_5),np.sin(t_5)*np.sin(p_5),np.cos(t_5)])
+    L = cb2_lattice((0,0))
+    chirality = np.dot(S_0,np.cross(S_1,S_2))
+    ####
+#    print('Inversions: ',*P[:2])
+#    print('Phases: ',*P[2:-2])
+#    print('Rotations: ',*P[-2:])
+#    print(chir,planar,p1,q0,R)
+#    print(chirality)
+#    input()
 
+    color1 = ['aqua','green','brown'] if planar else ['r','r','r']
+    ark   = 'v' if chir else '^'
+    fills = 'right' if np.abs(chirality) > COc else 'top'
+    if q0:
+        color2 = 'blue'
+    elif FM:
+        color2 = 'k'
+    elif np.abs(chirality) > COc:
+        color2 = 'orange'
+    else:
+        color2 = color1[R]
+    Marker = dict(
+            color= color1[R],
+            marker=   ark,
+            markeredgecolor='none',
+            markerfacecoloralt= color2,
+            fillstyle=  fills,
+            markersize=20,
+        )
+
+    return Marker
 
 
 

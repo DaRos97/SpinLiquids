@@ -45,8 +45,8 @@ legend_names = {
         '3x3':      'red',
                 '3x3_g1':   'firebrick',
         'q0':          'blue',
-                'q0_g1':      'royalblue',
-                'q0_g2':      'dodgerblue',
+                'q0_g1':      'dodgerblue',
+                'q0_g2':      'lightskyblue',
         'octa':        'magenta' ,
                 'octa_g1':     'hotpink',
                 'octa_g2':     'pink',
@@ -80,7 +80,8 @@ txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 lp = (J2f-J2i)/15
-fig = plt.figure(figsize=(35,15))
+width = 35 if len(list_DM) == 3 else 15
+fig = plt.figure(figsize=(width,15))
 plt.rcParams.update({
     "text.usetex": True,
 #    "font.family": "Helvetica"
@@ -98,7 +99,7 @@ for nnnn,DM in enumerate(list_DM):
     used_o = []
     for i in range(J2pts):
         for j in range(J3pts):
-            ens = np.array(energies[i,j,0])
+            ens = np.array(energies[i,j,0,:-1])
             if (ens == np.zeros(len(ens))).all():
                 min_E[i,j] = 1e5
                 continue

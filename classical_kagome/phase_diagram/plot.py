@@ -39,7 +39,7 @@ dirname = 'data/'
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
 DM_angle = dic_DM[DM]
 
-filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+sys.argv[2]+'.npy'
+filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+str(pts)+'.npy'
 energies = np.load(filename)
 min_E = np.zeros((J2pts,J3pts),dtype = int)
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
@@ -66,6 +66,15 @@ orders = list(legend_names.keys())
 #
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
+#######
+####### Plot spiral energies
+#X,Y = np.meshgrid(J2,J3)
+#fig = plt.figure(figsize=(16,16))
+#ax = fig.add_subplot(1,1,1,projection='3d')
+#ax.plot_surface(X,Y,energies[:,:,0,15].T,cmap=cm.coolwarm)
+#ax.contour(X,Y,energies[:,:,0,15].T,levels=200,cmap=cm.coolwarm)
+#plt.show()
+
 fig = plt.figure(figsize=(16,16))
 plt.gca().set_aspect('equal')
 #plt.title(Title)
@@ -73,7 +82,7 @@ txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 used_o = []
 for i in range(J2pts):
     for j in range(J3pts):
-        ens = np.array(energies[i,j,0])
+        ens = np.array(energies[i,j,0,:-1])
         if (ens == np.zeros(len(ens))).all():
             min_E[i,j] = 1e5
             continue
@@ -98,6 +107,8 @@ for i in range(J2pts):
             ord_E = list(ord_E[1:])
 #        print('Point: ',J2[i],J3[j],' has orders',*ord_E)
         ###
+#        if i == 18 and j == 15:
+#            print(energies[i,j,0])
         for e in ord_E:
             if e not in used_o:
                 used_o.append(e)
@@ -105,13 +116,12 @@ for i in range(J2pts):
         if len(ord_E) == 1:
             if ord_E[0] == 'spiral':
                 parameters = energies[i,j,1,:-1]
-                #print('\n\nFinding spiral order at ',J2[i],J3[j])
-                color1 = fs.find_order(parameters)
-                mark = "P"
+#                print('\n\nFinding spiral order at ',J2[i],J3[j])
+                marker_style = fs.find_order(parameters)
             else:
                 color1 = legend_names[ord_E[0]]
                 mark = 'o'
-            marker_style = dict(
+                marker_style = dict(
                     color=color1, 
                     marker=mark,
                     markeredgecolor='none',
