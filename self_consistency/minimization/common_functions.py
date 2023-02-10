@@ -44,7 +44,9 @@ def total_energy(P,L,args):
         Pp[5] = P[n]
     for i in range(3):
         Res += inp.z[i]*(Pp[i]**2-Pp[i+3]**2)*J[i]/2
+    print(Res)
     Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
+    print(Res)
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
     args2 = (J1,J2,J3,ans,KM,Tau,K_,PSG)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
@@ -68,6 +70,7 @@ def total_energy(P,L,args):
     r2 /= inp.m                             #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
+    print(r2)
     return Res + r2, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -138,10 +141,11 @@ def compute_O_all(old_O,L,args):
     for p in range(len(pars)):
         par = pars[p]
         par_ = par[-2:] if par[-1]=='p' else par[-1]
+        par_1 = par[-2] if par[-1]=='p' else par[-1]
         par_2 = 'A' if 'A' in par else 'B'
         li_ = dic_indexes[par_][0]
         lj_ = dic_indexes[par_][1]
-        Tau_ = (Tau[2*(int(par_)-1)],Tau[2*(int(par_)-1)+1])
+        Tau_ = (Tau[2*(int(par_1)-1)],Tau[2*(int(par_1)-1)+1])
         func = dic_O[par_2]
         #res = 0
         rrr = np.zeros((K_,K_),dtype=complex)

@@ -73,6 +73,7 @@ for filename in os.listdir(dirname):
                             D[h][i2,i3] = np.nan
                     except:
                         print("not good: ",h,i2,i3)
+            
             break
 print("Non converged points: ",int(81-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
@@ -92,8 +93,9 @@ for i in range(nP):
         print("Range with only 0 or nan values")
     #print("Range of ",head[i],":",np.amin(D[head[i]][np.nonzero(~np.isnan(D[head[i]]))]),"--",np.amax(D[head[i]][~np.isnan(D[head[i]])]))
 fig = plt.figure(figsize=(16,16))
+rows = 4 if len(head) > 12 else 3
 for i in range(nP):
-    ax = fig.add_subplot(3,4,i+1,projection='3d')
+    ax = fig.add_subplot(rows,4,i+1,projection='3d')
     ax.plot_surface(X,Y,D[head[i]].T,cmap=cm.coolwarm)
     ax.set_title(ans)
     ax.set_xlabel("J2")

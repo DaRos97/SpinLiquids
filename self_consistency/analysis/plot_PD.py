@@ -9,8 +9,8 @@ from matplotlib.lines import Line2D
 Color = {'3x3': ['r','orange'],
          'q0':  ['blue','y'],
          'cb1':  ['forestgreen','lime'],
-         'cb2':  ['y','red'],
-         'oct':  ['orange','red'],
+#         'cb2':  ['y','red'],
+#         'oct':  ['orange','red'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]

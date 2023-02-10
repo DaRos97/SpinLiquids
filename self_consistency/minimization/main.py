@@ -125,15 +125,16 @@ for ans in ansatze:
     #
     new_O = np.longdouble(Pinitial[ans]);      old_O_1 = new_O;      old_O_2 = new_O
     new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-#    print(pars)
+    print(pars)
     for mix_factor in mix_list:
         print("Using mixing ",mix_factor)
         step = 0
         continue_loop = True
         exit_mixing = False
         while continue_loop:    #all pars at once
-#            print("Step ",step,": ",new_L,*new_O,end='\n')
-            #input():
+            print("Step ",step,": ",new_L,*new_O,end='\n')
+            if input():
+                print("energy: ",cf.total_energy(new_O,new_L,Args_L))
             conv = 1
             old_O_2 = np.array(old_O_1,dtype=np.longdouble)
             old_O_1 = np.array(new_O,dtype=np.longdouble)

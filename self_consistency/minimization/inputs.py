@@ -1,7 +1,7 @@
 import numpy as np
 m = 6
 ####
-list_ans = ['3x3','q0','cb1','cb2','oct']
+list_ans = ['cb2', '3x3','q0','cb1','cb2','oct']
 #derivative
 cutoff_L = 1e-8
 cutoff_O = 1e-8
