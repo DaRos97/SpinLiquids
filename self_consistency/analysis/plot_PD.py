@@ -9,8 +9,8 @@ from matplotlib.lines import Line2D
 Color = {'3x3': ['r','orange'],
          'q0':  ['blue','y'],
          'cb1':  ['forestgreen','lime'],
-#         'cb2':  ['y','red'],
-#         'oct':  ['orange','red'],
+         'cb2':  ['y','red'],
+         'oct':  ['orange','red'],
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -30,7 +30,7 @@ phi_label = {'000':0, '005':0.05, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
 PSG = 'SU2' if phi_t == '000' else 'TMD'
 #dirname = '../Data/SC_data/final_'+txt_S+'_'+phi_t+'/' 
-dirname = '../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/13/' 
+dirname = '../../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/13/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')

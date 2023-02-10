@@ -44,9 +44,7 @@ def total_energy(P,L,args):
         Pp[5] = P[n]
     for i in range(3):
         Res += inp.z[i]*(Pp[i]**2-Pp[i+3]**2)*J[i]/2
-    print(Res)
     Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
-    print(Res)
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
     args2 = (J1,J2,J3,ans,KM,Tau,K_,PSG)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
@@ -60,8 +58,9 @@ def total_energy(P,L,args):
                 print("not pos def!!!!!!!!!!!!!!")
                 return 0,0           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
-            res[:,i,j] = LA.eigvalsh(temp)[inp.m:]      #BOTTLE NECK -> compute the eigevalues
-    gap = np.amin(res[0].ravel())           #the gap is the lowest value of the lowest gap (not in the fitting if not could be negative in principle)
+            a = LA.eigvalsh(temp)      #BOTTLE NECK -> compute the eigevalues
+            res[:,i,j] = a[inp.m:]
+    gap = np.amin(res.ravel())           #the gap is the lowest value of the lowest gap (not in the fitting if not could be negative in principle)
     #Now fit the energy values found with a spline curve in order to have a better solution
     r2 = 0
     for i in range(inp.m):
@@ -70,7 +69,6 @@ def total_energy(P,L,args):
     r2 /= inp.m                             #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    print(r2)
     return Res + r2, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -163,12 +161,12 @@ def compute_O_all(old_O,L,args):
         #res /= 2*K_**2
         if par[0] == 'p':
             new_O[p] = np.angle(res)
-#            if par_2 == 'B' and par[-1] == '1' and new_O[p] < 0 and ans == 'cb2':
-#                new_O[p] *= -1
-            if new_O[p] < 0.5:
-                new_O[p] = new_O[p] + 2*np.pi
-            if new_O[p] > 6.2:
-                new_O[p] = new_O[p] - 2*np.pi
+            if new_O[p] < 0:
+                new_O[p] += 2*np.pi
+            if par_2 == 'B' and par[-1] == '1' and ans == 'cb2' and new_O[p] > np.pi:
+                new_O[p] = 2*np.pi-new_O[p]
+#            if new_O[p] > 6.2:
+#                new_O[p] = new_O[p] - 2*np.pi
         else:
             new_O[p] = np.absolute(res)
 #        print(par,new_O[p])

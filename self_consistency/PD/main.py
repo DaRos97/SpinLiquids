@@ -1,15 +1,13 @@
 import numpy as np
 import inputs as inp
-import common_functions as cf
+import functions_minimization as fs
 import system_functions as sf
 from time import time as t
-from scipy.optimize import differential_evolution as d_e
 import sys
 import getopt
 ######################
 ###################### Set the initial parameters
 ######################
-mix_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
@@ -41,8 +39,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
-#DirName = '../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
@@ -64,7 +62,7 @@ a2 = (-1,np.sqrt(3))
 a12p = (a1[0]+a2[0],a1[1]+a2[1])
 a12m = (a1[0]-a2[0],a1[1]-a2[1])
 #### product of lattice vectors with K-matrix
-KM = cf.KM(kkg,a1,a2,a12p,a12m)
+KM = fs.KM(kkg,a1,a2,a12p,a12m)
 #### DM
 t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
@@ -84,7 +82,7 @@ t_0 = np.arctan(np.sqrt(2))
 Pi_ = {'SU2': { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.5, 'phiA3': 0},
                 'q0': {'A1':np.sqrt(3)/4, 'A2':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.25, 'B3': 0.5, 'phiA2': np.pi},
                 'cb1':{'A1':np.sqrt(3)/4, 'A2':0.25, 'A3':0.5, 'B1':0.25, 'B2': np.sqrt(3)/4, 'phiA1': 2*t_0, 'phiB2': 2*np.pi-t_0},
-                'cb2':{'A1':0.25, 'A2':np.sqrt(3)/4, 'A3':0.5, 'B1':np.sqrt(3)/4, 'B2': 0.25, 'phiB1': np.pi+t_0, 'phiA2': np.pi-t_0},
+                'cb2':{'A1':0.25, 'A2':np.sqrt(3)/4, 'A3':0.5, 'B1':np.sqrt(3)/4, 'B2': 0.25, 'phiB1': np.pi+t_0, 'phiA2': np.pi+t_0},
                 'oct':{'A1':1/(2*np.sqrt(2)), 'A2':1/(2*np.sqrt(2)), 'B1':1/(2*np.sqrt(2)), 'B2': 1/(2*np.sqrt(2)), 'B3':0.5, 'phiB1': 5/4*np.pi, 'phiB2': np.pi/4},    },
        'TMD': { '3x3':{'A1':np.sqrt(3)/4, 'A3':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.5, 'B3': 0.5, 'phiB1':np.pi, 'phiA3': 0, 'phiB3': np.pi},
                 'q0': {'A1':np.sqrt(3)/4, 'A2':np.sqrt(3)/4, 'B1':0.25, 'B2': 0.25, 'B3': 0.5, 'phiB1':0, 'phiA2': np.pi, 'phiB3': 0},
@@ -126,15 +124,16 @@ for ans in ansatze:
     new_O = np.longdouble(Pinitial[ans]);      old_O_1 = new_O;      old_O_2 = new_O
     new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
     print(pars)
+    mix_list = [0, 0.9, 0.9, 0.9, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
     for mix_factor in mix_list:
         print("Using mixing ",mix_factor)
         step = 0
         continue_loop = True
         exit_mixing = False
         while continue_loop:    #all pars at once
-            print("Step ",step,": ",new_L,*new_O,end='\n')
-            if input():
-                print("energy: ",cf.total_energy(new_O,new_L,Args_L))
+#            print("Step ",step,": ",new_L,*new_O,end='\n')
+#            if input():
+#                print("energy: ",fs.total_energy(new_O,new_L,Args_L))
             conv = 1
             old_O_2 = np.array(old_O_1,dtype=np.longdouble)
             old_O_1 = np.array(new_O,dtype=np.longdouble)
@@ -142,13 +141,14 @@ for ans in ansatze:
 #            input()
             old_L_2 = old_L_1
             old_L_1 = new_L
-            new_L = cf.compute_L(new_O,Args_L)
-            temp_O = cf.compute_O_all(new_O,new_L,Args_O)
+            new_L = fs.compute_L(new_O,Args_L)
+            temp_O = fs.compute_O_all(new_O,new_L,Args_O)
             for i in range(len(old_O_1)):
                 if pars[i][0] == 'p':
-                    new_O[i] = temp_O[i]
+                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
                 else:
                     new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
+#            input()
             step += 1
             #Check if all parameters are stable up to precision
             if np.abs(old_L_2-new_L) > inp.cutoff_L:
@@ -162,11 +162,10 @@ for ans in ansatze:
                     if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:
                         conv *= 0
             if conv:
-                print(old_O_2,'\n',old_O_1,'\n',new_O)
                 continue_loop = False
                 exit_mixing = True
             #Margin in number of steps
-            if step > inp.MaxIter*len(pars):
+            if step > inp.MaxIter:#*len(pars):
                 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 break
 #        print("Step ",step,": ",new_L,new_O)
@@ -182,7 +181,7 @@ for ans in ansatze:
     if new_L < inp.L_bounds[0] + 0.01 or new_L > inp.L_bounds[1] - 0.01:
         print("Suspicious L value: ",new_L," NOT saving")
         continue
-    E,gap = cf.total_energy(new_O,new_L,Args_L)
+    E,gap = fs.total_energy(new_O,new_L,Args_L)
     for i in range(len(new_O)):
         if pars[i][0] == 'p':
             if new_O[i] > 2*np.pi:
@@ -193,7 +192,7 @@ for ans in ansatze:
         print("WTF?? not saving\n\n")
         continue
     #Format the parameters in order to have 0 values in the non-considered ones
-    Format_params = {'SU2':cf.FormatParams_SU2, 'TMD':cf.FormatParams_TMD}
+    Format_params = {'SU2':fs.FormatParams_SU2, 'TMD':fs.FormatParams_TMD}
     newP = Format_params[PSG](new_O,ans,J2,J3)
     #Store the files in a dictionary
     data = [ans,J2,J3,conv,E,gap,new_L]
@@ -205,6 +204,85 @@ for ans in ansatze:
     #Save values to an external file
     print(DataDic)
     print("Time of ans",ans,": ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
+    input()
     sf.SaveToCsv(DataDic,csvfile,PSG)
 
 print("Total time: ",'{:5.2f}'.format((t()-Ti)/60),' minutes.')                           ################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

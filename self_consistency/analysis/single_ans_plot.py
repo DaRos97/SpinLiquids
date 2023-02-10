@@ -1,5 +1,5 @@
 import numpy as np
-import inputs as inp
+#import inputs as inp
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -35,7 +35,7 @@ for opt, arg in opts:
         K = arg
     if opt == '--plot':
         plot = True
-dirname = '../Data/SC_data/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
+dirname = '../../Data/SC_data/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
 D = {}
 PSG = 'SU2' if phi == '000' else 'TMD'
 Ji = -0.3
@@ -43,7 +43,16 @@ Jf = 0.3
 J2 = np.linspace(Ji,Jf,9)
 J3 = np.linspace(Ji,Jf,9)
 X,Y = np.meshgrid(J2,J3)
-head = inp.header[PSG][ans][3:]
+for filename in os.listdir(dirname):
+    with open(dirname+filename, 'r') as f:
+        lines = f.readlines()
+    N_ = (len(lines)-1)//2 + 1
+    for i in range(N_):
+        data = lines[i*2+1].split(',')
+        if data[0] == ans:
+            head = lines[2*i].split(',')[3:]
+    break
+#head = inp.header[PSG][ans][3:]
 for h in head:
     D[h] = np.zeros((9,9))
     D[h][:] = np.nan
