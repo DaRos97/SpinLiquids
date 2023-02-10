@@ -68,12 +68,12 @@ J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 #######
 ####### Plot spiral energies
-#X,Y = np.meshgrid(J2,J3)
-#fig = plt.figure(figsize=(16,16))
-#ax = fig.add_subplot(1,1,1,projection='3d')
+X,Y = np.meshgrid(J2,J3)
+fig = plt.figure(figsize=(16,16))
+ax = fig.add_subplot(1,1,1,projection='3d')
 #ax.plot_surface(X,Y,energies[:,:,0,15].T,cmap=cm.coolwarm)
-#ax.contour(X,Y,energies[:,:,0,15].T,levels=200,cmap=cm.coolwarm)
-#plt.show()
+ax.contour(X,Y,energies[:,:,0,15].T,levels=200,cmap=cm.coolwarm)
+plt.show()
 
 fig = plt.figure(figsize=(16,16))
 plt.gca().set_aspect('equal')
@@ -82,7 +82,8 @@ txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 used_o = []
 for i in range(J2pts):
     for j in range(J3pts):
-        ens = np.array(energies[i,j,0,:-1])
+#        ens = np.array(energies[i,j,0])        #Also spirals
+        ens = np.array(energies[i,j,0,:-1])     #No spirals
         if (ens == np.zeros(len(ens))).all():
             min_E[i,j] = 1e5
             continue

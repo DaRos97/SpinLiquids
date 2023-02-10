@@ -12,31 +12,19 @@ import functions as fs
 
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "r:",["pts=","PSG="])
-    lim = 3.0
+    opts, args = getopt.getopt(argv, ["pts="])
     pts = 21
-    PSG = "SU2"
 except:
     print("Error in input parameters",argv)
     exit()
 for opt, arg in opts:
-    if opt in ['-r']:
-        lim = float(arg)
-    elif opt == '--PSG':
-        PSG = arg
-    elif opt == '--pts':
+    if opt == '--pts':
         pts = int(arg)
 
-J1 = 1
-J2i = -lim
-J2f = lim
-J3i = -lim
-J3f = lim
-J2pts = J3pts = pts
 dirname = 'data/'
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
-list_DM = ['000','104','209'] if PSG == 'SU2' else ['005']
+DM = '005'
 
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
 #gray -> octa, purple -> octa_g1, m -> octa_g2, c -> cb1, cb2, spiral
@@ -77,19 +65,24 @@ dic_text_ord = {'ferro':    r'$FM$',
                 }
 orders = list(legend_names.keys())
 txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
-J2 = np.linspace(J2i,J2f,J2pts)
-J3 = np.linspace(J3i,J3f,J3pts)
-lp = (J2f-J2i)/15
-width = 35 if len(list_DM) == 3 else 15
-fig = plt.figure(figsize=(width,15))
+width = 20 
+fig = plt.figure(figsize=(width,10))
 plt.rcParams.update({
     "text.usetex": True,
 #    "font.family": "Helvetica"
 })
 #   Routine
-sub_plot_col = len(list_DM)
-for nnnn,DM in enumerate(list_DM):
-    plt.subplot(1,len(list_DM),nnnn+1)
+for nnnn,lim in enumerate([3.0,0.3]):
+    J1 = 1
+    J2i = -lim
+    J2f = lim
+    J3i = -lim
+    J3f = lim
+    J2pts = J3pts = pts
+    J2 = np.linspace(J2i,J2f,J2pts)
+    J3 = np.linspace(J3i,J3f,J3pts)
+    lp = (J2f-J2i)/15
+    plt.subplot(1,2,nnnn+1)
     filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+str(pts)+'.npy'
     energies = np.load(filename)
     min_E = np.zeros((J2pts,J3pts),dtype = int)
@@ -162,7 +155,6 @@ for nnnn,DM in enumerate(list_DM):
                         markersize = 15,
                         )
                 plt.plot(J2[i],J3[j],**marker_style)
-    plt.title(r'$\phi = $'+txt_dm[DM],fontsize=30)
 
     plt.axhline(y=0,color='k',zorder=-1,linewidth=0.5)
     plt.axvline(x=0,color='k',zorder=-1,linewidth=0.5)
@@ -190,6 +182,7 @@ for nnnn,DM in enumerate(list_DM):
            legend_lines.append(Line2D([], [], color='none', marker='o', markerfacecolor=legend_names[ord_u]))
     plt.legend(legend_lines,used_O,loc='upper left',fancybox=True,fontsize=20)#,bbox_to_anchor=(1,1))
 
+plt.suptitle(r'$\phi = $'+txt_dm[DM],fontsize=30)
 plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 plt.show()
 exit()
