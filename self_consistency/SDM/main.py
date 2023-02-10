@@ -28,8 +28,8 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-#DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../../Data/self_consistency/SDM/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/'
+#DirName = '../../Data/self_consistency/SDM/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(K) + '/'
 ReferenceDir = DirName + str(K-12) + '/'
@@ -85,8 +85,6 @@ for p1 in range(2):
                 print("Already computed solution at p1=",p1,", par:",pars[ph],"=",Pinitial[ph])
                 continue
             ####################################################
-            Pinitial = [0.5,0.5,0,0.25,0,0.25,0]
-            Pinitial[ph] = iph*np.pi/3
             print("Computing p1=",p1,", par:",pars[ph],"=",Pinitial[ph])
             Tti = t()   #Initial time of the ansatz
             #
