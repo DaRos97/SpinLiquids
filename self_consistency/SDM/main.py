@@ -28,7 +28,7 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
 #DirName = '../../Data/self_consistency/SDM/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(K) + '/'
@@ -68,7 +68,10 @@ Ti = t()    #Total initial time
 for p1 in range(2):
     Args_O = (KM,Tau,K,pars,p1)
     Args_L = (KM,Tau,K,S,p1,L_bounds)
-    solutions = sf.import_solutions(csvfile,p1)
+    solutions,completed = sf.import_solutions(csvfile,p1)
+    if completed:
+        print("Ansatze p1=",p1," precedently already computed")
+        continue
     for ph in [2]:#,4,6]:
         for iph in range(12):
             Pinitial = [Ai,Ai,0,Bi,np.pi,Bi,np.pi]
