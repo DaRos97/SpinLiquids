@@ -28,7 +28,7 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
 #DirName = '../../Data/self_consistency/SDM/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(K) + '/'
@@ -93,7 +93,7 @@ for p1 in range(2):
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            mix_list = [0, 0.1, 0.2, 0.9, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
+            mix_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]#, 0.4, 0.6]
             for mix_factor in mix_list:
                 print("Using mixing ",mix_factor)
                 step = 0
@@ -143,15 +143,20 @@ for p1 in range(2):
                 print("Suspicious L value: ",new_L," NOT saving")
                 continue
             ###################################################     Check if result was already obtained
-            already_found = False
             for sol in solutions:
                 diff = 0
                 diff += np.abs(new_L-sol[0])
-                for p in range(7):
-                    diff += np.abs(new_O[i]-sol[i+1])
-                if diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution:
-                    already_found = True
-            if already_found:
+                amp_found = False
+                for p in [0,1,3,5]:     #amplitudes
+                    diff += np.abs(new_O[p]-sol[p+1])
+                if diff < inp.cutoff_solution:
+                    amp_found = True
+                ph_found = True
+                for p in [2,4,6]:
+                    diff = np.abs(new_O[p]-sol[p+1])
+                    if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
+                        ph_found = False
+            if amp_found and ph_found:
                 print("Already found solution")
                 continue
             else:
