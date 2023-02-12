@@ -28,7 +28,7 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
 #DirName = '../../Data/self_consistency/SDM/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(K) + '/'
