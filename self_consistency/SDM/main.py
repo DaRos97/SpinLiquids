@@ -69,10 +69,10 @@ for p1 in range(2):
     Args_O = (KM,Tau,K,pars,p1)
     Args_L = (KM,Tau,K,S,p1,L_bounds)
     solutions = sf.import_solutions(csvfile,p1)
-    for ph in [2,4,6]:
-        for iph in range(5):
-            Pinitial = [Ai,Ai,0,Bi,0,Bi,0]
-            Pinitial[ph] = iph*np.pi/3
+    for ph in [2]:#,4,6]:
+        for iph in range(12):
+            Pinitial = [Ai,Ai,0,Bi,np.pi,Bi,np.pi]
+            Pinitial[ph] = iph*np.pi*2/12
             ###################################################     Check if result was already obtained
             already_found = False
             for sol in solutions:
