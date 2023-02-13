@@ -12,7 +12,6 @@ import os
 #import matplotlib.pyplot as plt
 #from matplotlib import cm
 
-#### Matrix diagonal of -1 and 1
 
 def total_energy(P,L,args):
     KM,Tau,K_,S,p1,L_bounds = args
@@ -21,10 +20,10 @@ def total_energy(P,L,args):
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
-    Res = inp.z*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4
-    Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
+    Res = inp.z*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4*S**2
+    Res -= L*(2*S+1)*S            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,p1)
+    args2 = (KM,Tau,K_,S,p1)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -47,7 +46,8 @@ def total_energy(P,L,args):
     r2 /= m                             #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    return Res + r2, gap
+    energy = (Res + r2*S)        #back to real values?????
+    return energy, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
 def compute_L(P,args):
@@ -65,18 +65,19 @@ def optimize_L(P,L,args):
     KM,Tau,K_,S,p1,L_bounds = args
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
+    VL = 100
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
     if L < L_bounds[0]:
-        Res = -5-(L_bounds[0]-L)
+        Res = -VL-(L_bounds[0]-L)
         return -Res
     elif L > L_bounds[1]:
-        Res = -5-(L-L_bounds[1])
+        Res = -VL-(L-L_bounds[1])
         return -Res
     Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,p1)
+    args2 = (KM,Tau,K_,S,p1)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -85,8 +86,9 @@ def optimize_L(P,L,args):
             try:
                 Ch = LA.cholesky(Nk)        #not always the case since for some parameters of Lambda the eigenmodes are negative
             except LA.LinAlgError:          #matrix not pos def for that specific kx,ky
-                r4 = -5+(L-L_bounds[0])
+                r4 = -VL+(L-L_bounds[0])
                 result = -(Res+r4)
+#                print('e:\t',L,result)
                 return result           #if that's the case even for a single k in the grid, return a defined value
             temp = np.dot(np.dot(Ch,J_),np.conjugate(Ch.T))    #we need the eigenvalues of M=KJK^+ (also Hermitian)
             res[:,i,j] = LA.eigvalsh(temp)[m:]      #BOTTLE NECK -> compute the eigevalues
@@ -100,18 +102,19 @@ def optimize_L(P,L,args):
     #Summation over k-pts
     #r2 = res.ravel().sum() / len(res.ravel())
     result = -(Res+r2)
+#    print('g:\t',L,result)
     return result
 
 def compute_O_all(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    KM,Tau,K_,pars,p1 = args
+    KM,Tau,K_,S,pars,p1 = args
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
     #Compute first the transformation matrix M at each needed K
-    args_M = (KM,Tau,K_,p1)
+    args_M = (KM,Tau,K_,S,p1)
     N = big_Nk(old_O,L,args_M)
     M = np.zeros(N.shape,dtype=complex)
     for i in range(K_):
@@ -153,7 +156,7 @@ def compute_O_all(old_O,L,args):
             if new_O[p] > np.pi and par == 'phiA1p':
                 new_O[p] = 2*np.pi - new_O[p]
         else:
-            new_O[p] = np.absolute(res)
+            new_O[p] = np.absolute(res)/S                   #renormalization of amplitudes 
 #        print(par,new_O[p])
 #    input()
     return new_O
@@ -182,7 +185,7 @@ def split(array, nrows, ncols):
 
 #### Ansatze encoded in the matrix
 def big_Nk(P,L,args):
-    KM,Tau,K_,p1 = args
+    KM,Tau,K_,S,p1 = args
     m = inp.m[p1]
     J1 = 1
     ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_ = KM
@@ -253,254 +256,6 @@ def big_Nk(P,L,args):
     for i in range(2*m):
         N[i,i] += L
     return N
-
-#        |*          |*          |
-#        |  *    B(k)|  *   A(k) |
-#        |    *      |    *      |
-#        |      *    |      *    |
-#        |  c.c.  *  |  -A*(k)*  |
-#        |          *|          *|
-#  N  =  |-----------|-----------|  +  diag(L)
-#        |*          |*          |
-#        |  *   c.c. |  *  B*(-k)|
-#        |    *      |    *      |
-#        |      *    | c.c. *    |
-#        | c.c.   *  |        *  |
-#        |          *|          *|
-def ans_3x3(P,j2,j3):
-    A2 = 0;     phiA2 = 0;    phiA2p = 0;
-    A3 = P[1*j3]*j3
-    B1 = P[2*j3]*j3 + P[1]*(1-j3)
-    B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
-    B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
-    phiA3 = P[-1]*j3
-    phiA1p = np.pi
-    phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, 0, 0, np.pi)
-    p1 = 0
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_q0(P,j2,j3):
-    A3 = 0; phiA3 = 0
-    A2 = P[1]*j2
-    B1 = P[2*j2]*j2+P[1]*(1-j2)
-    B2 = P[3*j2]*j2
-    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-    phiA2 = P[-1]*j2
-    phiA1p, phiA2p = (0, phiA2)
-    phiB1, phiB1p, phiB2, phiB2p, phiB3 = (np.pi, np.pi, np.pi, np.pi, 0)
-    p1 = 0
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_cb1(P,j2,j3):
-    B3 = 0; phiB3 = 0
-    A2 = P[1*j2]*j2
-    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-    phiA1p = P[-2*j2]*j2 + P[-1]*(1-j2)
-    phiB2 = P[-1]*j2
-    phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
-    phiB1, phiB1p, phiB2p= (np.pi, np.pi ,-phiB2)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_cb2(P,j2,j3):
-    B3 = 0; phiB3 = 0
-    A2 = P[1*j2]*j2
-    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-    phiA2 = P[-1]*j2
-    phiA1p, phiA2p, phiA3 = (0, -phiA2, 0)
-    phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_oct(P,j2,j3):
-    A3 = 0; phiA3 = 0
-    A2 = P[1]*j2
-    B1 = P[2*j2]*j2+P[1]*(1-j2)
-    B2 = P[3*j2]*j2
-    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-    phiB2 = P[-1]*j2
-    phiA1p, phiA2, phiA2p = (np.pi, 3*np.pi/2, np.pi/2)
-    phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-#TMD ansatze
-def ans_3x3_TMD(P,j2,j3):
-    A2 = 0;     phiA2 = 0;    phiA2p = 0;
-    A3 = P[1*j3]*j3
-    B1 = P[2*j3]*j3 + P[1]*(1-j3)
-    B2 = P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2
-    B3 = P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2)
-    phiB1 = P[-3*j3]*j3+P[-1]*(1-j3)
-    phiA3 = P[-2]*j3
-    phiB3 = P[-1]*j3
-    phiA1p = np.pi
-    phiB1p, phiB2, phiB2p = (-phiB1, 0, 0)
-    p1 = 0
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_q0_TMD(P,j2,j3):
-    A3 = 0; phiA3 = 0
-    A2 = P[1]*j2
-    B1 = P[2*j2]*j2+P[1]*(1-j2)
-    B2 = P[3*j2]*j2
-    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-    phiB1 = P[-3*j3*j2]*j3*j2+P[-2]*(1-j2)*j3+P[-2]*j2*(1-j3)+P[-1]*(1-j2)*(1-j3)
-    phiA2 = P[-2]*j2*j3+P[-1]*j2*(1-j3)
-    phiB3 = P[-1]*j3
-    phiA1p, phiA2p = (0, phiA2)
-    phiB1p, phiB2, phiB2p = (-phiB1, np.pi, np.pi)
-    p1 = 0
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_cb1_TMD(P,j2,j3):
-    B3 = 0; phiB3 = 0
-    A2 = P[1*j2]*j2
-    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-    phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
-    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-    phiB2 = P[-1]*j2
-    phiA2, phiA2p, phiA3 = (phiA1p/2+np.pi, phiA1p/2+np.pi, phiA1p/2)
-    phiB1p, phiB2p= (phiB1 ,-phiB2)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_cb2_TMD(P,j2,j3):
-    B3 = 0; phiB3 = 0
-    A2 = P[1*j2]*j2
-    A3 = P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2)
-    B1 = P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3)
-    B2 = P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3)
-    phiB1 = P[-4*j3*j2]*j3*j2+P[-2]*(1-j2)*j3+P[-3]*j2*(1-j3)+P[-1]*(1-j2)*(1-j3)
-    phiA2 = P[-3]*j2*j3+P[-2]*j2*(1-j3)
-    phiA2p = P[-2]*j2*j3+P[-1]*j2*(1-j3)
-    phiA3 = P[-1]*j3
-    phiA1p = 0
-    phiB1p, phiB2, phiB2p= (-phiB1, 0 , 0)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-def ans_oct_TMD(P,j2,j3):
-    A3 = 0; phiA3 = 0
-    A2 = P[1]*j2
-    B1 = P[2*j2]*j2+P[1]*(1-j2)
-    B2 = P[3*j2]*j2
-    B3 = P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2)
-    phiA1p = P[-3*j2]*j2 + P[-2]*(1-j2)
-    phiB1 = P[-2*j2]*j2 + P[-1]*(1-j2)
-    phiB2 = P[-1]*j2
-    phiA2, phiA2p = (phiA1p/2+np.pi, phiA1p/2)
-    phiB1p, phiB2p, phiB3 = (phiB1, phiB2 , 3*np.pi/2)
-    p1 = 1
-    return p1,A2,A3,B1,B2,B3,phiA1p,phiA2,phiA2p,phiA3,phiB1,phiB1p,phiB2,phiB2p,phiB3
-
-
-
-#From the list of parameters obtained after the minimization constructs an array containing them and eventually 
-#some 0 parameters which may be omitted because j2 or j3 are equal to 0.
-def FormatParams_SU2(P,ans,J2,J3):
-    j2 = np.sign(int(np.abs(J2)*1e8))
-    j3 = np.sign(int(np.abs(J3)*1e8))
-    newP = [P[0]]
-    if ans == '3x3':
-        newP.append(P[1]*j3)
-        newP.append(P[2*j3]*j3+P[1]*(1-j3))
-        newP.append(P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-1]*j3)
-    elif ans == 'q0':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans[:3] == 'cb1':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans == 'cb2':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans == 'oct':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    return tuple(newP)
-#TMD
-def FormatParams_TMD(P,ans,J2,J3):
-    j2 = np.sign(int(np.abs(J2)*1e8))
-    j3 = np.sign(int(np.abs(J3)*1e8))
-    newP = [P[0]]
-    if ans == '3x3':
-        newP.append(P[1]*j3)
-        newP.append(P[2*j3]*j3+P[1]*(1-j3))
-        newP.append(P[3*j2*j3]*j2*j3+P[2*j2*(1-j3)]*(1-j3)*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[3*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-3*j3]*j3+P[-1]*(1-j3))
-        newP.append(P[-2]*j3)
-        newP.append(P[-1]*j3)
-    elif ans == 'q0':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-3*j3*j2]*j3*j2+P[-2]*(1-j2)*j3+P[-2]*j2*(1-j3)+P[-1]*(1-j2)*(1-j3))
-        newP.append(P[-2]*j2*j3+P[-1]*j2*(1-j3))
-        newP.append(P[-1]*j3)
-    elif ans == 'cb1':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-3*j2]*j2 + P[-2]*(1-j2))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    elif ans == 'cb2':
-        newP.append(P[1*j2]*j2)
-        newP.append(P[2*j3*j2]*j2*j3 + P[1*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[3*j2*j3]*j2*j3 + P[2*j2*(1-j3)]*j2*(1-j3) + P[2*j3*(1-j2)]*j3*(1-j2) + P[1*(1-j2)*(1-j3)]*(1-j2)*(1-j3))
-        newP.append(P[4*j3*j2]*j2*j3 + P[3*j2*(1-j3)]*j2*(1-j3))
-        newP.append(P[-4*j3*j2]*j3*j2+P[-2]*(1-j2)*j3+P[-3]*j2*(1-j3)+P[-1]*(1-j2)*(1-j3))
-        newP.append(P[-3]*j2*j3+P[-2]*j2*(1-j3))
-        newP.append(P[-2]*j2*j3+P[-1]*j2*(1-j3))
-        newP.append(P[-1]*j3)
-    elif ans == 'oct':
-        newP.append(P[1]*j2)
-        newP.append(P[2*j2]*j2+P[1]*(1-j2))
-        newP.append(P[3*j2]*j2)
-        newP.append(P[4*j3*j2]*j3*j2+P[2*j3*(1-j2)]*j3*(1-j2))
-        newP.append(P[-3*j2]*j2 + P[-2]*(1-j2))
-        newP.append(P[-2*j2]*j2 + P[-1]*(1-j2))
-        newP.append(P[-1]*j2)
-    return tuple(newP)
-
-## Looks if the convergence is good or if it failed
-def IsConverged(P,pars,bnds,Sigma):
-#    for i in range(len(P)):
-#        try:
-#            low = np.abs((P[i]-bnds[i][0])/P[i])
-#        except:
-#           low = 1
-#       #
-#       try:
-#           high = np.abs((P[i]-bnds[i][1])/P[i])
-#      except:
-#          high = 1
-#      #
-#      if low < 1e-3 or high < 1e-3:
-#          return False
-    if Sigma > inp.cutoff:
-        return False
-    return True
 
 
 def KM(kkg,a1,a2,a12p,a12m):

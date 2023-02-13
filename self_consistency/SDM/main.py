@@ -64,12 +64,12 @@ header = ['S','DM','Energy','Gap','p1','L'] + pars
 ######################
 ###################### Compute the parameters by self concistency
 ######################
-Ai = S
-Bi = S/2
+Ai = S/S
+Bi = S/2/S
 L_bounds = inp.L_bounds
 Ti = t()    #Total initial time
 for p1 in range(2):
-    Args_O = (KM,Tau,K,pars,p1)
+    Args_O = (KM,Tau,K,S,pars,p1)
     Args_L = (KM,Tau,K,S,p1,L_bounds)
     solutions,completed = sf.import_solutions(csvfile,p1)
     if completed:
@@ -102,14 +102,14 @@ for p1 in range(2):
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            mix_list = [0, 0.2, 0.4, 0.6, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]#, 0.4, 0.6]
+            mix_list = [0, 0.2, 0.4, 0.6, 0.8]#0.4, 0.5, 0.6, 0.7, 0.8, 0.9]#, 0.4, 0.6]
             for mix_factor in mix_list:
                 print("Using mixing ",mix_factor)
                 step = 0
                 continue_loop = True
                 exit_mixing = False
                 while continue_loop:    #all pars at once
-                    print("Step ",step,": ",new_L,*new_O,end='\n')
+#                    print("Step ",step,": ",new_L,*new_O,end='\n')
                     conv = 1
                     old_O_2 = np.array(old_O_1)
                     old_O_1 = np.array(new_O)
@@ -152,6 +152,7 @@ for p1 in range(2):
                 print("Suspicious L value: ",new_L," NOT saving")
                 continue
             ###################################################     Check if result was already obtained
+            amp_found = ph_found = False
             for sol in solutions:
                 diff = 0
                 diff += np.abs(new_L-sol[0])

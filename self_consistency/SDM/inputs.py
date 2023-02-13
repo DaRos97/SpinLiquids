@@ -1,13 +1,13 @@
 import numpy as np
 ####
 #derivative
-cutoff_L = 1e-7
-cutoff_O = 1e-7
-cutoff_F = 1e-5
+cutoff_L = 1e-6
+cutoff_O = 1e-6
+cutoff_F = 1e-4
 cutoff_solution = 1e-3
 MaxIter = 100
 L_method = 'Brent'
-L_bounds = (0.2,2)
+L_bounds = (0.2,5)
 L_bnd_ref = 0.1                     #range for bounds of L when given as initial condition a previous result
 prec_L = 1e-10          #precision in L minimization
 #phase diagram
