@@ -77,6 +77,12 @@ for p1 in range(2):
         continue
     for ph in [2]:#,4,6]:
         for iph in range(numb_it+1):
+            #
+            complete_set = sf.check_solutions(solutions,p1)
+            if complete_set:
+                print("Found everything before the end of the initial phase cycle")
+                break
+            #
             Pinitial = [Ai,Ai,0,Bi,np.pi,Bi,np.pi]
             Pinitial[ph] = iph*np.pi/numb_it
             ###################################################     Check if result was already obtained
@@ -180,14 +186,6 @@ for p1 in range(2):
 
             sf.SaveToCsv(DataDic,csvfile)
 
-            continue
-            
-            for i in range(len(new_O)):
-                if pars[i][0] == 'p':
-                    if new_O[i] > 2*np.pi:
-                        new_O[i] = new_O[i]-2*np.pi
-                    if new_O[i] < -0.2:
-                        new_O[i] = new_O[i]+2*np.pi
 
 print("Total time: ",'{:5.2f}'.format((t()-Ti)/60),' minutes.')                           ################
 
