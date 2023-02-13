@@ -7,12 +7,12 @@ from matplotlib import cm
 from matplotlib.lines import Line2D
 import functions as fs
 
-Color = {'15':  ['blue','k'],
-         '16': ['red','orange'],
-         '17':  ['pink','grey'],
-         '18':  ['orange','purple'],
-         '19':  ['aqua','aqua'],
-         '20':  ['limegreen','forestgreen'],
+Color = {'15':  ['blue','dodgerblue'],          #q=0
+         '16': ['red','orangered'],             #3x3
+         '17':  ['magenta','orchid'],           #cb2
+         '18':  ['orange','gold'],              #oct
+         '19':  ['gray','silver'],                #?????
+         '20':  ['forestgreen','limegreen'],    #cb1
          'labels':  ['k','k']
          }
 argv = sys.argv[1:]
@@ -69,17 +69,23 @@ for i in range(DM_pts):
             plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
             continue
         if D[i,j][-1] == 'L':
-            c = Color[D[i,j][:-1]][1]
+            c = Color[D[i,j][:2]][1]
             m = '*'
         elif D[i,j][-1] == 'O':
-            c = Color[D[i,j][:-1]][0]
+            c = Color[D[i,j][:2]][0]
             m = 'o'
+        elif D[i,j][-1] == 'C':
+            c = 'magenta'
+            m = 'P'
         else:
-            c = Color[D[i,j][:-1]][0]
+            c = Color[D[i,j][:2]][0]
             m = '^'
+#        if c == 'k' and m == '*':
+#            print(D[i,j],i,j)
+#            input()
         plt.scatter(DM_list[i],S_list[j],color=c,marker=m)
-plt.ylim(0.00,0.501)
-plt.xlim(-0.001,0.1)
+#plt.ylim(0.00,0.501)
+#plt.xlim(-0.001,0.1)
 #Legenda
 list_leg = []
 for col in Color.keys():

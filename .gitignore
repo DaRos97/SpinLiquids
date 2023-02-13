@@ -29,4 +29,4 @@ ssf_cb1/
 indoings.txt
 #
 self_consistency/*/__pycache__/
-self_consistency/structure_factor/data_*/
+self_consistency/structure_factor_*/data_*/
