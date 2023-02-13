@@ -13,15 +13,21 @@ import os
 #from matplotlib import cm
 
 
-def total_energy(P,L,args):
+def total_energy(P_,L_,args):
     KM,Tau,K_,S,p1,L_bounds = args
+    P = np.copy(P_)
+    P[0] *= S
+    P[1] *= S
+    P[3] *= S
+    P[5] *= S
+    L = L_ * S
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
-    Res = inp.z*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4*S**2
-    Res -= L*(2*S+1)*S            #part of the energy coming from the Lagrange multiplier
+    Res = inp.z*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4#*S**2
+    Res -= L*(2*S+1)#*S            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
     args2 = (KM,Tau,K_,S,p1)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
@@ -46,7 +52,7 @@ def total_energy(P,L,args):
     r2 /= m                             #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    energy = (Res + r2*S)        #back to real values?????
+    energy = (Res + r2)#*S)        #back to real values?????
     return energy, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function

@@ -7,7 +7,7 @@ cutoff_F = 1e-4
 cutoff_solution = 1e-3
 MaxIter = 100
 L_method = 'Brent'
-L_bounds = (0.2,5)
+L_bounds = (0.5,50)
 L_bnd_ref = 0.1                     #range for bounds of L when given as initial condition a previous result
 prec_L = 1e-10          #precision in L minimization
 #phase diagram
