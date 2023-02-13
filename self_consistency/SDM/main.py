@@ -11,9 +11,10 @@ import getopt
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "N:K:")
+    opts, args = getopt.getopt(argv, "N:K:",["numb_it="])
     J = 40      #inp.J point in phase diagram
     K = 13      #number ok cuts in BZ
+    numb_it = 2
 except:
     print("Error in input parameters",argv)
     exit()
@@ -22,6 +23,8 @@ for opt, arg in opts:
         J = int(arg)
     elif opt in ['-K']:
         K = int(arg)
+    if opt == '--numb_it':
+        numb_it = int(arg)
 J1 = 1
 S = inp.S_list[J%inp.S_pts]
 DM = inp.DM_list[J//inp.S_pts]
@@ -73,9 +76,9 @@ for p1 in range(2):
         print("Ansatze p1=",p1," precedently already computed")
         continue
     for ph in [2]:#,4,6]:
-        for iph in range(12):
+        for iph in range(numb_it+1):
             Pinitial = [Ai,Ai,0,Bi,np.pi,Bi,np.pi]
-            Pinitial[ph] = iph*np.pi*2/12
+            Pinitial[ph] = iph*np.pi/numb_it
             ###################################################     Check if result was already obtained
             already_found = False
             for sol in solutions:
@@ -93,14 +96,14 @@ for p1 in range(2):
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            mix_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]#, 0.4, 0.6]
+            mix_list = [0, 0.2, 0.4, 0.6, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]#, 0.4, 0.6]
             for mix_factor in mix_list:
                 print("Using mixing ",mix_factor)
                 step = 0
                 continue_loop = True
                 exit_mixing = False
                 while continue_loop:    #all pars at once
-#                    print("Step ",step,": ",new_L,*new_O,end='\n')
+                    print("Step ",step,": ",new_L,*new_O,end='\n')
                     conv = 1
                     old_O_2 = np.array(old_O_1)
                     old_O_1 = np.array(new_O)
