@@ -33,7 +33,7 @@ J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 
 
-min_energy = np.zeros((J2pts,J3pts,2,16))
+min_energy = np.zeros((J2pts,J3pts,16,16))
 J2_i = J3_i = 0
 
 
@@ -47,7 +47,7 @@ dirname = 'data/'
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+str(pts)+'.npy'
 
 orders = ['ferro', '3x3', 'q0', 'octa', 'cb1', 'cb2']
-m = [1,3,3,1,3,3,2,6,6,2,6,6,2,6,6]
+m__ = [1,3,3,1,3,3,2,6,6,2,6,6,2,6,6]
 func_L = {'ferro': fs.ferro_lattice, 'q0': fs.q0_lattice, 'octa': fs.oct_lattice, 'cb1': fs.cb1_lattice, 'cb2': fs.cb2_lattice}
 lattices = []
 for o in orders:
@@ -89,16 +89,26 @@ for n2 in range(J2_i,J2pts):
         if n2 == J2_i and n3 < J3_i:
             continue
         j3 = J3[n3]
-#        print(j2,j3)
+        print(j2,j3)
         J = np.array([J1,j2,j3])
         step_en = []
+        args = []
         for i in range(15):
-            step_en.append(fs.energy(lattices[i],6,J, DM_angles))
+            #step_en.append(fs.energy(lattices[i],6,J, DM_angles))
+            res = fs.lat_energy(i,m__[i],J,DM_angles)
+            min_energy[n2,n3,i,0] = res[0]
+            min_energy[n2,n3,i,1:3] = res[1]
+#            step_en.append(res[0])
+#            args.append(res[1])
+#            print(i,res[0],res[1])
         spiral = fs.spiral(J,DM_angles)
 #        spiral = (0,(0,0))
-        step_en.append(spiral[0])
-        min_energy[n2,n3,0] = step_en
-        min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
+        min_energy[n2,n3,15,0] = spiral[0]
+        min_energy[n2,n3,15,1:] = spiral[1]
+#        step_en.append(spiral[0])
+#        print("S ",spiral[0])
+#        min_energy[n2,n3,0] = step_en
+#        min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
         with open(filename,'w') as f:
             np.save(filename,min_energy)
 
