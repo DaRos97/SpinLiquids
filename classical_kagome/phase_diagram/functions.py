@@ -348,8 +348,9 @@ def spiral(j,DM_angles):
             if temp < SS_energy:
                 SS_energy = temp
                 inv_final = np.array([inv_1,inv_2])
+                res = minimization.x
 #            print(inv_1,inv_2,temp,*minimization.x)
-    return SS_energy,np.append(inv_final,minimization.x)
+    return SS_energy,np.append(inv_final,res)
 
 #define function for evaluation of minimal energy
 def hopping_matrix(q,*args):
@@ -388,6 +389,7 @@ def find_order(P):
     inv_1,inv_2,t_0,t_1,p_1,t_2,p_2,t_3,p_3,t_4,p_4,t_5,p_5,P_1,P_2 = P
     T_ = [t_0,t_1,t_2,t_3,t_4,t_5]
     P_ = [p_0,p_1,p_2,p_3,p_4,p_5]
+    print(*P)
     for i in range(6):
         if np.abs(P_[i] - 2*np.pi) < CO:
             P_[i] -= 2*np.pi

@@ -1,18 +1,33 @@
 import numpy as np
 import functions as fs
 import sys
+import getopt
 #import tqdm
 import os
 
-#inputs:    DM_angle -> in str, J_pts
+argv = sys.argv[1:]
+try:
+    opts, args = getopt.getopt(argv, "r:",["DM=","pts="])
+    lim = 3
+    DM = '000'
+    pts = 21
+except:
+    print("Error in input parameters",argv)
+    exit()
+for opt, arg in opts:
+    if opt in ['-r']:
+        lim = float(arg)
+    if opt == '--DM':
+        DM = arg
+    if opt == '--pts':
+        pts = int(arg)
 
 J1 = 1
-lim = float(sys.argv[3])
 J2i = -lim
 J2f = lim
 J3i = -lim
 J3f = lim
-J2pts = J3pts = int(sys.argv[2])
+J2pts = J3pts = pts
 DM_orientation = 0      #0 for TMD and 1 for Messio
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
@@ -23,13 +38,13 @@ J2_i = J3_i = 0
 
 
 dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
-dm_angle_1nn = dic_DM[sys.argv[1]]
+dm_angle_1nn = dic_DM[DM]
 DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
 #
 dirname = 'data/'
 #dirname = '/home/users/r/rossid/code_classical_pd/data/'
-filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+sys.argv[1]+'__Pts_'+sys.argv[2]+'.npy'
+filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+str(pts)+'.npy'
 
 orders = ['ferro', '3x3', 'q0', 'octa', 'cb1', 'cb2']
 m = [1,3,3,1,3,3,2,6,6,2,6,6,2,6,6]
@@ -67,20 +82,20 @@ if os.path.isfile(filename):        ####################
         J3_i = j_
         min_energy = energies
 
-print('using: ',*sys.argv[1:])
+print('using: ',lim,DM,pts)
 for n2 in range(J2_i,J2pts):
     j2 = J2[n2]
     for n3 in range(0,J3pts):
         if n2 == J2_i and n3 < J3_i:
             continue
         j3 = J3[n3]
-        print(j2,j3)
+#        print(j2,j3)
         J = np.array([J1,j2,j3])
         step_en = []
         for i in range(15):
             step_en.append(fs.energy(lattices[i],6,J, DM_angles))
-        #spiral = fs.spiral(J,DM_angles)
-        spiral = (0,(0,0))
+        spiral = fs.spiral(J,DM_angles)
+#        spiral = (0,(0,0))
         step_en.append(spiral[0])
         min_energy[n2,n3,0] = step_en
         min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
