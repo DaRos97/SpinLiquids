@@ -59,13 +59,15 @@ for o in orders:
         fs.gauge_trsf(L)
         lattices.append(L.copy())
 
+
+###########################################################################
 if os.path.isfile(filename):        ####################
     energies = np.load(filename)
     i_ = j_ = J2pts-1
     bb = False
     for i in range(J2pts):
         for j in range(J3pts):
-            if (energies[i,j] == np.zeros((2,16))).all():
+            if (energies[i,j] == np.zeros((16,16))).all():
                 i_ = i
                 j_ = j
                 bb = True
@@ -82,6 +84,7 @@ if os.path.isfile(filename):        ####################
         J3_i = j_
         min_energy = energies
 
+###########################################################################
 print('using: ',lim,DM,pts)
 for n2 in range(J2_i,J2pts):
     j2 = J2[n2]
@@ -94,21 +97,13 @@ for n2 in range(J2_i,J2pts):
         step_en = []
         args = []
         for i in range(15):
-            #step_en.append(fs.energy(lattices[i],6,J, DM_angles))
-            res = fs.lat_energy(i,m__[i],J,DM_angles)
+            L = np.copy(lattices[i])
+            res = fs.lat_energy(L,m__[i],J,DM_angles)
             min_energy[n2,n3,i,0] = res[0]
             min_energy[n2,n3,i,1:3] = res[1]
-#            step_en.append(res[0])
-#            args.append(res[1])
-#            print(i,res[0],res[1])
         spiral = fs.spiral(J,DM_angles)
-#        spiral = (0,(0,0))
         min_energy[n2,n3,15,0] = spiral[0]
         min_energy[n2,n3,15,1:] = spiral[1]
-#        step_en.append(spiral[0])
-#        print("S ",spiral[0])
-#        min_energy[n2,n3,0] = step_en
-#        min_energy[n2,n3,1] = np.append(spiral[1],np.zeros(16-len(spiral[1])))
         with open(filename,'w') as f:
             np.save(filename,min_energy)
 

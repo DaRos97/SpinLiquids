@@ -64,7 +64,67 @@ def energy_2(L,M,j,DM_angles):
                             )   *j[2]
     return (energy_1nn + energy_2nn*2 + energy_3nn)/(M*M*3)
 #
-def energy(angles,*args):
+bounds_lat = (   (0,np.pi),                  #t_0
+                 (0,2*np.pi),                  #t_1
+            )
+def lat_energy(L_,m,j,DM):
+    j = tuple(j)
+    L = np.copy(L_)
+    minimization = differential_evolution(
+        energy_new,
+        bounds = bounds_lat,
+        args = (L,m,j,DM),
+
+        popsize = 50,
+        tol = 1e-8,
+        polish = True,
+        maxiter = 100,
+        workers = -1,
+        updating = 'deferred',
+#        disp = True
+
+    )
+    temp = energy_new(minimization.x,*(L,m,j,DM))
+    res = minimization.x
+    return temp,res
+def energy_new(angles,*args):
+    L_,M,j,DM = args
+    L = rotate(np.copy(L_),angles)
+    en = energy_2(L,M,j,DM)
+    return en
+def rotate(L,angles):
+    Ry = R_y(angles[0])
+    Rz = R_z(angles[1])
+    for i in range(9):
+        for j in range(9):
+            for m in range(3):
+                L[i,j,m] = np.tensordot(Rz,np.tensordot(Ry,L[i,j,m],1),1)
+    return L
+#
+#
+#
+
+def lat_energy_old(ind,m,j,DM):
+    j = tuple(j)
+    minimization = differential_evolution(
+        energy_old,
+        bounds = bounds_lat,
+        args = (ind,m,j,DM),
+
+        popsize = 50,
+        tol = 1e-8,
+        polish = True,
+        maxiter = 1000,
+        workers = -1,
+        updating = 'deferred',
+        disp = True
+
+    )
+    temp = energy(minimization.x,*(ind,m,j,DM))
+    res = minimization.x
+    return temp,res
+#
+def energy_old(angles,*args):
     ind,M,j,DM = args
     lattice_func = list_lattices[ind//3]
     L = lattice_func(angles)
@@ -73,27 +133,6 @@ def energy(angles,*args):
     en = energy_2(L,M,j,DM)
     return en
 #
-bounds_lat = (   (0,np.pi),                  #t_0
-                 (0,2*np.pi),                  #t_1
-            )
-def lat_energy(ind,m,j,DM):
-    j = tuple(j)
-    LAT_energy = 1e5
-    minimization = differential_evolution(
-        energy,
-        bounds = bounds_lat,
-        args = (ind,m,j,DM),
-                workers = -1,
-                updating = 'deferred',
-#               disp = True,
-                maxiter=100,
-
-    )
-    temp = energy(minimization.x,*(ind,m,j,DM))
-    if temp < LAT_energy:
-        LAT_energy = temp
-        res = minimization.x
-    return LAT_energy,res
 ########################
 ########################
 ########################
@@ -367,11 +406,15 @@ bounds_spiral = (   (0,np.pi),                  #t_0
 def spiral(j,DM_angles):
     j = tuple(j)
     SS_energy = 1e5
-    for inv_1 in [1,-1]:
-        for inv_2 in [1,-1]:
+    for inv_1 in [1]:#,-1]:
+        for inv_2 in [1]:#,-1]:
             minimization = differential_evolution(
                 spiral_energy,
                 bounds = bounds_spiral,
+                popsize = 50,
+                tol = 1e-8,
+                polish = True,
+                maxiter = 1000,
                 args = (j,(inv_1,inv_2),DM_angles),
                 workers = -1,
                 updating = 'deferred',
@@ -382,7 +425,7 @@ def spiral(j,DM_angles):
                 SS_energy = temp
                 inv_final = np.array([inv_1,inv_2])
                 res = minimization.x
-#            print(inv_1,inv_2,temp,*minimization.x)
+            print(inv_1,inv_2,temp,*minimization.x)
     return SS_energy,np.append(inv_final,res)
 
 #define function for evaluation of minimal energy
@@ -419,7 +462,7 @@ def lower_bound_energy(j):
 def find_order(P,args):
     disp,plot = args
     CO = 1e-3
-    COc = 1e-3
+    COc = 1e-2
     p_0 = 0
     inv_1,inv_2,t_0,t_1,p_1,t_2,p_2,t_3,p_3,t_4,p_4,t_5,p_5,P_1,P_2 = P
     T_ = [t_0,t_1,t_2,t_3,t_4,t_5]
@@ -429,12 +472,7 @@ def find_order(P,args):
         if np.abs(P_[i] - 2*np.pi) < CO:
             P_[i] -= 2*np.pi
     #Find if the solution is O(3) or SO(3)
-    chir = False if inv_1 == 1 and inv_2 == 1 else True
-    #Find if it is a planar spiral
-    planar = True
-    for t in T_:
-        if np.abs(t-np.pi/2) > CO:
-            planar = False
+    chir = True if inv_1 != inv_2 else False
     #Find if the UC is 3 or 6 sites
     p1 = 0
     for i in range(3):
@@ -443,7 +481,7 @@ def find_order(P,args):
     #Find if unit cell looks like planar q0/ferro
     q0 = False
     FM = False
-    if planar and p1==0:
+    if p1==0:
         q0 = True
         for p in P_[1:3]:       #p_1 and p_2
             if not (np.abs(p-np.pi/3*2) < CO or np.abs(p-np.pi/3*4) < CO):
@@ -490,10 +528,12 @@ def find_order(P,args):
     chirality_up2 = np.dot(S_3,np.cross(S_4,S_5))
     chirality_dw1 = np.dot(S_2,np.cross(S_1,S_3r))
     chirality_dw2 = np.dot(S_5,np.cross(S_0ur,S_1u))
+    planar = True if np.abs(chirality_up1) < COc else False
     ####
     if disp:
         print('Inversions: ',*P[:2])
-        print('Phases: ',*P[2:-2])
+        print('Phases theta: ',*T_)
+        print('Phases phi: ',*P_)
         print('Rotations: ',*P[-2:])
         print("deducted: ")
         print("chr = ",chir,"\tp1 = ",p1,"\tplanar = ",planar)
@@ -532,18 +572,23 @@ def find_order(P,args):
                     ax.quiver(X0, Y0, Z0, Xf, Yf, Zf,normalize = False)#, length = 0.05, normalize = False)
                     ax.scatter(X0,Y0,Z0,c='k',marker='o')
         plt.show()
- 
-    color1 = 'r' if np.abs(chirality_up1) > COc else 'g'
+    color1 = 'g' if planar else 'r'
+    color2 = color1
     ark   = 'v' if chir else '^'
-    fills = 'right' if np.abs(chirality_up1) > COc else 'top'
+    fills = 'right'# if np.abs(chirality_up1) > COc else 'top'
     if q0:
         color2 = 'blue'
     elif FM:
         color1 = 'k'
         color2 = 'k'
         ark = 'o'
-    else:
-        color2 = color1
+    if p1p or p2p or p1z or p2z:
+        color2 = 'aqua'
+#        fills = 'right'
+    if p1c or p2c or p1d or p2d:
+#        color2 = ''    
+        fills = 'top'
+        color2 = 'orange'
     Marker = dict(
             color= color1,
             marker=   ark,
