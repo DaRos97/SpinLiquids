@@ -1,10 +1,11 @@
 import numpy as np
 import inputs as inp
-import functions_minimization as fs
+import functions as fs
 import system_functions as sf
 from time import time as t
 import sys
 import getopt
+import random
 ######################
 ###################### Set the initial parameters
 ######################
@@ -97,6 +98,8 @@ print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoi
 ######################
 ###################### Compute the parameters by self concistency
 ######################
+Ai = S/S
+Bi = S/2/S
 Ti = t()    #Total initial time
 for ans in ansatze:
     print("Computing ansatz ",ans)
@@ -121,34 +124,41 @@ for ans in ansatze:
         pars[pars.index('phiA1')] = 'phiA1p'
     Args_O = (J1,J2,J3,ans,KM,Tau,K,PSG,pars)
     #
-    new_O = np.longdouble(Pinitial[ans]);      old_O_1 = new_O;      old_O_2 = new_O
+    new_O = Pinitial[ans];      old_O_1 = new_O;      old_O_2 = new_O
     new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
     print(pars)
-    mix_list = [0, 0.9, 0.9, 0.9, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
+    mix_list = [0, 0.1, 0.9, 0.9, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
     for mix_factor in mix_list:
         print("Using mixing ",mix_factor)
         step = 0
         continue_loop = True
         exit_mixing = False
         while continue_loop:    #all pars at once
-#            print("Step ",step,": ",new_L,*new_O,end='\n')
-#            if input():
-#                print("energy: ",fs.total_energy(new_O,new_L,Args_L))
+            print("Step ",step,": ",new_L,*new_O,end='\n')
             conv = 1
-            old_O_2 = np.array(old_O_1,dtype=np.longdouble)
-            old_O_1 = np.array(new_O,dtype=np.longdouble)
-#            print(old_O_2,'\n',old_O_1,'\n',new_O)
-#            input()
-            old_L_2 = old_L_1
-            old_L_1 = new_L
+            old_L_2 = float(old_L_1)
+            old_L_1 = float(new_L)
             new_L = fs.compute_L(new_O,Args_L)
+            old_O_2 = np.array(old_O_1)
+            old_O_1 = np.array(new_O)
             temp_O = fs.compute_O_all(new_O,new_L,Args_O)
+            E1 = 1
+            for i in range(len(new_O)):
+                if np.abs(old_O_1[i]-temp_O[i]) > inp.cutoff_O:
+                    E1 *= 0
+            E2 = 1
+            for i in range(len(new_O)):
+                if np.abs(old_O_2[i]-temp_O[i]) > inp.cutoff_O:
+                    E2 *= 0
+            if not E2 and not E1:
+                mix_factor = random.uniform(0,1)
+            else: 
+                mix_factor = 0
+
             for i in range(len(old_O_1)):
-                if pars[i][0] == 'p':
-                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-                else:
-                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-#            input()
+                if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
+                    temp_O[i] -= 2*np.pi
+                new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
             step += 1
             #Check if all parameters are stable up to precision
             if np.abs(old_L_2-new_L) > inp.cutoff_L:
@@ -156,7 +166,7 @@ for ans in ansatze:
             #print(old_O,new_O)
             for i in range(len(new_O)):
                 if pars[i][0] == 'p':
-                    if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:
+                    if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_F or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_F:
                         conv *= 0
                 else:
                     if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:

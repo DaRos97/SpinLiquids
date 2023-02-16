@@ -163,10 +163,6 @@ def compute_O_all(old_O,L,args):
             new_O[p] = np.angle(res)
             if new_O[p] < 0:
                 new_O[p] += 2*np.pi
-            if par_2 == 'B' and par[-1] == '1' and ans == 'cb2' and new_O[p] > np.pi:
-                new_O[p] = 2*np.pi-new_O[p]
-#            if new_O[p] > 6.2:
-#                new_O[p] = new_O[p] - 2*np.pi
         else:
             new_O[p] = np.absolute(res)
 #        print(par,new_O[p])

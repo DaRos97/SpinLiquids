@@ -1,10 +1,11 @@
 import numpy as np
 m = 6
 ####
-list_ans = ['cb2', '3x3','q0','cb1','cb2','oct']
+list_ans = ['3x3','q0','cb1','cb2','oct']
 #derivative
-cutoff_L = 1e-8
-cutoff_O = 1e-8
+cutoff_L = 1e-6
+cutoff_O = 1e-6
+cutoff_F = 1e-4
 MaxIter = 100
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
