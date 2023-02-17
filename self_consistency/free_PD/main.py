@@ -12,12 +12,13 @@ import random
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "N:S:K:",["DM="])
+    opts, args = getopt.getopt(argv, "N:S:K:",["DM=","disp"])
     N = 40      #inp.J point in phase diagram
     txt_S = '50'
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
     numb_it = 2
+    disp = False
 except:
     print("Error in input parameters",argv)
     exit()
@@ -30,6 +31,8 @@ for opt, arg in opts:
         K = int(arg)
     if opt == '--DM':
         txt_DM = arg
+    if opt == '--disp':
+        disp == True 
 J1 = 1
 J2, J3 = inp.J[N]
 J = (J1,J2,J3)
@@ -75,68 +78,46 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-pars = ['A1','A1p','phiA1p','B1','phiB1','B1p','phiB1p']
-pars2 = ['A2','phiA2','A2p','phiA2p','B2','phiB2','B2p','phiB2p']
-pars3 = ['A3','phiA3','B3','phiB3']
-if J2 != 0:
-    pars += pars2
-if J3 != 0:
-    pars += pars3
-header = ['J2','J3','Energy','Gap','p1','L'] + pars
-
-t_0 = np.arctan(np.sqrt(2))
-print("Computing minimization for parameters: \nS=",S,"\nDM phase = ",phi,'\nPoint in phase diagram(J2,J3) = ('+'{:5.4f}'.format(J2)+',{:5.4f}'.format(J3)+')',
-      "\nCuts in BZ: ",K)
-######################
-###################### Compute the parameters by self concistency
-######################
 Ai = 1
 Bi = 1/2
 L_bounds = inp.L_bounds
-Ti = t()    #Total initial time
-#######################################################################################
-for p1 in [0,1]:
-    Args_O = (KM,Tau,K,S,J,pars,p1)
-    Args_L = (KM,Tau,K,S,J,p1,L_bounds)
-    solutions,completed = sf.import_solutions(csvfile,p1)
-    if completed:
-        print("Ansatze p1=",p1," precedently already computed")
-        continue
-    for ph in [2]:
+for ans in inp.ansatze_1+inp.ansatze_2:
+    index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
+    head_ans,pars = sf.find_head(ans,J2,J3)
+    for PpP in sf.find_p(ans,J2,J3):
+        solutions = sf.import_solutions(csvfile,ans,PpP,J2,J3)
+        Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
+        Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
         for iph in range(numb_it+1):
-            #
-            complete_set = sf.check_solutions(solutions,p1)
-            if complete_set:
-                print("Found everything before the end of the initial phase cycle")
-                break
-            Pinitial = [Ai,Ai,0,Bi,np.pi,Bi,np.pi]
-            if J2:
-                Pinitial += [Ai,np.pi,Ai,np.pi,Bi,np.pi,Bi,np.pi]
-            if J3:
-                Pinitial += [Ai,np.pi,Bi,np.pi]
-            Pinitial[ph] = iph*np.pi/numb_it
-            ###################################################     Check if result was already obtained
-            already_found = False
-            for sol in solutions:
-                diff = np.abs(Pinitial[ph]-sol[ph+1])
-                if diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution:
-                    already_found = True
-            if already_found:
-                print("Already computed solution at p1=",p1,", par:",pars[ph],"=",Pinitial[ph])
+            new_phase = np.pi-iph*np.pi/numb_it
+            completed = sf.check_solutions(solutions,index_mixing_ph,new_phase)
+            if completed:
+                print("Already found solution for ans ",ans," at p=",PpP," and phase ",new_phase)
                 continue
-            print("Computing p1=",p1,", par:",pars[ph],"=",Pinitial[ph])
+            Pinitial = []
+            for i in range(len(pars)):
+                if i == index_mixing_ph:
+                    Pinitial.append(new_phase)
+                    continue
+                if pars[i][0] == 'p':
+                    Pinitial.append(np.pi)
+                elif pars[i][0] == 'A':
+                    Pinitial.append(Ai)
+                elif pars[i][0] == 'B':
+                    Pinitial.append(Bi)
+            print("\n\nComputing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
             Tti = t()
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            mix_list = [0, 0.1, 0.9, 0.9, 0.4, 0.5, 0.9, 0.9]#, 0.4, 0.6]
             for STEP in range(10):
-                print("STEP ",STEP)
+                print("STEP ",STEP+1)
                 step = 0
                 continue_loop = True
                 exit_mixing = False
                 while continue_loop:    #all pars at once
-#                    print("Step ",step,": ",new_L,*new_O,end='\n')
+                    if disp:
+                        print("Step ",step,": ",new_L,*new_O,end='\n')
                     conv = 1
                     old_L_2 = float(old_L_1)
                     old_L_1 = float(new_L)
@@ -144,8 +125,7 @@ for p1 in [0,1]:
                     old_O_2 = np.array(old_O_1)
                     old_O_1 = np.array(new_O)
                     temp_O = fs.compute_O_all(new_O,new_L,Args_O)
-                    mix_factor = random.uniform(0,1)
-
+                    mix_factor = random.uniform(0,0.8)
                     for i in range(len(old_O_1)):
                         if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
                             temp_O[i] -= 2*np.pi
@@ -186,37 +166,38 @@ for p1 in [0,1]:
             ########################################################
             amp_found = ph_found = False
             for sol in solutions:
-                diff = 0
-                diff += np.abs(new_L-sol[0])
+                diff = np.abs(new_L-sol[0])
                 amp_found = False
-                for p in [0,1,3,5]:     #amplitudes
-                    diff += np.abs(new_O[p]-sol[p+1])
+                for p_ in sf.amp_list(pars):     #amplitudes
+                    diff += np.abs(new_O[p_]-sol[p_+1])
                 if diff < inp.cutoff_solution:
                     amp_found = True
                 ph_found = True
-                for p in [2,4,6]:
-                    diff = np.abs(new_O[p]-sol[p+1])
+                for p_ in sf.phase_list(pars):
+                    diff = np.abs(new_O[p_]-sol[p_+1])
                     if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                         ph_found = False
             if amp_found and ph_found:
-                print("Already found solution")
+                print("Already found solution, phase = ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
                 continue
             else:
                 r = [new_L] + list(new_O)
                 solutions.append(r)
             ################################################### Save solution
             E,gap = fs.total_energy(new_O,new_L,Args_L)
-            print('L = ',new_L)
-            print('parameters: ',*new_O)
-            print('energy and gap: ',E,gap)
-            print("Time of solution : ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
-            data = [J2,J3,E,gap,p1,new_L]
+            data = [ans]
+            for p_ in PpP:
+                if p_ == 2:
+                    continue
+                data.append(p_)
+            data += [J2,J3,E,gap,new_L]
             DataDic = {}
             for ind in range(len(data)):
-                DataDic[header[ind]] = data[ind]
+                DataDic[head_ans[ind]] = data[ind]
             for ind2 in range(len(new_O)):
-                DataDic[header[len(data)+ind2]] = new_O[ind2]
-
+                DataDic[head_ans[len(data)+ind2]] = new_O[ind2]
+            print(DataDic)
+            print("Time of solution : ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
             sf.SaveToCsv(DataDic,csvfile)
 
 print("Total time: ",'{:5.2f}'.format((t()-Ti)/60),' minutes.')                           ################

@@ -1,5 +1,6 @@
 import inputs as inp
 import numpy as np
+import system_functions as sf
 from scipy import linalg as LA
 from scipy.optimize import minimize_scalar
 from scipy.optimize import minimize
@@ -11,34 +12,36 @@ import os
 #from colorama import Fore
 #import matplotlib.pyplot as plt
 #from matplotlib import cm
-
-list_amp =  [[[0,1,3,5],             [0,1,3,5,7,9]],
-            [[0,1,3,5,7,9,11,13],    [0,1,3,5,7,9,11,13,15,17]]]
+def compute_K1(P,pars,J):
+    K1 = 0
+    dic_sign = {'A':1,'B':-1}
+    for i,ps in enumerate(pars):
+        if ps[0] in ['A','B']:
+            ind = int(ps[1])-1
+            K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+            if ps+'p' not in pars:
+                K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+    return K1
 
 def total_energy(P_,L_,args):
-    KM,Tau,K_,S,J,p1,L_bounds = args
+    KM,Tau,K_,S,J,pars,ans,p,L_bounds = args
     P = np.copy(P_)
     J1,J2,J3 = J
     J2_ = 1 if J2 else 0
     J3_ = 1 if J3 else 0
-    for p in list_amp[J2_][J3_]:
-        P[p] *= S
+    for g in sf.amp_list(pars):
+        P[g] *= S
     L = L_ * S
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
-    Res = J1*inp.z[0]*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4          # /4 since there is an additional /2 due to the primed amplitudes
-    if J2:
-        Res += J2*inp.z[1]/4*(P[7]**2+P[9]**2-P[11]**2-P[13]**2)
-    if J3 and J2:
-        Res += J3*inp.z[2]/2*(P[15]**2-P[17]**2)
-    elif J3 and not J2:
-        Res += J3*inp.z[2]/2*(P[7]**2-P[9]**2)
+    Res = compute_K1(P,pars,J)
     Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,S,J,p1)
+    args2 = (KM,Tau,K_,S,J,ans,p)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -77,7 +80,8 @@ def compute_L(P,args):
 #### Computes the Energy given the paramters P and the Lagrange multiplier L. 
 #### This is the function that does the actual work.
 def optimize_L(P,L,args):
-    KM,Tau,K_,S,J,p1,L_bounds = args
+    KM,Tau,K_,S,J,pars,ans,p,L_bounds = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     VL = 100
@@ -92,7 +96,7 @@ def optimize_L(P,L,args):
         return -Res
     Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,S,J,p1)
+    args2 = (KM,Tau,K_,S,J,ans,p)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -122,14 +126,15 @@ def optimize_L(P,L,args):
 
 def compute_O_all(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    KM,Tau,K_,S,J,pars,p1 = args
+    KM,Tau,K_,S,J,pars,ans,p = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
     #Compute first the transformation matrix M at each needed K
-    args_M = (KM,Tau,K_,S,J,p1)
+    args_M = (KM,Tau,K_,S,J,ans,p)
     N = big_Nk(old_O,L,args_M)
     M = np.zeros(N.shape,dtype=complex)
     for i in range(K_):
@@ -200,22 +205,19 @@ def split(array, nrows, ncols):
 
 #### Ansatze encoded in the matrix
 def big_Nk(P,L,args):
-    KM,Tau,K_,S,J,p1 = args
+    KM,Tau,K_,S,J,ans,p = args
     J1,J2,J3 = J
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_ = KM
     t1,t1_,t2,t2_,t3,t3_ = Tau
     J1 /= 2.
     J2 /= 2.
     J3 /= 2.
-    A1,A1p,phiA1p,B1,phiB1,B1p,phiB1p = P[:7]
-    A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p = P[7:15] if J2 else np.zeros(8)
-    if J3 and J2:
-        A3,phiA3,B3,phiB3 = P[15:]
-    elif J3 and not J2:
-        A3,phiA3,B3,phiB3 = P[7:]
-    else:
-        A3,phiA3,B3,phiB3 = np.zeros(4)
+    func_ans = {'15':ans_15, '16':ans_16,'17':ans_17,'18':ans_18,'19':ans_19,'20':ans_20}
+    A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3 = func_ans[ans](P,J2,J3,p)
+    A1p = A1
+    B1p = B1
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B
@@ -317,7 +319,148 @@ def big_Nk(P,L,args):
     for i in range(2*m):
         N[i,i] += L
     return N
-
+#
+def ans_15(P,J2,J3,p):
+    A1,B1,phiB1 = P[:3]
+    if J2:
+        p2,p3 = p
+        phiB2 = p2*np.pi
+        phiB2p = p3*np.pi
+        A2,phiA2,A2p,phiA2p,B2,B2p = P[3:9]
+        if J3:
+            B3,phiB3 = P[9:]
+        else:
+            B3,phiB3 = np.zeros(2)
+    else:
+        phiB2 = phiB2p = 0
+        A2,phiA2,A2p,phiA2p,B2,B2p = np.zeros(6)
+        if J3:
+            B3,phiB3 = P[3:]
+        else:
+            B3,phiB3 = np.zeros(2)
+    phiA1p = 0
+    phiB1p = -phiB1
+    A3,phiA3 = np.zeros(2)
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
+#
+def ans_16(P,J2,J3,p):
+    A1,B1,phiB1 = P[:3]
+    if J2:
+        p2,p3 = p
+        phiB2 = p2*np.pi
+        phiB2p = p3*np.pi
+        B2,B2p = P[3:5]
+        if J3:
+            A3,phiA3,B3,phiB3 = P[5:]
+        else:
+            A3,phiA3,B3,phiB3 = np.zeros(4)
+    else:
+        phiB2 = phiB2p = 0
+        B2,B2p = np.zeros(2)
+        if J3:
+            A3,phiA3,B3,phiB3 = P[3:]
+        else:
+            A3,phiA3,B3,phiB3 = np.zeros(4)
+    phiA1p = np.pi
+    phiB1p = -phiB1
+    A2,phiA2,A2p,phiA2p = np.zeros(4)
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
+#
+def ans_17(P,J2,J3,p):
+    A1,B1,phiB1 = P[:3]
+    if J2:
+        p2,p3 = p
+        phiB2 = p2*np.pi
+        phiB2p = p3*np.pi
+        A2,phiA2,A2p,phiA2p,B2,B2p = P[3:9]
+        if J3:
+            A3,phiA3 = P[9:]
+        else:
+            A3,phiA3 = np.zeros(2)
+    else:
+        phiB2 = phiB2p = 0
+        A2,phiA2,A2p,phiA2p,B2,B2p = np.zeros(6)
+        if J3:
+            A3,phiA3 = P[3:]
+        else:
+            A3,phiA3 = np.zeros(2)
+    phiA1p = 0
+    phiB1p = -phiB1
+    B3,phiB3 = np.zeros(2)
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
+#
+def ans_18(P,J2,J3,p):
+    A1,B1,phiB1 = P[:3]
+    if J2:
+        p2,p3 = p
+        phiB2 = p2*np.pi
+        phiB2p = p3*np.pi
+        B2,B2p = P[3:5]
+    else:
+        phiB2 = phiB2p = 0
+        B2,B2p = np.zeros(2)
+    phiA1p = np.pi
+    phiB1p = -phiB1
+    A2,phiA2,A2p,phiA2p,A3,phiA3,B3,phiB3 = np.zeros(8)
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
+#
+def ans_19(P,J2,J3,p):
+    A1,phiA1p,B1,phiB1 = P[:4]
+    if J2:
+        p2,p3 = p[:2]
+        phiA2 = phiA1p/2 + p2*np.pi
+        phiA2p = phiA1p/2 + p3*np.pi
+        A2,A2p,B2,phiB2,B2p,phiB2p = P[4:10]
+        if J3:
+            p4,p5 = p[2:]
+            phiA3 = (phiA1p+np.pi+2*np.pi*p4)/2
+            phiB3 = p5*np.pi
+            A3,B3 = P[10:]
+        else:
+            phiA3 = phiB3 = 0
+            A3,B3 = np.zeros(2)
+    else:
+        phiA2 = phiA2p = 0
+        A2,A2p,B2,phiB2,B2p,phiB2p = np.zeros(6)
+        if J3:
+            p4,p5 = p[:2]
+            phiA3 = (phiA1p+np.pi+2*np.pi*p4)/2
+            phiB3 = p5*np.pi
+            A3,B3 = P[4:]
+        else:
+            phiA3 = phiB3 = 0
+            A3,B3 = np.zeros(2)
+    phiB1p = phiB1
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
+#
+def ans_20(P,J2,J3,p):
+    A1,phiA1p,B1,phiB1 = P[:4]
+    if J2:
+        p2,p3 = p[:2]
+        phiA2 = phiA1p/2 + p2*np.pi
+        phiA2p = phiA1p/2 + p3*np.pi
+        A2,A2p,B2,phiB2,B2p,phiB2p = P[4:10]
+        if J3:
+            p4,p5 = p[2:]
+            phiA3 = (phiA1p+2*np.pi*p4)/2
+            phiB3 = p5*np.pi-np.pi/2
+            A3,B3 = P[10:]
+        else:
+            phiA3 = phiB3 = 0
+            A3,B3 = np.zeros(2)
+    else:
+        phiA2 = phiA2p = 0
+        A2,A2p,B2,phiB2,B2p,phiB2p = np.zeros(6)
+        if J3:
+            p4,p5 = p[:2]
+            phiA3 = (phiA1p+2*np.pi*p4)/2
+            phiB3 = p5*np.pi-np.pi/2
+            A3,B3 = P[4:]
+        else:
+            phiA3 = phiB3 = 0
+            A3,B3 = np.zeros(2)
+    phiB1p = phiB1
+    return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 
 def KM(kkg,a1,a2,a12p,a12m):
     ka1 = np.exp(1j*np.tensordot(a1,kkg,axes=1));   ka1_ = np.conjugate(ka1);
