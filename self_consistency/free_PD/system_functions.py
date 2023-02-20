@@ -82,7 +82,7 @@ def import_solutions(filename,ans,p,J2,J3):
             if data[0] == ans:
                 temp_p = []
                 for pps in range(1,bias+1):
-                    temp_p.append(int(pps))
+                    temp_p.append(int(data[pps]))
                 if bias == 0:
                     temp_p = (2,2)
                 right = True

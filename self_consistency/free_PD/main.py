@@ -39,14 +39,13 @@ J = (J1,J2,J3)
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
 DM_list = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
-PSG = 'SU2' if txt_DM == '000' else 'TMD'
 phi = DM_list[txt_DM]
 DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../../Data/self_consistency/test/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../../Data/self_consistency/S50/phi000/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
@@ -110,7 +109,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            for STEP in range(10):
+            for STEP in range(inp.N_steps):
                 print("STEP ",STEP+1)
                 step = 0
                 continue_loop = True
@@ -185,6 +184,8 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                 solutions.append(r)
             ################################################### Save solution
             E,gap = fs.total_energy(new_O,new_L,Args_L)
+            if E == 0:
+                continue
             data = [ans]
             for p_ in PpP:
                 if p_ == 2:
