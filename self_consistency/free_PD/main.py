@@ -45,9 +45,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../../Data/self_consistency/S50/phi000/'
-DirName = '../../Data/self_consistency/test/'
+#DirName = '../../Data/self_consistency/test/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
@@ -83,8 +83,8 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-Ai = 1
-Bi = 1/2
+Ai = S
+Bi = S/2
 L_bounds = inp.L_bounds
 for ans in inp.ansatze_1+inp.ansatze_2:
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
@@ -105,12 +105,15 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                     Pinitial.append(new_phase)
                     continue
                 if pars[i][0] == 'p':
-                    Pinitial.append(np.pi)
+                    if ans == '16' and pars[i] == 'phiA3':
+                        Pinitial.append(0)
+                    else:
+                        Pinitial.append(np.pi)
                 elif pars[i][0] == 'A':
                     Pinitial.append(Ai)
                 elif pars[i][0] == 'B':
                     Pinitial.append(Bi)
-            print("\n\nComputing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
+            print("Computing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
             Tti = t()
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
@@ -130,7 +133,9 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                     old_O_2 = np.array(old_O_1)
                     old_O_1 = np.array(new_O)
                     temp_O = fs.compute_O_all(new_O,new_L,Args_O)
+                    #
                     mix_factor = random.uniform(0,0.8)
+                    #
                     for i in range(len(old_O_1)):
                         if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
                             temp_O[i] -= 2*np.pi
@@ -147,7 +152,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                             if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_F or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_F:
                                 conv *= 0
                         else:
-                            if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_O:
+                            if np.abs(old_O_1[i]-new_O[i])/S > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i])/S > inp.cutoff_O:
                                 conv *= 0
                     if conv:
                         continue_loop = False
@@ -174,7 +179,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                 diff = np.abs(new_L-sol[0])
                 amp_found = False
                 for p_ in sf.amp_list(pars):     #amplitudes
-                    diff += np.abs(new_O[p_]-sol[p_+1])
+                    diff += np.abs(new_O[p_]-sol[p_+1])/S
                 if diff < inp.cutoff_solution:
                     amp_found = True
                 ph_found = True

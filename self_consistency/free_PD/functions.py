@@ -23,15 +23,11 @@ def compute_K1(P,pars,J):
                 K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
     return K1
 
-def total_energy(P_,L_,args):
+def total_energy(P,L,args):
     KM,Tau,K_,S,J,pars,ans,PpP,L_bounds = args
-    P = np.copy(P_)
     J1,J2,J3 = J
     J2_ = 1 if J2 else 0
     J3_ = 1 if J3 else 0
-    for g in sf.amp_list(pars):
-        P[g] *= S
-    L = L_ * S
     p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
@@ -62,11 +58,10 @@ def total_energy(P_,L_,args):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
     r2 /= m
-    print(r2)
     #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    energy = (Res + r2)        #back to real values?????
+    energy = Res + r2
     return energy, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -180,67 +175,52 @@ def compute_O_all(old_O,L,args):
                 new_O[p] = 2*np.pi - new_O[p]
         else:                   #Amplitudes
             if 'phi'+par in pars or par == 'A1':           #just amplitude since the phase is in the minimization process
-                new_O[p] = np.absolute(res)/S                   #renormalization of amplitudes 
+                new_O[p] = np.absolute(res)                   #renormalization of amplitudes 
             else:                           #correct the amplitude by the phase it should have (hopefully just 0 or pi)
                 phase_new_O = np.angle(res)
                 phase_expected = find_phase(ans,J,PpP,par,phase_phiA1p)             #returns 1 or -1 (for phase 0 or pi)
                 temp = np.absolute(res)*np.exp(1j*(phase_new_O-phase_expected)) 
 #                print(par," has value ",res," with phase ",phase_new_O," and was expecting ",phase_expected," so the amplitude is ",temp)
-                new_O[p] = np.real(temp)/S
+                new_O[p] = np.real(temp)
         if par == 'phiA1p':
             phase_phiA1p = new_O[p]
 #        print(par,new_O[p],'\n\n')
 #    input()
     return new_O
-#
+# Computes the expected phase (given by the ansatz) of a given amplitude
 def find_phase(ans,J,PpP,par,phase_phiA1p):
-    if ans == '15' or ans == '17':
-        if par == 'A1':
-            return 0
-        if par == 'B2':
-            return np.pi*PpP[0]
-        if par == 'B2p':
-            return np.pi*PpP[1]
-    if ans == '16' or ans == '18':
-        if par == 'A1':
-            return np.pi
-        if par == 'B2':
-            return np.pi*PpP[0]
-        if par == 'B2p':
-            return np.pi*PpP[1]
+    if par == 'B2':
+        return np.pi*PpP[0]
+    if par == 'B2p':
+        return np.pi*PpP[1]
+    if par == 'A2':
+        return np.pi*PpP[0] + phase_phiA1p/2
+    if par == 'A2p':
+        return np.pi*PpP[1] + phase_phiA1p/2
     J1,J2,J3 = J
-    if ans == '19':
+    if par == 'A3':
         if J2:
-            if par == 'A2':
-                return np.pi*PpP[0] + phase_phiA1p/2
-            if par == 'A2p':
-                return np.pi*PpP[1] + phase_phiA1p/2
-            if J3:
-                if par == 'A3':
-                    return (phase_phiA1p + np.pi + 2*PpP[2]*np.pi)/2
-                if par == 'B3':
-                    return np.pi*PpP[3]
-        if J3:
-            if par == 'A3':
+            if ans == '19':
+                return (phase_phiA1p + np.pi + 2*PpP[2]*np.pi)/2
+            else:
+                return (phase_phiA1p + 2*PpP[2]*np.pi)/2
+        else:
+            if ans == '19':
                 return (phase_phiA1p + np.pi + 2*PpP[0]*np.pi)/2
-            if par == 'B3':
-                return np.pi*PpP[1]
-    if ans == '20':
-        if J2:
-            if par == 'A2':
-                return np.pi*PpP[0] + phase_phiA1p/2
-            if par == 'A2p':
-                return np.pi*PpP[1] + phase_phiA1p/2
-            if J3:
-                if par == 'A3':
-                    return (phase_phiA1p + 2*PpP[2]*np.pi)/2
-                if par == 'B3':
-                    return np.pi*PpP[3] - np.pi/2
-        if J3:
-            if par == 'A3':
+            else:
                 return (phase_phiA1p + 2*PpP[0]*np.pi)/2
-            if par == 'B3':
+    if par == 'B3':
+        if J2:
+            if ans == '19':
+                return np.pi*PpP[3]
+            else:
+                return np.pi*PpP[3] - np.pi/2
+        else:
+            if ans == '19':
+                return np.pi*PpP[1]
+            else:
                 return np.pi*PpP[1] - np.pi/2
+    #The End
         
 
 dic_indexes = { '1': (1,2), '1p': (2,0), 
