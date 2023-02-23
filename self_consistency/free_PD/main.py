@@ -10,6 +10,7 @@ import random
 ###################### Set the initial parameters
 ######################
 ####### Outside inputs
+Ti = t()
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "N:S:K:",["DM=","disp"])
@@ -25,14 +26,14 @@ except:
 for opt, arg in opts:
     if opt in ['-N']:
         N = int(arg)
-    elif opt in ['-S']:
+    if opt in ['-S']:
         txt_S = arg
-    elif opt in ['-K']:
+    if opt in ['-K']:
         K = int(arg)
     if opt == '--DM':
         txt_DM = arg
     if opt == '--disp':
-        disp == True 
+        disp = True 
 J1 = 1
 J2, J3 = inp.J[N]
 J = (J1,J2,J3)
@@ -44,8 +45,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../../Data/self_consistency/S50/phi000/'
+DirName = '../../Data/self_consistency/test/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(Nx-12) + '/'
@@ -64,10 +66,14 @@ for i in range(Nx):
 #### vectors of 1nn, 2nn and 3nn
 a1 = (1,0)
 a2 = (-1,np.sqrt(3))
+a2_small = (-1/2,np.sqrt(3)/2)
 a12p = (a1[0]+a2[0],a1[1]+a2[1])
 a12m = (a1[0]-a2[0],a1[1]-a2[1])
+a12p_small = (a1[0]+a2_small[0],a1[1]+a2_small[1])
+a12m_small = (a1[0]-a2_small[0],a1[1]-a2_small[1])
 #### product of lattice vectors with K-matrix
-KM = fs.KM(kkg,a1,a2,a12p,a12m)
+KM = fs.compute_KM(kkg,a1,a2,a12p,a12m)
+KM_small = fs.compute_KM(kkg,a1,a2_small,a12p_small,a12m_small)
 #### DM
 t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
@@ -88,7 +94,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
         Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
         Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
         for iph in range(numb_it+1):
-            new_phase = np.pi-iph*np.pi/numb_it
+            new_phase = np.pi - iph*np.pi/numb_it
             completed = sf.check_solutions(solutions,index_mixing_ph,new_phase)
             if completed:
                 print("Already found solution for ans ",ans," at p=",PpP," and phase ",new_phase)
@@ -114,7 +120,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                 step = 0
                 continue_loop = True
                 exit_mixing = False
-                while continue_loop:    #all pars at once
+                while continue_loop:
                     if disp:
                         print("Step ",step,": ",new_L,*new_O,end='\n')
                     conv = 1
@@ -177,7 +183,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                     if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                         ph_found = False
             if amp_found and ph_found:
-                print("Already found solution, phase = ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
+                print("Already found solution, phase ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
                 continue
             else:
                 r = [new_L] + list(new_O)

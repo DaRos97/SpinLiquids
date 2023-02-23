@@ -19,12 +19,12 @@ def compute_K1(P,pars,J):
         if ps[0] in ['A','B']:
             ind = int(ps[1])-1
             K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
-            if ps+'p' not in pars:
+            if ps[-1] != 'p' and ps+'p' not in pars:
                 K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
     return K1
 
 def total_energy(P_,L_,args):
-    KM,Tau,K_,S,J,pars,ans,p,L_bounds = args
+    KM,Tau,K_,S,J,pars,ans,PpP,L_bounds = args
     P = np.copy(P_)
     J1,J2,J3 = J
     J2_ = 1 if J2 else 0
@@ -41,7 +41,7 @@ def total_energy(P_,L_,args):
     Res = compute_K1(P,pars,J)
     Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,S,J,ans,p)
+    args2 = (KM,Tau,K_,S,J,ans,PpP)
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -61,10 +61,12 @@ def total_energy(P_,L_,args):
     for i in range(m):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
-    r2 /= m                             #normalize
+    r2 /= m
+    print(r2)
+    #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    energy = (Res + r2)#*S)        #back to real values?????
+    energy = (Res + r2)        #back to real values?????
     return energy, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -126,7 +128,7 @@ def optimize_L(P,L,args):
 
 def compute_O_all(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    KM,Tau,K_,S,J,pars,ans,p = args
+    KM,Tau,K_,S,J,pars,ans,PpP = args
     p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
@@ -134,7 +136,7 @@ def compute_O_all(old_O,L,args):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
     #Compute first the transformation matrix M at each needed K
-    args_M = (KM,Tau,K_,S,J,ans,p)
+    args_M = (KM,Tau,K_,S,J,ans,PpP)
     N = big_Nk(old_O,L,args_M)
     M = np.zeros(N.shape,dtype=complex)
     for i in range(K_):
@@ -146,6 +148,7 @@ def compute_O_all(old_O,L,args):
             M[:,:,i,j] = np.dot(np.dot(LA.inv(Ch),U),w)
     #for each parameter need to know what it is
     dic_O = {'A':compute_A,'B':compute_B}
+    phase_phiA1p = 0
     for p in range(len(pars)):
         par = pars[p]
         par_ = par[-2:] if par[-1]=='p' else par[-1]
@@ -169,17 +172,76 @@ def compute_O_all(old_O,L,args):
         res2R = interR.integral(0,1,0,1)
         res = (res2R+1j*res2I)/2
         #res /= 2*K_**2
-        if par[0] == 'p':
+        if par[0] == 'p':           #phases
             new_O[p] = np.angle(res)
             if new_O[p] < 0:
                 new_O[p] += 2*np.pi
             if new_O[p] > np.pi and par == 'phiA1p':
                 new_O[p] = 2*np.pi - new_O[p]
-        else:
-            new_O[p] = np.absolute(res)/S                   #renormalization of amplitudes 
-#        print(par,new_O[p])
+        else:                   #Amplitudes
+            if 'phi'+par in pars or par == 'A1':           #just amplitude since the phase is in the minimization process
+                new_O[p] = np.absolute(res)/S                   #renormalization of amplitudes 
+            else:                           #correct the amplitude by the phase it should have (hopefully just 0 or pi)
+                phase_new_O = np.angle(res)
+                phase_expected = find_phase(ans,J,PpP,par,phase_phiA1p)             #returns 1 or -1 (for phase 0 or pi)
+                temp = np.absolute(res)*np.exp(1j*(phase_new_O-phase_expected)) 
+#                print(par," has value ",res," with phase ",phase_new_O," and was expecting ",phase_expected," so the amplitude is ",temp)
+                new_O[p] = np.real(temp)/S
+        if par == 'phiA1p':
+            phase_phiA1p = new_O[p]
+#        print(par,new_O[p],'\n\n')
 #    input()
     return new_O
+#
+def find_phase(ans,J,PpP,par,phase_phiA1p):
+    if ans == '15' or ans == '17':
+        if par == 'A1':
+            return 0
+        if par == 'B2':
+            return np.pi*PpP[0]
+        if par == 'B2p':
+            return np.pi*PpP[1]
+    if ans == '16' or ans == '18':
+        if par == 'A1':
+            return np.pi
+        if par == 'B2':
+            return np.pi*PpP[0]
+        if par == 'B2p':
+            return np.pi*PpP[1]
+    J1,J2,J3 = J
+    if ans == '19':
+        if J2:
+            if par == 'A2':
+                return np.pi*PpP[0] + phase_phiA1p/2
+            if par == 'A2p':
+                return np.pi*PpP[1] + phase_phiA1p/2
+            if J3:
+                if par == 'A3':
+                    return (phase_phiA1p + np.pi + 2*PpP[2]*np.pi)/2
+                if par == 'B3':
+                    return np.pi*PpP[3]
+        if J3:
+            if par == 'A3':
+                return (phase_phiA1p + np.pi + 2*PpP[0]*np.pi)/2
+            if par == 'B3':
+                return np.pi*PpP[1]
+    if ans == '20':
+        if J2:
+            if par == 'A2':
+                return np.pi*PpP[0] + phase_phiA1p/2
+            if par == 'A2p':
+                return np.pi*PpP[1] + phase_phiA1p/2
+            if J3:
+                if par == 'A3':
+                    return (phase_phiA1p + 2*PpP[2]*np.pi)/2
+                if par == 'B3':
+                    return np.pi*PpP[3] - np.pi/2
+        if J3:
+            if par == 'A3':
+                return (phase_phiA1p + 2*PpP[0]*np.pi)/2
+            if par == 'B3':
+                return np.pi*PpP[1] - np.pi/2
+        
 
 dic_indexes = { '1': (1,2), '1p': (2,0), 
                 '2': (1,0), '2p': (5,1), 
@@ -205,7 +267,7 @@ def split(array, nrows, ncols):
 
 #### Ansatze encoded in the matrix
 def big_Nk(P,L,args):
-    KM,Tau,K_,S,J,ans,p = args
+    KM,Tau,K_,S,J,ans,PpP = args
     J1,J2,J3 = J
     p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
@@ -215,19 +277,29 @@ def big_Nk(P,L,args):
     J2 /= 2.
     J3 /= 2.
     func_ans = {'15':ans_15, '16':ans_16,'17':ans_17,'18':ans_18,'19':ans_19,'20':ans_20}
-    A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3 = func_ans[ans](P,J2,J3,p)
+    A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3 = func_ans[ans](P,J2,J3,PpP)
+    if 0:
+        L /= S**2
+        A1 /= S**2
+        B1 /= S**2
+        A2 /= S**2
+        A2p /= S**2
+        B2 /= S**2
+        B2p /= S**2
+        A3 /= S**2
+        B3 /= S**2
     A1p = A1
     B1p = B1
     ################
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B
     b1 = B1*np.exp(1j*phiB1);               b1_ = np.conjugate(b1)
-    b1p = B1*np.exp(1j*phiB1p);             b1p_ = np.conjugate(b1p)
-    b1pi = B1*np.exp(1j*(phiB1p+p1*np.pi)); b1pi_ = np.conjugate(b1pi)
+    b1p = B1p*np.exp(1j*phiB1p);             b1p_ = np.conjugate(b1p)
+    b1pi = B1p*np.exp(1j*(phiB1p+p1*np.pi)); b1pi_ = np.conjugate(b1pi)
     b2 = B2*np.exp(1j*phiB2);               b2_ = np.conjugate(b2)
     b2i = B2*np.exp(1j*(phiB2+p1*np.pi));   b2i_ = np.conjugate(b2i)
-    b2p = B2*np.exp(1j*phiB2p);             b2p_ = np.conjugate(b2p)
-    b2pi = B2*np.exp(1j*(phiB2p+p1*np.pi)); b2pi_ = np.conjugate(b2pi)
+    b2p = B2p*np.exp(1j*phiB2p);             b2p_ = np.conjugate(b2p)
+    b2pi = B2p*np.exp(1j*(phiB2p+p1*np.pi)); b2pi_ = np.conjugate(b2pi)
     b3 = B3*np.exp(1j*phiB3);               b3_ = np.conjugate(b3)
     b3i = B3*np.exp(1j*(phiB3+p1*np.pi));   b3i_ = np.conjugate(b3i)
     #
@@ -242,7 +314,7 @@ def big_Nk(P,L,args):
     N[2,4] =                                   J2*(b2p_*ka2_*t2 + b2i_*ka1*t2_)
     N[3,4] = J1*b1pi_*ka1  *t1_              + J2*b2*t2                         #t1
     N[3,5] = J1*b1p        *t1               + J2*b2pi_*ka1*t2                  #t1_
-    N[4,5] = J1*(b1_       *t1  + b1pi_*ka1_*t1_)                               #t1     t1
+    N[4,5] = J1*(b1_       *t1  + b1pi_*ka1_*t1_)                               #t1
 
     N[0,0] = J3*b3i_ *ka1_ *t3_
     N[3,3] = J3*b3_  *ka1_ *t3_
@@ -268,12 +340,12 @@ def big_Nk(P,L,args):
     N[m+2,m+5] = J3*(b3_*ka12p_  *t3  + b3i *ka1*t3_)
     ######################################## A
     a1 =    A1
-    a1p =   A1*np.exp(1j*phiA1p)
-    a1pi =  A1*np.exp(1j*(phiA1p+p1*np.pi))
+    a1p =   A1p*np.exp(1j*phiA1p)
+    a1pi =  A1p*np.exp(1j*(phiA1p+p1*np.pi))
     a2 =    A2*np.exp(1j*phiA2)
     a2i =   A2*np.exp(1j*(phiA2+p1*np.pi))
-    a2p =   A2*np.exp(1j*phiA2p)
-    a2pi =  A2*np.exp(1j*(phiA2p+p1*np.pi))
+    a2p =   A2p*np.exp(1j*phiA2p)
+    a2pi =  A2p*np.exp(1j*(phiA2p+p1*np.pi))
     a3 =    A3*np.exp(1j*phiA3)
     a3i =   A3*np.exp(1j*(phiA3+p1*np.pi))
     N[0,m+1] = - J1*a1p *ka1 *t1_           +J2*a2*t2
@@ -287,7 +359,7 @@ def big_Nk(P,L,args):
     N[2,m+4] =                              -J2*(a2p *ka2_*t2  +a2i*ka1*t2_)
     N[3,m+4] = - J1*a1pi*ka1 *t1_           +J2*a2*t2
     N[3,m+5] =   J1*a1p      *t1            -J2*a2pi *ka1*t2
-    N[4,m+5] = - J1*(a1      *t1   +a1pi*ka1_*t1_)
+    N[4,m+5] = - J1*(a1      *t1   +a1pi*ka1_*t1_)  
 
     N[0,m+0] = - J3*a3i *ka1_*t3_
     N[3,m+3] = - J3*a3  *ka1_*t3_
@@ -299,7 +371,7 @@ def big_Nk(P,L,args):
     N[4,m]   =   J1*a1  *ka2 *t1_           -J2*a2pi *ka12m_*t2
     N[5,m]   = - J1*a1  *ka2 *t1            +J2*a2i  *ka12p*t2
     N[2,m+1] =   J1*(a1      *t1_  +a1p*ka1 *t1)
-    N[3,m+1] = - J1*a1       *t1            +J2*a2p  *ka1_*t2_
+    N[3,m+1] = - J1*a1       *t1            +J2*a2p  *ka1*t2_               #Second term was ka1_
     N[5,m+1] =                              -J2*(a2  *ka12p*t2_   +a2p*t2)
     N[3,m+2] =   J1*a1       *t1_           -J2*a2   *ka1_*t2_
     N[4,m+2] =                               J2*(a2p *ka2*t2_   +a2i*ka1_*t2)
@@ -320,10 +392,10 @@ def big_Nk(P,L,args):
         N[i,i] += L
     return N
 #
-def ans_15(P,J2,J3,p):
+def ans_15(P,J2,J3,PpP):
     A1,B1,phiB1 = P[:3]
     if J2:
-        p2,p3 = p
+        p2,p3 = PpP
         phiB2 = p2*np.pi
         phiB2p = p3*np.pi
         A2,phiA2,A2p,phiA2p,B2,B2p = P[3:9]
@@ -343,10 +415,10 @@ def ans_15(P,J2,J3,p):
     A3,phiA3 = np.zeros(2)
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 #
-def ans_16(P,J2,J3,p):
+def ans_16(P,J2,J3,PpP):
     A1,B1,phiB1 = P[:3]
     if J2:
-        p2,p3 = p
+        p2,p3 = PpP
         phiB2 = p2*np.pi
         phiB2p = p3*np.pi
         B2,B2p = P[3:5]
@@ -366,10 +438,10 @@ def ans_16(P,J2,J3,p):
     A2,phiA2,A2p,phiA2p = np.zeros(4)
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 #
-def ans_17(P,J2,J3,p):
+def ans_17(P,J2,J3,PpP):
     A1,B1,phiB1 = P[:3]
     if J2:
-        p2,p3 = p
+        p2,p3 = PpP
         phiB2 = p2*np.pi
         phiB2p = p3*np.pi
         A2,phiA2,A2p,phiA2p,B2,B2p = P[3:9]
@@ -389,10 +461,10 @@ def ans_17(P,J2,J3,p):
     B3,phiB3 = np.zeros(2)
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 #
-def ans_18(P,J2,J3,p):
+def ans_18(P,J2,J3,PpP):
     A1,B1,phiB1 = P[:3]
     if J2:
-        p2,p3 = p
+        p2,p3 = PpP
         phiB2 = p2*np.pi
         phiB2p = p3*np.pi
         B2,B2p = P[3:5]
@@ -404,15 +476,15 @@ def ans_18(P,J2,J3,p):
     A2,phiA2,A2p,phiA2p,A3,phiA3,B3,phiB3 = np.zeros(8)
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 #
-def ans_19(P,J2,J3,p):
+def ans_19(P,J2,J3,PpP):
     A1,phiA1p,B1,phiB1 = P[:4]
     if J2:
-        p2,p3 = p[:2]
+        p2,p3 = PpP[:2]
         phiA2 = phiA1p/2 + p2*np.pi
         phiA2p = phiA1p/2 + p3*np.pi
         A2,A2p,B2,phiB2,B2p,phiB2p = P[4:10]
         if J3:
-            p4,p5 = p[2:]
+            p4,p5 = PpP[2:]
             phiA3 = (phiA1p+np.pi+2*np.pi*p4)/2
             phiB3 = p5*np.pi
             A3,B3 = P[10:]
@@ -423,7 +495,7 @@ def ans_19(P,J2,J3,p):
         phiA2 = phiA2p = 0
         A2,A2p,B2,phiB2,B2p,phiB2p = np.zeros(6)
         if J3:
-            p4,p5 = p[:2]
+            p4,p5 = PpP[:2]
             phiA3 = (phiA1p+np.pi+2*np.pi*p4)/2
             phiB3 = p5*np.pi
             A3,B3 = P[4:]
@@ -433,15 +505,15 @@ def ans_19(P,J2,J3,p):
     phiB1p = phiB1
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 #
-def ans_20(P,J2,J3,p):
+def ans_20(P,J2,J3,PpP):
     A1,phiA1p,B1,phiB1 = P[:4]
     if J2:
-        p2,p3 = p[:2]
+        p2,p3 = PpP[:2]
         phiA2 = phiA1p/2 + p2*np.pi
         phiA2p = phiA1p/2 + p3*np.pi
         A2,A2p,B2,phiB2,B2p,phiB2p = P[4:10]
         if J3:
-            p4,p5 = p[2:]
+            p4,p5 = PpP[2:]
             phiA3 = (phiA1p+2*np.pi*p4)/2
             phiB3 = p5*np.pi-np.pi/2
             A3,B3 = P[10:]
@@ -452,7 +524,7 @@ def ans_20(P,J2,J3,p):
         phiA2 = phiA2p = 0
         A2,A2p,B2,phiB2,B2p,phiB2p = np.zeros(6)
         if J3:
-            p4,p5 = p[:2]
+            p4,p5 = PpP[:2]
             phiA3 = (phiA1p+2*np.pi*p4)/2
             phiB3 = p5*np.pi-np.pi/2
             A3,B3 = P[4:]
@@ -462,13 +534,13 @@ def ans_20(P,J2,J3,p):
     phiB1p = phiB1
     return A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3
 
-def KM(kkg,a1,a2,a12p,a12m):
+def compute_KM(kkg,a1,a2,a12p,a12m):
     ka1 = np.exp(1j*np.tensordot(a1,kkg,axes=1));   ka1_ = np.conjugate(ka1);
     ka2 = np.exp(1j*np.tensordot(a2,kkg,axes=1));   ka2_ = np.conjugate(ka2);
     ka12p = np.exp(1j*np.tensordot(a12p,kkg,axes=1));   ka12p_ = np.conjugate(ka12p);
     ka12m = np.exp(1j*np.tensordot(a12m,kkg,axes=1));   ka12m_ = np.conjugate(ka12m);
-    KM = (ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_)
-    return KM
+    KM_ = (ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_)
+    return KM_
 
 
 
