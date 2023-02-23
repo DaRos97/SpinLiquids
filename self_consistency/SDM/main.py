@@ -35,7 +35,7 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
 DirName = '../../Data/self_consistency/SDM/test/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(K) + '/'
@@ -106,7 +106,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
             continue_loop = True
             exit_mixing = False
             while continue_loop:    #all pars at once
-#                    print("Step ",step,": ",new_L,*new_O,end='\n')
+                print("Step ",step,": ",new_L,*new_O,end='\n')
                 conv = 1
                 old_O_2 = np.array(old_O_1)
                 old_O_1 = np.array(new_O)
@@ -115,7 +115,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                 new_L = fs.compute_L(new_O,Args_L)
                 temp_O = fs.compute_O_all(new_O,new_L,Args_O)
                 #
-                mix_factor = random.uniform(0,0.8)
+                mix_factor = random.uniform(0,0.5)
                 #
                 for i in range(len(old_O_1)):
                     if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:

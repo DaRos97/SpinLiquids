@@ -15,7 +15,7 @@ def import_solutions(filename,ans):
             data = lines[i*2+1].split(',')
             if data[0] == ans:
                 r = []
-                for p in range(5,13):
+                for p in range(5,len(data)):
                     r.append(float(data[p]))
                 solutions.append(r)
 
