@@ -13,23 +13,24 @@ import os
 #from matplotlib import cm
 
 
-def total_energy(P_,L_,args):
-    KM,Tau,K_,S,p1,L_bounds = args
-    P = np.copy(P_)
-    P[0] *= S
-    P[1] *= S
-    P[3] *= S
-    P[5] *= S
-    L = L_ * S
+def total_energy(P,L,args):
+    KM,Tau,K_,S,ans,DM_type,L_bounds = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
-    Res = inp.z*(P[0]**2+P[1]**2-P[3]**2-P[5]**2)/4#*S**2
-    Res -= L*(2*S+1)#*S            #part of the energy coming from the Lagrange multiplier
+    A1 = P[0]
+    if ans in inp.ansatze_1:
+        B1 = P[1]
+    else:
+        B1 = P[2]
+    Res = inp.z*(A1**2-B1**2)/2
+    Res -= L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,S,p1)
+    args2 = (KM,Tau,K_,S,ans,DM_type)
+    big_Nk = big_Nk_uniform if DM_type == 'uniform' else big_Nk_staggered
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -52,7 +53,7 @@ def total_energy(P_,L_,args):
     r2 /= m                             #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
-    energy = (Res + r2)#*S)        #back to real values?????
+    energy = Res + r2
     return energy, gap
 
 #### Computes Energy from Parameters P, by maximizing it wrt the Lagrange multiplier L. Calls only totEl function
@@ -68,7 +69,8 @@ def compute_L(P,args):
 #### Computes the Energy given the paramters P and the Lagrange multiplier L. 
 #### This is the function that does the actual work.
 def optimize_L(P,L,args):
-    KM,Tau,K_,S,p1,L_bounds = args
+    KM,Tau,K_,S,ans,DM_type,L_bounds = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     VL = 100
@@ -83,7 +85,8 @@ def optimize_L(P,L,args):
         return -Res
     Res = -L*(2*S+1)            #part of the energy coming from the Lagrange multiplier
     #Compute now the (painful) part of the energy coming from the Hamiltonian matrix by the use of a Bogoliubov transformation
-    args2 = (KM,Tau,K_,S,p1)
+    args2 = (KM,Tau,K_,S,ans,DM_type)
+    big_Nk = big_Nk_uniform if DM_type == 'uniform' else big_Nk_staggered
     N = big_Nk(P,L,args2)                #compute Hermitian matrix from the ansatze coded in the ansatze.py script
     res = np.zeros((m,K_,K_))
     for i in range(K_):                 #cicle over all the points in the Brilluin Zone grid
@@ -113,14 +116,16 @@ def optimize_L(P,L,args):
 
 def compute_O_all(old_O,L,args):
     new_O = np.zeros(len(old_O))
-    KM,Tau,K_,S,pars,p1 = args
+    KM,Tau,K_,S,pars,ans,DM_type = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J_ = np.zeros((2*m,2*m))
     for i in range(m):
         J_[i,i] = -1
         J_[i+m,i+m] = 1
     #Compute first the transformation matrix M at each needed K
-    args_M = (KM,Tau,K_,S,p1)
+    args_M = (KM,Tau,K_,S,ans,DM_type)
+    big_Nk = big_Nk_uniform if DM_type == 'uniform' else big_Nk_staggered
     N = big_Nk(old_O,L,args_M)
     M = np.zeros(N.shape,dtype=complex)
     for i in range(K_):
@@ -162,7 +167,7 @@ def compute_O_all(old_O,L,args):
             if new_O[p] > np.pi and par == 'phiA1p':
                 new_O[p] = 2*np.pi - new_O[p]
         else:
-            new_O[p] = np.absolute(res)/S                   #renormalization of amplitudes 
+            new_O[p] = np.absolute(res)
 #        print(par,new_O[p])
 #    input()
     return new_O
@@ -190,15 +195,32 @@ def split(array, nrows, ncols):
 
 
 #### Ansatze encoded in the matrix
-def big_Nk(P,L,args):
-    KM,Tau,K_,S,p1 = args
+def big_Nk_uniform(P,L,args):
+    KM,Tau,K_,S,ans,DM_type = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
     m = inp.m[p1]
     J1 = 1
     ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_ = KM
     t1,t1_ = Tau
     J1 /= 2.
-    A1,A1p,phiA1p,B1,phiB1,B1p,phiB1p = P
-    ################
+    #
+    A1 = P[0]
+    A1p = A1
+    phiB1 = P[-1]
+    if ans in ['15','17']:
+        phiA1p = 0
+    elif ans in ['16','18']:
+        phiA1p = np.pi
+    else:
+        phiA1p = P[1]
+    if ans in inp.ansatze_1:
+        B1 = P[1]
+        phiB1p = -phiB1
+    else:
+        B1 = P[2]
+        phiB1p = phiB1
+    B1p = B1
+    #
     N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
     ##################################### B
     b1 = B1*np.exp(1j*phiB1);               b1_ = np.conjugate(b1)
@@ -243,6 +265,96 @@ def big_Nk(P,L,args):
     N[4%m,m+3%m] +=   J1*a1pi*ka1_*t1            
     N[5%m,m+3%m] += - J1*a1p      *t1_           
     N[5%m,m+4%m] =   J1*(a1      *t1_  +a1pi*ka1 *t1)
+    ############################################### Terms which are different between m = 3,6
+    if m == 6:
+        N[1,3%m] = J1*b1         *t1_
+        N[2,3%m] = J1*b1_        *t1               
+        N[m+1,m+3%m] = J1*b1_        *t1_           
+        N[m+2,m+3%m] = J1*b1         *t1            
+        N[1,m+3%m] =   J1*a1       *t1_           
+        N[2,m+3%m] = - J1*a1       *t1            
+        N[3%m,m+1] = - J1*a1       *t1            
+        N[3%m,m+2] =   J1*a1       *t1_           
+    #################################### HERMITIAN MATRIX
+    #N += np.conjugate(N.transpose((1,0,2,3)))
+    for i in range(2*m):
+        for j in range(i,2*m):
+            N[j,i] += np.conjugate(N[i,j])
+    #################################### L
+    for i in range(2*m):
+        N[i,i] += L
+    return N
+#
+def big_Nk_staggered(P,L,args):
+    KM,Tau,K_,S,ans,DM_type = args
+    p1 = 0 if ans in inp.ansatze_p0 else 1
+    m = inp.m[p1]
+    J1 = 1
+    ka1,ka1_,ka2,ka2_,ka12p,ka12p_,ka12m,ka12m_ = KM
+    t1,t1_ = Tau
+    J1 /= 2.
+    #
+    A1 = P[0]
+    A1p = A1
+    phiB1 = P[-1]
+    if ans in ['15','17']:
+        phiA1p = 0
+    elif ans in ['16','18']:
+        phiA1p = np.pi
+    else:
+        phiA1p = P[1]
+    if ans in inp.ansatze_1:
+        B1 = P[1]
+        phiB1p = phiB1
+    else:
+        B1 = P[2]
+        phiB1p = -phiB1
+    B1p = B1
+    #
+    N = np.zeros((2*m,2*m,K_,K_), dtype=complex)
+    ##################################### B
+    b1 = B1*np.exp(1j*phiB1);               b1_ = np.conjugate(b1)
+    b1p = B1p*np.exp(1j*phiB1p);             b1p_ = np.conjugate(b1p)
+    b1pi = B1p*np.exp(1j*(phiB1p+p1*np.pi)); b1pi_ = np.conjugate(b1pi)
+    #
+    N[0,1] = J1*b1p_ *ka1  *t1              
+    N[0,2] = J1*b1p        *t1_   
+    N[1,2] = J1*(b1_       *t1  + b1p_*ka1_*t1)                                #t1     t1
+    N[0,4%m] = J1*b1_  *ka2_ *t1               
+    N[0,5%m] = J1*b1   *ka2_ *t1_
+    N[3%m,4%m] += J1*b1pi_*ka1  *t1              
+    N[3%m,5%m] += J1*b1p        *t1_               
+    N[4%m,5%m] = J1*(b1_       *t1  + b1pi_*ka1_*t1)                               #t1     t1
+    ####other half square                                                       #Same ts
+    N[m+0,m+1] = J1*b1p  *ka1  *t1           
+    N[m+0,m+2] = J1*b1p_       *t1_            
+    N[m+1,m+2] = J1*(b1        *t1  + b1p*ka1_*t1)
+    N[m+0,m+4%m] = J1*b1   *ka2_ *t1            
+    N[m+0,m+5%m] = J1*b1_  *ka2_ *t1_           
+    N[m+3%m,m+4%m] += J1*b1pi *ka1  *t1           
+    N[m+3%m,m+5%m] += J1*b1p_       *t1_            
+    N[m+4%m,m+5%m] = J1*(b1        *t1  + b1pi*ka1_*t1)
+    ######################################## A
+    a1 =    A1
+    a1p =   A1p*np.exp(1j*phiA1p)
+    a1pi =  A1p*np.exp(1j*(phiA1p+p1*np.pi))
+    N[0,m+1] = - J1*a1p *ka1 *t1           
+    N[0,m+2] =   J1*a1p      *t1_            
+    N[1,m+2] = - J1*(a1      *t1   +a1p*ka1_*t1)
+    N[0,m+4%m] = - J1*a1  *ka2_*t1            
+    N[0,m+5%m] =   J1*a1  *ka2_*t1_           
+    N[3%m,m+4%m] += - J1*a1pi*ka1 *t1           
+    N[3%m,m+5%m] +=   J1*a1p      *t1_            
+    N[4%m,m+5%m] = - J1*(a1      *t1   +a1pi*ka1_*t1)
+    #not the diagonal
+    N[1,m]   =   J1*a1p *ka1_*t1_            
+    N[2,m]   = - J1*a1p      *t1           
+    N[2,m+1] =   J1*(a1      *t1_  +a1p*ka1 *t1_)
+    N[4%m,m]   =   J1*a1  *ka2 *t1_           
+    N[5%m,m]   = - J1*a1  *ka2 *t1            
+    N[4%m,m+3%m] +=   J1*a1pi*ka1_*t1_            
+    N[5%m,m+3%m] += - J1*a1p      *t1           
+    N[5%m,m+4%m] =   J1*(a1      *t1_  +a1pi*ka1 *t1_)
     ############################################### Terms which are different between m = 3,6
     if m == 6:
         N[1,3%m] = J1*b1         *t1_
