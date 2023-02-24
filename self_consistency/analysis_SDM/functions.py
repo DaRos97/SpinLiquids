@@ -5,7 +5,7 @@ CO_gap = 0.015
 CO_phase = 1e-3
 CO_mod = 1e-2
 
-def find_ansatz(data):
+def find_ansatz_free(data):     #function for finding ansatz in free SC 
     A1 = float(data[6])
     A1p = float(data[7])
     phiA1p = float(data[8])
@@ -35,3 +35,77 @@ def find_ansatz(data):
     result = orders[p1*3+ord_] + symm + phase
     
     return result
+#
+def find_ansatz(head,data):
+    ans = data[0]
+    gap = float(data[head.index('Gap')])
+    phase = 'L' if gap > CO_gap else 'O'
+    phiB1 = float(data[head.index('phiB1')])
+    if np.abs(phiB1-np.pi) > CO_phase:
+        phase = 'C'
+    symm = 's'
+    result = ans + symm + phase
+    
+    return result
+
+def min_energy(lines):
+    N = (len(lines)-1)//2 + 1
+    minE = 10
+    index = 0
+    ansatze = []
+    ind_ = 0
+    for i in range(N):
+        bad = False
+        head_data = lines[2*i].split(',')
+        head_data[-1] = head_data[-1][:-1]
+        data = lines[2*i+1].split(',')
+        if data[0] == '19' and (find_15(head_data,data) or find_16(head_data,data)):
+            continue
+        energy = float(data[head_data.index('Energy')])
+        ansatze.append(find_ansatz(head_data,data))
+        if energy < minE:
+            minE = energy
+            ind_ = index
+        index += 1 
+    if len (ansatze) == 0:
+        return 0
+    return ansatze[ind_]
+#
+def find_15(head,data):     #establish if 19 is same result as 15
+    result = True
+    phiA1p = float(data[head.index('phiA1p')])
+    phiB1 = float(data[head.index('phiB1')])
+    if np.abs(phiA1p) > CO_phase or np.abs(phiB1-np.pi) > CO_phase:
+        result = False
+    return result
+def find_16(head,data):     #establish if 19 is same result as 15
+    result = True
+    phiA1p = float(data[head.index('phiA1p')])
+    phiB1 = float(data[head.index('phiB1')])
+    if np.abs(phiA1p-np.pi) > CO_phase or np.abs(phiB1-np.pi) > CO_phase:
+        result = False
+    return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

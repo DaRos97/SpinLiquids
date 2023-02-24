@@ -17,9 +17,10 @@ Color = {'15':  ['blue','k'],
          }
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "K:a:")
+    opts, args = getopt.getopt(argv, "K:a:",['staggered'])
     K = 13
     a = '15'
+    DM_type = 'uniform'
 except:
     print("Error in inputs")
     exit()
@@ -28,8 +29,10 @@ for opt, arg in opts:
         K = int(arg)
     if opt in ['-a']:
         a = arg
+    if opt == '--staggered':
+        DM_type = 'staggered'
 
-dirname = '../../Data/self_consistency/SDM/'+str(K)+'/' 
+dirname = '../../Data/self_consistency/SDM/'+DM_type+'/'+str(K)+'/' 
 
 #
 S_max = 0.5
@@ -45,13 +48,15 @@ for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
         lines = f.readlines()
     data = lines[1].split(',')
-    dm = list(DM_list).index(float(data[1]))
-    s = list(S_list).index(float(data[0]))
+    dm = list(DM_list).index(float(data[2]))        #was 1
+    s = list(S_list).index(float(data[1]))          #was 0
     D[dm,s] = list()
     N = (len(lines)-1)//2 + 1
     for i in range(N):
+        head = lines[i*2].split(',')
+        head[-1] = head[-1][:-1]
         data = lines[i*2+1].split(',')
-        D[dm,s].append(fs.find_ansatz(data))
+        D[dm,s].append(fs.find_ansatz(head,data))
     D[dm,s] = list(D[dm,s])
 ##########
 pts = len(os.listdir(dirname))
