@@ -9,7 +9,7 @@ from matplotlib import cm
 Color = {'3x3': ['red','firebrick'],
          'q0':  ['yellow','y'],
          'cb1':  ['lime','limegreen'],
-         'cb2':  ['lime','limegreen'],
+#         'cb2':  ['lime','limegreen'],
          'oct':  ['lime','limegreen'],
          }
 #Arguments: -S -> spin(03/05), -a -> ansatz, -p -> phase (0/0.06...)
@@ -35,7 +35,7 @@ for opt, arg in opts:
         K = arg
     if opt == '--plot':
         plot = True
-dirname = '../../Data/SC_data/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
+dirname = '../../Data/self_consistency/S'+S+'/phi'+phi+'/'+K+'/'; title = 'With DM interactions'
 D = {}
 PSG = 'SU2' if phi == '000' else 'TMD'
 Ji = -0.3
@@ -51,7 +51,9 @@ for filename in os.listdir(dirname):
         data = lines[i*2+1].split(',')
         if data[0] == ans:
             head = lines[2*i].split(',')[3:]
-    break
+            if head[-1][-1] == '\n':
+                head[-1] = head[-1][:-1]
+            break
 #head = inp.header[PSG][ans][3:]
 for h in head:
     D[h] = np.zeros((9,9))
@@ -78,8 +80,6 @@ for filename in os.listdir(dirname):
                 else:
                     try:
                         D[h][i2,i3] = float(data[n+3])
-                        if D[h][i2,i3] == 0:
-                            D[h][i2,i3] = np.nan
                     except:
                         print("not good: ",h,i2,i3)
             
@@ -87,7 +87,6 @@ for filename in os.listdir(dirname):
 print("Non converged points: ",int(81-np.sum(~np.isnan(D['Converge'].ravel()))),"\n",D['Converge'])
 nP = len(head)
 for i in range(nP):
-    print(head[i])
     temp = []
     for l in range(9):
         for j in range(9):

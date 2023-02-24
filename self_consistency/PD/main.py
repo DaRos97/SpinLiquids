@@ -159,6 +159,8 @@ for ans in ansatze:
                 if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
                     temp_O[i] -= 2*np.pi
                 new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
+                if pars[i][0] == 'p' and new_O[i] < 0:
+                    new_O[i] += 2*np.pi
             step += 1
             #Check if all parameters are stable up to precision
             if np.abs(old_L_2-new_L) > inp.cutoff_L:

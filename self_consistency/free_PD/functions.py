@@ -258,16 +258,6 @@ def big_Nk(P,L,args):
     J3 /= 2.
     func_ans = {'15':ans_15, '16':ans_16,'17':ans_17,'18':ans_18,'19':ans_19,'20':ans_20}
     A1,phiA1p,B1,phiB1,phiB1p,A2,phiA2,A2p,phiA2p,B2,phiB2,B2p,phiB2p,A3,phiA3,B3,phiB3 = func_ans[ans](P,J2,J3,PpP)
-    if 0:
-        L /= S**2
-        A1 /= S**2
-        B1 /= S**2
-        A2 /= S**2
-        A2p /= S**2
-        B2 /= S**2
-        B2p /= S**2
-        A3 /= S**2
-        B3 /= S**2
     A1p = A1
     B1p = B1
     ################

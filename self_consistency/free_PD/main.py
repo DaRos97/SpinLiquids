@@ -144,7 +144,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                             new_O[i] += 2*np.pi
                     step += 1
                     #Check if all parameters are stable up to precision
-                    if np.abs(old_L_2-new_L) > inp.cutoff_L:
+                    if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
                         conv *= 0
                     #print(old_O,new_O)
                     for i in range(len(new_O)):
@@ -176,7 +176,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
             ########################################################
             amp_found = ph_found = False
             for sol in solutions:
-                diff = np.abs(new_L-sol[0])
+                diff = np.abs(new_L-sol[0])/S
                 amp_found = False
                 for p_ in sf.amp_list(pars):     #amplitudes
                     diff += np.abs(new_O[p_]-sol[p_+1])/S

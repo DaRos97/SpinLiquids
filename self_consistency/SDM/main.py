@@ -12,7 +12,7 @@ import random
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "N:K:",["numb_it=","staggered_DM"])
+    opts, args = getopt.getopt(argv, "N:K:",["numb_it=","staggered"])
     J = 40      #inp.J point in phase diagram
     K = 13      #number ok cuts in BZ
     numb_it = 2
@@ -27,7 +27,7 @@ for opt, arg in opts:
         K = int(arg)
     if opt == '--numb_it':
         numb_it = int(arg)
-    if opt == '--staggered_DM':
+    if opt == '--staggered':
         DM_type = 'staggered'
 J1 = 1
 S = inp.S_list[J%inp.S_pts]
@@ -91,7 +91,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
         new_phase = np.pi - iph*np.pi/numb_it
         completed = sf.check_solutions(solutions,index_ch_phase,new_phase)
         if completed:
-            print("Already found solution for ans ",ans," and phase ",new_phase)
+#            print("Already found solution for ans ",ans," and phase ",new_phase)
             continue
         Pinitial[index_ch_phase] = new_phase
         ####################################################
@@ -101,12 +101,12 @@ for ans in inp.ansatze_1+inp.ansatze_2:
         new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
         new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
         for STEP in range(inp.N_STEPS):
-            print("STEP ",STEP+1)
+#            print("STEP ",STEP+1)
             step = 0
             continue_loop = True
             exit_mixing = False
             while continue_loop:    #all pars at once
-                print("Step ",step,": ",new_L,*new_O,end='\n')
+#                print("Step ",step,": ",new_L,*new_O,end='\n')
                 conv = 1
                 old_O_2 = np.array(old_O_1)
                 old_O_1 = np.array(new_O)
@@ -125,7 +125,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                         new_O[i] += 2*np.pi
                 step += 1
                 #Check if all parameters are stable up to precision
-                if np.abs(old_L_2-new_L) > inp.cutoff_L:
+                if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
                     conv *= 0
                 for i in range(len(new_O)):
                     if pars[i][0] == 'p':
@@ -138,13 +138,13 @@ for ans in inp.ansatze_1+inp.ansatze_2:
                     continue_loop = False
                     exit_mixing = True
                 if step > inp.MaxIter:#*len(pars):
-                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Not converged!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     break
             if exit_mixing:
                 break
 ######################################################################################################
 ######################################################################################################
-        print("\nNumber of iterations: ",step,'\n')
+#        print("\nNumber of iterations: ",step,'\n')
         conv = 'True' if conv == 1 else 'False'
         if conv == 'False':
             print("\n\nFound final parameters NOT converged: ",new_L,new_O,"\n")
@@ -156,7 +156,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
         amp_found = ph_found = False
         for sol in solutions:
             diff = 0
-            diff += np.abs(new_L-sol[0])
+            diff += np.abs(new_L-sol[0])/S
             amp_found = False
             for p in list_amp:     #amplitudes
                 diff += np.abs(new_O[p]-sol[p+1])/S
@@ -175,6 +175,7 @@ for ans in inp.ansatze_1+inp.ansatze_2:
             solutions.append(r)
         ################################################### Save solution
         E,gap = fs.total_energy(new_O,new_L,Args_L)
+        print("Ansatz: ",ans)
         print('L = ',new_L)
         print('parameters: ',*new_O)
         print('energy and gap: ',E,gap)

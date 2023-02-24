@@ -98,8 +98,12 @@ def find_minima(args,Nx,Ny):
     plt.scatter(K[0],K[1],c=en,cmap = cm.plasma)
     plt.colorbar()
     for k in k_list:
-        plt.scatter(k[0],k[1],c='g',marker='*')
+#        plt.scatter(k[0],k[1],c='g',marker='*')
         print('new: ',k)
+#    plt.xlabel(r'$K_x$',size=15)
+#    plt.ylabel(r'$K_y$',size=15)
+    plt.tick_params(left = False, right = False , labelleft = False ,
+                labelbottom = False, bottom = False)
     plt.show()
     ok = input("Is it ok?[Y/n] ([1] for keeping only first value found,[2] for just first 2 values (NOT good)\t")
     if ok == 'n':

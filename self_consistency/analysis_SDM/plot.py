@@ -9,8 +9,8 @@ import functions as fs
 
 Color = {'15':  ['blue','blue'],          #q=0      -> dodgerblue
          '16': ['red','red'],             #3x3      -> orangered
-         '17':  ['k','orchid'],           #cb2      -> magenta
-         '18':  ['k','gold'],              #oct     -> orange
+         '17':  ['magenta','orchid'],           #cb2      -> magenta
+         '18':  ['k','k'],              #oct     -> orange
          '19':  ['silver','silver'],                #-> silver
          '20':  ['limegreen','limegreen'],    #cb1  -> forestgreen
          'labels':  ['k','k']

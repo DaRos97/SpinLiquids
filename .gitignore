@@ -14,6 +14,7 @@ Figures/
 #
 classical_kagome/phase_diagram/__pycache__/
 classical_kagome/phase_diagram/data/
+classical_kagome/phase_diagram/old_data/
 classical_kagome/structure_factor/__pycache__/
 classical_kagome/structure_factor/Figures/
 classical_kagome/structure_factor/data/

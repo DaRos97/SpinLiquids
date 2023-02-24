@@ -30,7 +30,7 @@ phi_label = {'000':0, '005':0.05, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
 PSG = 'SU2' if phi_t == '000' else 'TMD'
 #dirname = '../Data/SC_data/final_'+txt_S+'_'+phi_t+'/' 
-dirname = '../../Data/SC_data/S'+txt_S+'/phi'+phi_t+'/13/' 
+dirname = '../../Data/self_consistency/S'+txt_S+'/phi'+phi_t+'/13/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
 D = np.ndarray((9,9),dtype='object')
@@ -59,8 +59,7 @@ for filename in os.listdir(dirname):
                 txt_conv = 'g' if data[3][0] == 'T' else 'b'
             else:
                 txt_SL = 'n'            #not determined
-                txt_conv = 'g' if data[3][0] == 'T' else 'b'
-            D[i2,i3] = data[0] + txt_conv + txt_SL
+            D[i2,i3] = data[0] + txt_SL
             minE = float(data[4])
 ##########
 pts = len(os.listdir(dirname))
@@ -74,13 +73,19 @@ for i in range(9):
     for j in range(9):
         if D[i,j] == DD_none:
             continue
-        OL = 1 if D[i,j][-1] == 'L' else 0       #Order or Liquid
-        m = 'o' if D[i,j][-2] == 'g' else 'x'
-        if D[i,j][-1] == 'n':
+        if D[i,j][-1] == 'L':
+            m = '*'
+            OL = 1
+        elif D[i,j][-1] == 'O':
+            m = 'o'
+            OL = 0
+        elif D[i,j][-1] == 'n':
             m = '^'
             OL = 0
-        c = Color[D[i,j][:-2]][OL]
-        m = '*' if (m=='o' and OL == 1) else 'o'
+        else:
+            print("aaaaaaaaaaaaaaaaaaaaaaaaaa",i,j)
+        c = Color[D[i,j][:-1]][OL]
+#        m = '*' if (m=='o' and OL == 1) else 'o'
         J2 = -0.3+i*0.6/8
         J3 = -0.3+j*0.6/8
         plt.scatter(J2,J3,color=c,marker=m,s=100)

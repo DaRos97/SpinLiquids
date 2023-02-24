@@ -24,7 +24,7 @@ for s in S_l:
 phi_label = {'000':0, '104':np.pi/3, '209':np.pi/3*2}
 xxx_dm = {'000':1,'104':2, '209':3}
 yyy_s  = {'50':1,'36':2,'34':3,'30':4,'20':5}
-fig = plt.figure(figsize=(12,16))
+fig = plt.figure(figsize=(13,7))
 plt.rcParams.update({
     "text.usetex": True,
 #    "font.family": "Helvetica"
@@ -81,17 +81,17 @@ for s,dm in list_plots:
     pts = len(os.listdir(dirname))
     xxx = xxx_dm[dm]
     yyy = yyy_s[s]
-    plt.subplot(len(yyy_s),len(xxx_dm),(yyy-1)*len(xxx_dm)+xxx)
-    if yyy == 1:
-        plt.title(title_dm,size='xx-large')
+    plt.subplot(len(xxx_dm),len(yyy_s),(xxx-1)*len(yyy_s)+yyy)
     if xxx == 1:
-        plt.text(-1,0,title_s,size='xx-large')
-    if yyy == len(yyy_s):
+        plt.title(title_s,size='xx-large')
+    if yyy == 1:
+        plt.text(-0.9,0,title_dm,size='xx-large')
+    if xxx == len(xxx_dm):
         plt.xticks([-0.3,0,0.3],['-0.3','0','0.3'])
         plt.xlabel(r'$J_2$',size='xx-large')
     else:
         plt.xticks([])
-    if xxx == 1:
+    if yyy == 1:
         plt.yticks([-0.3,0,0.3],['-0.3','0','0.3'])
         plt.ylabel(r'$J_3$',size='xx-large',rotation=0)
     else:
@@ -118,6 +118,13 @@ for s,dm in list_plots:
     for i in range(3):
         x = np.linspace(fit_classical[i][2],fit_classical[i][3],100)
         plt.plot(x,fit_classical[i][0]*x+fit_classical[i][1],'k-',alpha = 0.5,zorder=0)
+
+
+
+plt.show()
+
+
+
 #Legenda
 #plt.figure()
 #plt.subplot(1,3,2)
@@ -141,7 +148,6 @@ for col in Color.values():
 
 #plt.legend(legend_lines,list_leg,loc='upper left',bbox_to_anchor=(1,1),fancybox=True)
 #
-plt.show()
 
 list_leg = ['3x3 LRO','3x3 SL','q=0 LRO','q=0 SL','CB1 LRO','CB1 SL','CB1_NC LRO','CB1_NC SL','just energy','TD limit']
 legend_lines = [Line2D([], [], color="w", marker='o', markerfacecolor="r"),  

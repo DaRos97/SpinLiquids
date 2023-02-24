@@ -8,33 +8,36 @@ import getopt
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','SL'])
-    S = 0.5
-    DM = 0
-    a = '16'
-    K = 13
-    ph = 'LRO'
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3='])
+    S = '50'
+    DM = '000'
+    ans = '15P0'
+    K = '13'
+    J2 = J3 = 0
 except:
     print("Error")
 for opt, arg in opts:
     if opt in ['-S']:
-        S = float(arg)
+        S = arg
     if opt in ['-K']:
-        K = int(arg)
+        K = arg
     if opt in ['-a']:
-        a = arg
+        ans = arg
     if opt == '--DM':
-        DM = float(arg)
-    if opt == '--SL':
-        ph = 'SL'
+        DM = arg
+    if opt == '--j2':
+        J2 = float(arg)
+    if opt == '--j3':
+        J3 = float(arg)
 ################################
 ################################
+ph = 'LRO'
 if ph == 'SL':
     savenameSFzz = "data_SF/SL_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
     savenameSFxy = "data_SF/SL_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 else:
-    savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-    savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
+    savenameSFzz = "data_SF/LRO_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
+    savenameSFxy = "data_SF/LRO_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
 SFzz = np.load(savenameSFzz)
 SFxy = np.load(savenameSFxy)
 Kx,Ky = SFzz.shape

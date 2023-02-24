@@ -63,10 +63,6 @@ def min_energy(lines,considered_ans):
             continue
         if data[0] == '19' and (find_15(head_data,data) or find_16(head_data,data)):
             continue
-        if data[0] == '20':
-            phiA1p = float(data[head_data.index('phiA1p')])
-            if np.abs(phiA1p)<CO_phase or np.abs(phiA1p-2*np.pi)<CO_phase or np.abs(phiA1p-np.pi)<CO_phase:
-                continue
         energy = float(data[head_data.index('Energy')])
         ansatze.append(find_ansatz(head_data,data))
         if energy < minE:

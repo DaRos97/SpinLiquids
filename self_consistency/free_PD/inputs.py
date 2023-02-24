@@ -5,8 +5,8 @@ ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 header = ['J2','J3','Energy','Gap','L']
 #derivative
-cutoff_L = 1e-6
-cutoff_O = 1e-6
+cutoff_L = 1e-7
+cutoff_O = 1e-7
 cutoff_F = 1e-4
 cutoff_solution = 1e-3 
 MaxIter = 500

@@ -9,31 +9,37 @@ import os
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM='])
-    S = 0.5
-    DM = 0
-    a = '16'
-    K = 13
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3='])
+    S = '50'
+    DM = '000'
+    ans = '15P0'
+    K = '13'
+    J2 = J3 = 0
 except:
     print("Error")
 for opt, arg in opts:
     if opt in ['-S']:
-        S = float(arg)
+        S = arg
     if opt in ['-K']:
-        K = int(arg)
+        K = arg
     if opt in ['-a']:
-        a = arg
+        ans = arg
     if opt == '--DM':
-        DM = float(arg)
+        DM = arg
+    if opt == '--j2':
+        J2 = float(arg)
+    if opt == '--j3':
+        J3 = float(arg)
 
-dirname = '../../Data/self_consistency/SDM/13/'
-filename = dirname+'S_DM=('+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+').csv'
-savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-command_plot = 'python plot_SF.py -S '+str(S)+' -K '+str(K)+' --DM '+str(DM)+' -a '+a
+dirname = '../../Data/self_consistency/S'+S+'/phi'+DM+'/'+K+'/'
+#dirname = '../../Data/self_consistency/test/'+K+'/'
+filename = dirname+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+savenameSFzz = "data_SF/LRO_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
+savenameSFxy = "data_SF/LRO_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
+command_plot = 'python plot_SF.py -S '+S+' -K '+K+' --DM '+DM+' -a '+ans+' --j2 '+str(J2)+' --j3 '+str(J3)
 
 if not os.path.isfile(filename):
-    print(S,DM," values are not valid or the point was not computed")
+    print(J2,J3,ans," values are not valid or the point was not computed")
 if os.path.isfile(savenameSFzz):
     os.system(command_plot)
     printed = True
@@ -46,24 +52,37 @@ if printed:
 
 ########################################
 ########################################
-print("Using arguments: ans-> ",a," Dm angle = ",DM," spin S = ",S)
+print("Using arguments: ans-> ",ans," Dm angle = ",DM," spin S = ",S," J2 = ",J2," J3 = ",J3)
 #import data from file
-data = fs.import_data(a,filename)
+data = fs.import_data(ans,filename)
+PpP = []
+for temp_p in range(int(ans[3])):
+    PpP.append(int(ans[4+temp_p]))
 #compute the Ks of the minimum band
-Nx = 49     #points for looking at minima in BZ
-Ny = 49
+Nx = 13     #points for looking at minima in BZ
+Ny = 13
 #Arguments
-args = (S,DM,data)
-K_,is_LRO = fs.find_minima(args,Nx,Ny)
+J = (1,J2,J3)
+S_dic = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
+S_val = S_dic[S]
+DM_dic = {'000':0,'005':0.05,'104':np.pi/3,'209':np.pi*2/3}
+DM_val = DM_dic[DM]
+DM1 = DM_val;   DM2 = 0;    DM3 = 2*DM_val
+t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
+t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
+t3 = np.exp(-1j*DM3);    t3_ = np.conjugate(t3)
+Tau = (t1,t1_,t2,t2_,t3,t3_)
+args = (Tau,S_val,J,ans[:2],PpP)
+K_,is_LRO = fs.find_minima(data,args,Nx,Ny)
 if not is_LRO:
     print("Not LRO, there is a gap now")
     exit()
 #Compute the M in those K and extract the relative columns
-V,degenerate = fs.get_V(K_,args)
+V,degenerate = fs.get_V(K_,data,args)
 #construct the spin matrix for each sublattice and compute the coordinates
 #of the spin at each lattice site
 UC = 12          #even
-m = fs.m_[int(data[0])]
+m = fs.Mm[int(data[0])]
 S_l = np.zeros((3,m,UC,UC//2)) #3 spin components, 6 sites in UC, ij coordinates of UC
 #Pauli matrices
 sigma = np.zeros((3,2,2),dtype = complex)
@@ -121,6 +140,12 @@ for i in range(UC):
 #plt.scatter(r[0].ravel(),r[1].ravel(),c = S[2].ravel(), cmap = cm.plasma)
 #plt.colorbar()
 #plt.show()
+for i in range(1,4):
+    for j in range(1,4):
+        print(i,j,':')
+        for m in range(6):
+            print(S_l[:,m,i,j])
+exit()
 print("Chirality single triangles: ")
 for i in range(1,2):
     for j in range(1,2):
@@ -137,7 +162,7 @@ for i in range(1,2):
         print("Big triangles right and left ",i,",",j,": ",Ch_r,"\t",Ch_l)
         print("Big (2nn) triangles a and b ",i,",",j,": ",CH_a,"\t",CH_b)
 #exit()
-savenameS = "data_SpinOrientations/S_"+a+'_'+str(DM).replace('.','')+'_'+str(S).replace('.','')+'.npy'
+savenameS = "data_SpinOrientations/S_"+ans+'_'+str(J2).replace('.','')+'_'+str(J3).replace('.','')+'.npy'
 np.save(savenameS,S_l)
 print("Spins computed, now compute the spin structure factor")
 #
