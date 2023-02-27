@@ -18,7 +18,7 @@ try:
     txt_S = '50'
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
-    numb_it = 2
+    numb_it = 3
     disp = False
 except:
     print("Error in input parameters",argv)
@@ -86,26 +86,22 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
 L_bounds = inp.L_bounds
-if K == 13:
-    list_ansatze = inp.ansatze_1 + inp.ansatze_2
-else:
-    list_ansatze = sf.find_ansatze(csvref)
+list_ansatze,list_PpP,list_phases = sf.find_lists(J2,J3,csvref,K,numb_it)
+#
 for ans in list_ansatze:
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
-    list_PpP = sf.find_p(ans,J2,J3,csvref,K)
-    for PpP in list_PpP:
+    for it_p,PpP in enumerate(list_PpP[ans]):
         solutions = sf.import_solutions(csvfile,ans,PpP,J2,J3)
         Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
         Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
-        list_phases = sf.find_list_phases(numb_it,csvref,K,ans)
-        for new_phase in list_phases:
-            completed = sf.check_solutions(solutions,index_mixing_ph,new_phase)
+        for new_phase in range(list_phases[ans][it_p]):
+            Pinitial = sf.find_Pinitial(new_phase,numb_it,S,ans,pars,csvref,K,PpP)
+            completed = sf.check_solutions(solutions,index_mixing_ph,Pinitial[index_mixing_ph])
             if completed:
-                print("Already found solution for ans ",ans," at p=",PpP," and phase ",new_phase)
+#                print("Already found solution for ans ",ans," at p=",PpP," and phase ",Pinitial[index_mixing_ph])
                 continue
-            Pinitial = sf.find_Pinitial(new_phase,S,ans,pars,csvref,K)
-            print("Computing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
+            print("\nComputing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
             Tti = t()
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
@@ -124,7 +120,7 @@ for ans in list_ansatze:
                 old_O_1 = np.array(new_O)
                 temp_O = fs.compute_O_all(new_O,new_L,Args_O)
                 #
-                mix_factor = random.uniform(0,0.8)
+                mix_factor = random.uniform(0,1)
                 #
                 for i in range(len(old_O_1)):
                     if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
@@ -152,7 +148,7 @@ for ans in list_ansatze:
                     break
             ######################################################################################################
             ######################################################################################################
-            print("\nNumber of iterations: ",step,'\n')
+#            print("\nNumber of iterations: ",step,'\n')
             conv = 'True' if conv == 1 else 'False'
             if conv == 'False':
                 print("\n\nFound final parameters NOT converged: ",new_L,new_O,"\n")
@@ -163,10 +159,10 @@ for ans in list_ansatze:
             ########################################################
             amp_found = ph_found = False
             for sol in solutions:
-                diff = np.abs(new_L-sol[0])/S
+                diff = np.abs(new_L-sol[0])
                 amp_found = False
                 for p_ in sf.amp_list(pars):     #amplitudes
-                    diff += np.abs(new_O[p_]-sol[p_+1])/S
+                    diff += np.abs(new_O[p_]-sol[p_+1])
                 if diff < inp.cutoff_solution:
                     amp_found = True
                 ph_found = True
@@ -174,12 +170,13 @@ for ans in list_ansatze:
                     diff = np.abs(new_O[p_]-sol[p_+1])
                     if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                         ph_found = False
+                if amp_found and ph_found:
+#                    print("Already found solution, phase ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
+                    break
             if amp_found and ph_found:
-                print("Already found solution, phase ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
                 continue
-            else:
-                r = [new_L] + list(new_O)
-                solutions.append(r)
+            r = [new_L] + list(new_O)
+            solutions.append(r)
             ################################################### Save solution
             E,gap = fs.total_energy(new_O,new_L,Args_L)
             if E == 0:
