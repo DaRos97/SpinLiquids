@@ -4,12 +4,12 @@ import inputs as inp
 import csv
 import os
 ###############################################################
-def find_p(ans,J2,J3):
+def find_p(ans,J2,J3,csvfile,K):
     if ans in inp.ansatze_1:
         if J2:
-            return zip([0,0,1,1],[0,1,0,1])
+            result = zip([0,0,1,1],[0,1,0,1])
         else:
-            return [(2,2)]
+            result = [(2,2)]
     elif ans in inp.ansatze_2:
         l4 = []
         l2 = []
@@ -20,11 +20,97 @@ def find_p(ans,J2,J3):
                     for p5 in [0,1]:
                         l4.append((p2,p3,p4,p5))
         if (J2==0 and J3) or (J3==0 and J2):
-            return l2
+            result = l2
         elif J2 and J3:
-            return l4
+            result = l4
         else:
-            return [(2,2)]
+            result = [(2,2)]
+    if K == 13:
+        return result
+    #Check what is the correct p
+    my_file = Path(csvfile)
+    if my_file.is_file():
+        with open(my_file,'r') as f:
+            lines = f.readlines()
+        N = (len(lines)-1)//2 +1        #2 lines per ansatz
+        for i in range(N):
+            head = lines[i*2].split(',')
+            data = lines[i*2+1].split(',')
+            if data[0] == ans:
+                correct = True
+                for j in range(head.index('L'),len(data)):
+                    if float(data[j]) < -1e-3:
+                        correct = False
+                if not correct:
+                    continue
+                if ans in inp.ansatze_1:
+                    if J2:
+                        result = [(int(data[head.index('p2')]),int(data[head.index('p3')])),]
+                    else:
+                        result = [(2,2),]
+                elif ans in inp.ansatze_2:
+                    if J2 and not J3:
+                        result = [(int(data[head.index('p2')]),int(data[head.index('p3')])),]
+                    if J2 and J3:
+                        result = [(int(data[head.index('p2')]),int(data[head.index('p3')]),int(data[head.index('p4')]),int(data[head.index('p5')])),]
+                    if J3 and not J2:
+                        result = [(int(data[head.index('p4')]),int(data[head.index('p5')])),]
+                return result
+    #if is not found, compute the all
+    return [] 
+#
+def find_list_phases(numb_it,csvfile,K,ans):
+    if K == 13:
+        result = []
+        for iph in range(numb_it+1):
+            result.append(np.pi - iph*np.pi/numb_it)
+        return result
+    else:
+        return (1,)
+#
+def find_Pinitial(new_phase,S,ans,pars,csvfile,K):
+    if K == 13:
+        Ai = S
+        Bi = S/2
+        index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
+        Pinitial  = []
+        for i in range(len(pars)):
+            if i == index_mixing_ph:
+                Pinitial.append(new_phase)
+                continue
+            if pars[i][0] == 'p':
+                if ans == '16' and pars[i] == 'phiA3':
+                    Pinitial.append(0)
+                else:
+                    Pinitial.append(np.pi)
+            elif pars[i][0] == 'A':
+                Pinitial.append(Ai)
+            elif pars[i][0] == 'B':
+                Pinitial.append(Bi)
+        return Pinitial
+    phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
+    my_file = Path(csvfile)
+    if my_file.is_file():
+        with open(my_file,'r') as f:
+            lines = f.readlines()
+        N = (len(lines)-1)//2 +1        #2 lines per ansatz
+        for i in range(N):
+            head = lines[i*2].split(',')
+            data = lines[i*2+1].split(',')
+            if data[0] == ans:
+                Pinitial = []
+                correct = True
+                for j in range(head.index('A1'),len(data)):
+                    if float(data[j]) < -1e-3:
+                        correct = False
+                    Pinitial.append(float(data[j]))
+                if not correct:
+                    continue
+                return Pinitial
+    return find_Pinitial(new_phase,S,ans,pars,csvfile,13)
+
+
+    
 #
 def find_head(ans,J2,J3):
     head_p = ['ans']
@@ -123,6 +209,21 @@ def SaveToCsv(Data,csvfile):
         writer = csv.DictWriter(f, fieldnames = header)
         writer.writeheader()
         writer.writerow(Data)
+#
+def find_ansatze(csvfile):
+    ansatze = []
+    my_file = Path(csvfile)
+    if my_file.is_file():
+        with open(my_file,'r') as f:
+            lines = f.readlines()
+        N = (len(lines)-1)//2 +1        #2 lines per ansatz
+        for i in range(N):
+            data = lines[i*2+1].split(',')
+            if data[0] not in ansatze:
+                ansatze.append(data[0])
+    return ansatze
+#
+
 
 
 

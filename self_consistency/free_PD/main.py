@@ -50,8 +50,10 @@ DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_D
 #DirName = '../../Data/self_consistency/test/'
 #DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
-ReferenceDir = DirName + str(Nx-12) + '/'
-csvfile = DataDir+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+ReferenceDir = DirName + str(13) + '/'
+csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+csvfile = DataDir + csvname
+csvref = ReferenceDir + csvname
 #BZ points
 kxg = np.linspace(0,1,Nx)
 kyg = np.linspace(0,1,Ny)
@@ -83,85 +85,70 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-Ai = S
-Bi = S/2
 L_bounds = inp.L_bounds
-for ans in inp.ansatze_1+inp.ansatze_2:
+if K == 13:
+    list_ansatze = inp.ansatze_1 + inp.ansatze_2
+else:
+    list_ansatze = sf.find_ansatze(csvref)
+for ans in list_ansatze:
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
-    for PpP in sf.find_p(ans,J2,J3):
+    list_PpP = sf.find_p(ans,J2,J3,csvref,K)
+    for PpP in list_PpP:
         solutions = sf.import_solutions(csvfile,ans,PpP,J2,J3)
         Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
         Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
-        for iph in range(numb_it+1):
-            new_phase = np.pi - iph*np.pi/numb_it
+        list_phases = sf.find_list_phases(numb_it,csvref,K,ans)
+        for new_phase in list_phases:
             completed = sf.check_solutions(solutions,index_mixing_ph,new_phase)
             if completed:
                 print("Already found solution for ans ",ans," at p=",PpP," and phase ",new_phase)
                 continue
-            Pinitial = []
-            for i in range(len(pars)):
-                if i == index_mixing_ph:
-                    Pinitial.append(new_phase)
-                    continue
-                if pars[i][0] == 'p':
-                    if ans == '16' and pars[i] == 'phiA3':
-                        Pinitial.append(0)
-                    else:
-                        Pinitial.append(np.pi)
-                elif pars[i][0] == 'A':
-                    Pinitial.append(Ai)
-                elif pars[i][0] == 'B':
-                    Pinitial.append(Bi)
+            Pinitial = sf.find_Pinitial(new_phase,S,ans,pars,csvref,K)
             print("Computing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
             Tti = t()
             #
             new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
             new_L = (L_bounds[1]-L_bounds[0])/2 + L_bounds[0];       old_L_1 = 0;    old_L_2 = 0
-            for STEP in range(inp.N_steps):
-                print("STEP ",STEP+1)
-                step = 0
-                continue_loop = True
-                exit_mixing = False
-                while continue_loop:
-                    if disp:
-                        print("Step ",step,": ",new_L,*new_O,end='\n')
-                    conv = 1
-                    old_L_2 = float(old_L_1)
-                    old_L_1 = float(new_L)
-                    new_L = fs.compute_L(new_O,Args_L)
-                    old_O_2 = np.array(old_O_1)
-                    old_O_1 = np.array(new_O)
-                    temp_O = fs.compute_O_all(new_O,new_L,Args_O)
-                    #
-                    mix_factor = random.uniform(0,0.8)
-                    #
-                    for i in range(len(old_O_1)):
-                        if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
-                            temp_O[i] -= 2*np.pi
-                        new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-                        if pars[i][0] == 'p' and new_O[i] < 0:
-                            new_O[i] += 2*np.pi
-                    step += 1
-                    #Check if all parameters are stable up to precision
-                    if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
-                        conv *= 0
-                    #print(old_O,new_O)
-                    for i in range(len(new_O)):
-                        if pars[i][0] == 'p':
-                            if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_F or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_F:
-                                conv *= 0
-                        else:
-                            if np.abs(old_O_1[i]-new_O[i])/S > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i])/S > inp.cutoff_O:
-                                conv *= 0
-                    if conv:
-                        continue_loop = False
-                        exit_mixing = True
-                    #Margin in number of steps
-                    if step > inp.MaxIter:#*len(pars):
-                        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Going to next STEP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                        break
-                if exit_mixing:
+            #
+            step = 0
+            continue_loop = True
+            while continue_loop:
+                if disp:
+                    print("Step ",step,": ",new_L,*new_O,end='\n')
+                conv = 1
+                old_L_2 = float(old_L_1)
+                old_L_1 = float(new_L)
+                new_L = fs.compute_L(new_O,Args_L)
+                old_O_2 = np.array(old_O_1)
+                old_O_1 = np.array(new_O)
+                temp_O = fs.compute_O_all(new_O,new_L,Args_O)
+                #
+                mix_factor = random.uniform(0,0.8)
+                #
+                for i in range(len(old_O_1)):
+                    if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
+                        temp_O[i] -= 2*np.pi
+                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
+                    if pars[i][0] == 'p' and new_O[i] < 0:
+                        new_O[i] += 2*np.pi
+                step += 1
+                #Check if all parameters are stable up to precision
+                if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
+                    conv *= 0
+                #print(old_O,new_O)
+                for i in range(len(new_O)):
+                    if pars[i][0] == 'p':
+                        if np.abs(old_O_1[i]-new_O[i]) > inp.cutoff_F or np.abs(old_O_2[i]-new_O[i]) > inp.cutoff_F:
+                            conv *= 0
+                    else:
+                        if np.abs(old_O_1[i]-new_O[i])/S > inp.cutoff_O or np.abs(old_O_2[i]-new_O[i])/S > inp.cutoff_O:
+                            conv *= 0
+                if conv:
+                    continue_loop = False
+                #Margin in number of steps
+                if step > inp.MaxIter:#*len(pars):
+                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Exceeded number of steps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     break
             ######################################################################################################
             ######################################################################################################
