@@ -15,7 +15,7 @@ try:
     opts, args = getopt.getopt(argv, "N:K:",["uniform","staggered"])
     J = 40      #inp.J point in phase diagram
     K = 13      #number ok cuts in BZ
-    numb_it = 2
+    numb_it = 3
     DM_type = 'uniform'
 except:
     print("Error in input parameters",argv)
@@ -72,10 +72,7 @@ Tau = (t1,t1_)
 ######################
 L_bounds = inp.L_bounds
 Ti = t()    #Total initial time
-if K == 13:
-    list_ansatze = inp.ansatze_1 + inp.ansatze_2
-else:
-    list_ansatze = sf.find_ansatze(csvref)
+list_ansatze, list_phases = sf.find_lists(csvref,K,numb_it)
 for ans in list_ansatze:
     if ans in inp.ansatze_1:
         pars = ['A1','B1','phiB1']
@@ -91,15 +88,14 @@ for ans in list_ansatze:
     Args_O = (KM,Tau,K,S,pars,ans,DM_type)
     Args_L = (KM,Tau,K,S,ans,DM_type,L_bounds)
     solutions = sf.import_solutions(csvfile,ans)
-    list_phases = sf.find_list_phases(numb_it,csvref,K,ans)
-    for new_phase in list_phases:
-        completed = sf.check_solutions(solutions,index_ch_phase,new_phase)
+    for new_phase in range(list_phases[ans]):
+        Pinitial = sf.find_Pinitial(S,ans,csvref,K,new_phase,index_ch_phase,numb_it)
+        completed = sf.check_solutions(solutions,index_ch_phase,Pinitial[index_ch_phase])
         if completed:
 #            print("Already found solution for ans ",ans," and phase ",new_phase)
             continue
-        Pinitial = sf.find_Pinitial(S,ans,csvref,K,new_phase)
         ####################################################
-#        print("Computing ans ",ans,", par:",pars[index_ch_phase],"=",Pinitial[index_ch_phase])
+        print("Computing ans ",ans,", par:",pars[index_ch_phase],"=",Pinitial[index_ch_phase])
         Tti = t()   #Initial time of the ansatz
         #
         new_O = Pinitial;      old_O_1 = new_O;      old_O_2 = new_O
@@ -164,12 +160,13 @@ for ans in list_ansatze:
                 diff = np.abs(new_O[p]-sol[p+1])
                 if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                     ph_found = False
+            if amp_found and ph_found:
+                print("Already found solution")
+                break
         if amp_found and ph_found:
-            print("Already found solution")
             continue
-        else:
-            r = [new_L] + list(new_O)
-            solutions.append(r)
+        r = [new_L] + list(new_O)
+        solutions.append(r)
         ################################################### Save solution
         E,gap = fs.total_energy(new_O,new_L,Args_L)
         print("Ansatz: ",ans)
