@@ -18,7 +18,8 @@ L_b_2 = 0.01
 #phase diagram
 z = (4,4,2)
 m = (6,6)
-J2i = -0.3; J2f = 0.3; J3i = -0.3; J3f = 0.3; Jpts = 9
+J2i = -0.3; J2f = 0.3; J3i = -0.3; J3f = 0.3; 
+Jpts = 21 #9                ######
 J= []
 for i in range(Jpts):
     for j in range(Jpts):

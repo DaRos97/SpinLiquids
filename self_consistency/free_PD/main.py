@@ -45,10 +45,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
-#DirName = '../../Data/self_consistency/S50/phi000/'
-#DirName = '../../Data/self_consistency/test/'
-#DirName = '../Data/SC_data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../../Data/self_consistency/test/'
+#DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
 csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -58,13 +57,13 @@ csvref = ReferenceDir + csvname
 kxg = np.linspace(0,1,Nx)
 kyg = np.linspace(0,1,Ny)
 kkg = np.ndarray((2,Nx,Ny),dtype=complex)
-kkgp = np.ndarray((2,Nx,Ny))
+kkg_small = np.ndarray((2,Nx,Ny),dtype=complex)
 for i in range(Nx):
     for j in range(Ny):
         kkg[0,i,j] = kxg[i]*2*np.pi
         kkg[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
-        kkgp[0,i,j] = kxg[i]*2*np.pi
-        kkgp[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
+        kkg_small[0,i,j] = kxg[i]*2*np.pi
+        kkg_small[1,i,j] = (kxg[i]+2*kyg[j])*2*np.pi/np.sqrt(3)
 #### vectors of 1nn, 2nn and 3nn
 a1 = (1,0)
 a2 = (-1,np.sqrt(3))
@@ -74,8 +73,8 @@ a12m = (a1[0]-a2[0],a1[1]-a2[1])
 a12p_small = (a1[0]+a2_small[0],a1[1]+a2_small[1])
 a12m_small = (a1[0]-a2_small[0],a1[1]-a2_small[1])
 #### product of lattice vectors with K-matrix
-KM = fs.compute_KM(kkg,a1,a2,a12p,a12m)
-KM_small = fs.compute_KM(kkg,a1,a2_small,a12p_small,a12m_small)
+KM_big = fs.compute_KM(kkg,a1,a2,a12p,a12m)     #large unit cell
+KM_small = fs.compute_KM(kkg_small,a1,a2_small,a12p_small,a12m_small)
 #### DM
 t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
@@ -89,6 +88,7 @@ L_bounds = inp.L_bounds
 list_ansatze,list_PpP,list_phases = sf.find_lists(J2,J3,csvref,K,numb_it)
 #
 for ans in list_ansatze:
+    KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
     for it_p,PpP in enumerate(list_PpP[ans]):
@@ -109,6 +109,7 @@ for ans in list_ansatze:
             #
             step = 0
             continue_loop = True
+#            print(J2,J3,ans)
             while continue_loop:
                 if disp:
                     print("Step ",step,": ",new_L,*new_O,end='\n')

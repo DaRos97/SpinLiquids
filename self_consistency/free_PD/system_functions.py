@@ -34,6 +34,18 @@ def find_lists(J2,J3,csvref,K,numb_it):
             list_phases[ans] = []
             for i in range(len(list_p[ans])):
                 list_phases[ans].append(numb_it)
+######################################################################
+        ansatze = ['15','16','20','17','19','18']
+        if J2:
+            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
+            if J3:
+                list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),]}
+        elif J3:
+            list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),]}
+        else:
+            list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
+        list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,]}
+######################################################################
         return ansatze, list_p, list_phases
     ansatze = []
     list_p = {}
@@ -89,7 +101,9 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         Pinitial  = []
         for i in range(len(pars)):
             if i == index_mixing_ph:
-                Pinitial.append(np.pi-new_phase/(numb_it-1)*np.pi)
+#                Pinitial.append(np.pi-new_phase/(numb_it-1)*np.pi) ######
+                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':0.67,'18':np.pi}           ######
+                Pinitial.append(phase[ans])                         ######
                 continue
             if pars[i][0] == 'p':
                 if ans == '16' and pars[i] == 'phiA3':
