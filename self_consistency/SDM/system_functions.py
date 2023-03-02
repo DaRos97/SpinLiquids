@@ -25,8 +25,8 @@ def find_lists(csvref,K,numb_it):
             if data[0] not in ansatze:
                 ansatze.append(data[0])
                 list_phases[data[0]] = 1
-            else:
-                list_phases[data[0]] += 1
+#            else:
+#                list_phases[data[0]] += 1
     return ansatze, list_phases
 #
 def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
@@ -52,11 +52,23 @@ def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
             head[-1] = head[-1][:-1]
             data = lines[i*2+1].split(',')
             if data[0] == ans:
-                ind_it += 1
-                if ind_it == new_phase:
+                if ans in inp.ansatze_1:
                     for j in range(head.index('A1'),len(data)):
                         Pinitial.append(float(data[j]))
                     return Pinitial
+                else:
+                    phiA1p = float(data[head.index('phiA1p')])
+                    if np.abs(phiA1p) < inp.cutoff_solution or np.abs(phiA1p-2*np.pi) < inp.cutoff_solution or np.abs(phiA1p-np.pi) < inp.cutoff_solution:
+                        continue
+                    for j in range(head.index('A1'),len(data)):
+                        Pinitial.append(float(data[j]))
+                    return Pinitial
+                    
+ #               ind_it += 1
+ #               if ind_it == new_phase:
+ #                   for j in range(head.index('A1'),len(data)):
+ #                       Pinitial.append(float(data[j]))
+#                    return Pinitial
 #
 def import_solutions(filename,ans):
     solutions = []

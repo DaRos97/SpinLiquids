@@ -17,6 +17,7 @@ try:
     K = 13      #number ok cuts in BZ
     numb_it = 3
     DM_type = 'uniform'
+    disp = False
 except:
     print("Error in input parameters",argv)
     exit()
@@ -41,7 +42,7 @@ DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
 #DirName = '../../Data/self_consistency/SDM/test/'
 #DirName = '../../Data/self_consistency/SDM/'+DM_type+'/'
 DataDir = DirName + str(K) + '/'
-ReferenceDir = DirName + str(K-12) + '/'
+ReferenceDir = DirName + str(13) + '/'
 csvname = 'S_DM=('+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+').csv'
 csvfile = DataDir + csvname
 csvref = ReferenceDir + csvname
@@ -103,7 +104,8 @@ for ans in list_ansatze:
         step = 0
         continue_loop = True
         while continue_loop:    #all pars at once
-#           print("Step ",step,": ",new_L,*new_O,end='\n')
+            if disp:
+                print("Step ",step,": ",new_L,*new_O,end='\n')
             conv = 1
             old_O_2 = np.array(old_O_1)
             old_O_1 = np.array(new_O)
@@ -112,7 +114,7 @@ for ans in list_ansatze:
             new_L = fs.compute_L(new_O,Args_L)
             temp_O = fs.compute_O_all(new_O,new_L,Args_O)
             #
-            mix_factor = random.uniform(0,1)
+            mix_factor = random.uniform(0,1) if K == 13 else 0
             #
             for i in range(len(old_O_1)):
                 if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
