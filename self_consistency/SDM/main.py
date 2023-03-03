@@ -114,7 +114,7 @@ for ans in list_ansatze:
             new_L = fs.compute_L(new_O,Args_L)
             temp_O = fs.compute_O_all(new_O,new_L,Args_O)
             #
-            mix_factor = random.uniform(0,1) if K == 13 else 0
+            mix_factor = 0#random.uniform(0,1) if K == 13 else 0
             #
             for i in range(len(old_O_1)):
                 if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:

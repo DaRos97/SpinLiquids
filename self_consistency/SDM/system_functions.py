@@ -9,7 +9,7 @@ def find_lists(csvref,K,numb_it):
         ansatze = inp.ansatze_1+inp.ansatze_2
         list_phases = {}
         for ans in ansatze:
-            list_phases[ans] = numb_it
+            list_phases[ans] = 1# numb_it
         return ansatze, list_phases
     ansatze = []
     list_phases = {}
@@ -33,11 +33,12 @@ def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
     if K == 13:
         Ai = S
         Bi = S/2
+        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.87,'20':1.95}
         if ans in inp.ansatze_1:
             Pinitial = [Ai,Bi,np.pi]
         else:
             Pinitial = [Ai,0,Bi,np.pi]
-        Pinitial[index_ch_phase] = np.pi - new_phase/(numb_it-1)*np.pi
+        Pinitial[index_ch_phase] = phi_i[ans]   #np.pi - new_phase/(numb_it-1)*np.pi
         return Pinitial
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
     my_file = Path(csvfile)
