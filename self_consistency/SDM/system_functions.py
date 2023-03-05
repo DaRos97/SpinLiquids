@@ -5,15 +5,24 @@ import csv
 import os
 ###############################################################
 def find_lists(csvref,K,numb_it):
+    my_file = Path(csvref)
     if K == 13:
         ansatze = inp.ansatze_1+inp.ansatze_2
+        if my_file.is_file():
+            with open(my_file,'r') as f:
+                lines = f.readlines()
+            N = (len(lines)-1)//2 +1        #2 lines per ansatz
+            for i in range(N):
+                head = lines[i*2].split(',')
+                head[-1] = head[-1][:-1]
+                data = lines[i*2+1].split(',')
+                ansatze.remove(data[0])
         list_phases = {}
         for ans in ansatze:
             list_phases[ans] = 1# numb_it
         return ansatze, list_phases
     ansatze = []
     list_phases = {}
-    my_file = Path(csvref)
     if my_file.is_file():
         with open(my_file,'r') as f:
             lines = f.readlines()
@@ -33,7 +42,7 @@ def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
     if K == 13:
         Ai = S
         Bi = S/2
-        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.87,'20':1.95}
+        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.8,'20':1.95}
         if ans in inp.ansatze_1:
             Pinitial = [Ai,Bi,np.pi]
         else:

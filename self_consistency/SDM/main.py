@@ -12,7 +12,7 @@ import random
 ####### Outside inputs
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "N:K:",["uniform","staggered"])
+    opts, args = getopt.getopt(argv, "N:K:",["uniform","staggered","disp"])
     J = 40      #inp.J point in phase diagram
     K = 13      #number ok cuts in BZ
     numb_it = 3
@@ -32,14 +32,16 @@ for opt, arg in opts:
         DM_type = 'staggered'
     if opt == '--uniform':
         DM_type = 'uniform'
+    if opt=='--disp':
+        disp = True
 J1 = 1
 S = inp.S_list[J%inp.S_pts]
 DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
-#DirName = '../../Data/self_consistency/SDM/test/'
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
+DirName = '../../Data/self_consistency/SDM/test/'
 #DirName = '../../Data/self_consistency/SDM/'+DM_type+'/'
 DataDir = DirName + str(K) + '/'
 ReferenceDir = DirName + str(13) + '/'
@@ -74,6 +76,7 @@ Tau = (t1,t1_)
 L_bounds = inp.L_bounds
 Ti = t()    #Total initial time
 list_ansatze, list_phases = sf.find_lists(csvref,K,numb_it)
+#list_ansatze = ['19']
 for ans in list_ansatze:
     if ans in inp.ansatze_1:
         pars = ['A1','B1','phiB1']
@@ -114,14 +117,16 @@ for ans in list_ansatze:
             new_L = fs.compute_L(new_O,Args_L)
             temp_O = fs.compute_O_all(new_O,new_L,Args_O)
             #
-            mix_factor = 0#random.uniform(0,1) if K == 13 else 0
+            mix_factor = random.uniform(0,1) if K == 13 else 0
             #
             for i in range(len(old_O_1)):
-                if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
-                    temp_O[i] -= 2*np.pi
+                #if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
+                #    temp_O[i] -= 2*np.pi
+                if pars[i][0] == 'p':
+                    new_O[i] = temp_O[i]
                 new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-                if pars[i][0] == 'p' and new_O[i] < 0:
-                    new_O[i] += 2*np.pi
+                #if pars[i][0] == 'p' and new_O[i] < 0:
+                #    new_O[i] += 2*np.pi
             step += 1
             #Check if all parameters are stable up to precision
             if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
@@ -166,6 +171,8 @@ for ans in list_ansatze:
                 print("Already found solution")
                 break
         if amp_found and ph_found:
+            continue
+        if ans in ['19','20'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution or np.abs(new_O[1]-2*np.pi)<inp.cutoff_solution):
             continue
         r = [new_L] + list(new_O)
         solutions.append(r)

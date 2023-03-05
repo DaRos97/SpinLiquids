@@ -4,9 +4,9 @@ ansatze_1 = ['15','16','17','18']
 ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 #derivative
-cutoff_L = 1e-6
-cutoff_O = 1e-6
-cutoff_F = 1e-4
+cutoff_L = 1e-7
+cutoff_O = 1e-7
+cutoff_F = 1e-5
 cutoff_solution = 1e-3
 MaxIter = 10000
 L_method = 'Brent'
