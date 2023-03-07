@@ -85,19 +85,21 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
 list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvfile,csvref,K,numb_it)
-print(list_ansatze)
 #
 for ans in list_ansatze:
-    L_bounds = inp.L_bounds #if K == 13 else (L_ref[ans]-inp.L_b_2,L_ref[ans]+inp.L_b_2)
     KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
     for it_p,PpP in enumerate(list_PpP[ans]):
         solutions = sf.import_solutions(csvfile,ans,PpP,J2,J3)
         Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
-        Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
         for new_phase in range(list_phases[ans][it_p]):
-            Pinitial = sf.find_Pinitial(new_phase,numb_it,S,ans,pars,csvref,K,PpP)
+            Pinitial,Linitial = sf.find_Pinitial(new_phase,numb_it,S,ans,pars,csvref,K,PpP)
+            if K == 13:
+                L_bounds = inp.L_bounds 
+            else:
+                L_bounds = (Linitial-inp.L_b_2,Linitial+inp.L_b_2)
+            Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
             completed = sf.check_solutions(solutions,index_mixing_ph,Pinitial[index_mixing_ph])
             if completed:
 #                print("Already found solution for ans ",ans," at p=",PpP," and phase ",Pinitial[index_mixing_ph])
@@ -121,16 +123,13 @@ for ans in list_ansatze:
                 old_O_1 = np.array(new_O)
                 temp_O = fs.compute_O_all(new_O,new_L,Args_O)
                 #
-                mix_factor = random.uniform(0,1) #if K == 13 else 0
+                mix_factor = random.uniform(0,1) #if K == 13 else random.uniform(0.5,1)
                 mix_phase = 0.5#random.uniform(0,1)
                 mix_phase2 = 0#mix_phase #random.uniform(0,1)
                 #
                 ind_imp_phase = 1 if ans in ['19','20'] else 2
-#                print(pars)
                 for i in range(len(old_O_1)):
                     if pars[i][0] == 'p' and i == ind_imp_phase:
-#                        if np.abs(temp_O[i]-old_O_1[i]) > np.pi:
-#                            temp_O[i] -= 2*np.pi
                         new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase + temp_O[i]*(1-mix_phase))))
                         if new_O[i] < 0:
                             new_O[i] += 2*np.pi

@@ -14,7 +14,7 @@ prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
 L_bounds = (0,5)
-L_b_2 = 0.2
+L_b_2 = 0.05
 #phase diagram
 z = (4,4,2)
 m = (6,6)

@@ -155,7 +155,7 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
                 Pinitial.append(Ai)
             elif pars[i][0] == 'B':
                 Pinitial.append(Bi)
-        return Pinitial
+        return Pinitial,0
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
     my_file = Path(csvfile)
     cont_phi = -1
@@ -193,7 +193,8 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
             Pinitial = []
             for j in range(head.index('A1'),len(data)):
                 Pinitial.append(float(data[j]))
-            return Pinitial
+            Linitial = float(data[head.index('L')])
+            return Pinitial, Linitial
 #
 def find_head(ans,J2,J3):
     head_p = ['ans']
