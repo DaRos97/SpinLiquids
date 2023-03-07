@@ -9,17 +9,17 @@ cutoff_L = 1e-6
 cutoff_O = 1e-6
 cutoff_F = 1e-4
 cutoff_solution = 1e-3 
-MaxIter = 500
+MaxIter = 5000
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
-L_bounds = (0.2,5)
-L_b_2 = 0.01
+L_bounds = (0,5)
+L_b_2 = 0.2
 #phase diagram
 z = (4,4,2)
 m = (6,6)
 J2i = -0.3; J2f = 0.3; J3i = -0.3; J3f = 0.3; 
-Jpts = 21 #9                ######
+Jpts = 9 #21 #9                ######
 J= []
 for i in range(Jpts):
     for j in range(Jpts):

@@ -45,8 +45,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../../Data/self_consistency/test/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../../Data/self_consistency/test/'
 #DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
@@ -84,10 +84,10 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-L_bounds = inp.L_bounds
-list_ansatze,list_PpP,list_phases = sf.find_lists(J2,J3,csvref,K,numb_it)
+list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvref,K,numb_it)
 #
 for ans in list_ansatze:
+    L_bounds = inp.L_bounds if K == 13 else (L_ref[ans]-inp.L_b_2,L_ref[ans]+inp.L_b_2)
     KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
@@ -109,10 +109,9 @@ for ans in list_ansatze:
             #
             step = 0
             continue_loop = True
-#            print(J2,J3,ans)
             while continue_loop:
                 if disp:
-                    print("Step ",step,": ",new_L,*new_O,end='\n')
+                    print("Step ",step,": ",new_L,*new_O[:],end='\n')
                 conv = 1
                 old_L_2 = float(old_L_1)
                 old_L_1 = float(new_L)
@@ -121,14 +120,27 @@ for ans in list_ansatze:
                 old_O_1 = np.array(new_O)
                 temp_O = fs.compute_O_all(new_O,new_L,Args_O)
                 #
-                mix_factor = random.uniform(0,1)
+                mix_factor = random.uniform(0,1) #if K == 13 else 0
+                mix_phase = 0.5#random.uniform(0,1)
+                mix_phase2 = 0#mix_phase #random.uniform(0,1)
                 #
+                ind_imp_phase = 1 if ans in ['19','20'] else 2
+#                print(pars)
                 for i in range(len(old_O_1)):
-                    if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
-                        temp_O[i] -= 2*np.pi
-                    new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-                    if pars[i][0] == 'p' and new_O[i] < 0:
-                        new_O[i] += 2*np.pi
+                    if pars[i][0] == 'p' and i == ind_imp_phase:
+#                        if np.abs(temp_O[i]-old_O_1[i]) > np.pi:
+#                            temp_O[i] -= 2*np.pi
+                        new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase + temp_O[i]*(1-mix_phase))))
+                        if new_O[i] < 0:
+                            new_O[i] += 2*np.pi
+                    elif pars[i][0] == 'p':
+                        if np.abs(temp_O[i]-2*np.pi) < 1e-3:
+                            temp_O[i] -= 2*np.pi
+                        new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase2 + temp_O[i]*(1-mix_phase2))))
+                        if new_O[i] < 0:
+                            new_O[i] += 2*np.pi
+                    else:
+                        new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
                 step += 1
                 #Check if all parameters are stable up to precision
                 if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
@@ -175,6 +187,8 @@ for ans in list_ansatze:
 #                    print("Already found solution, phase ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
                     break
             if amp_found and ph_found:
+                continue
+            if ans in ['19','20'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution or np.abs(new_O[1]-2*np.pi)<inp.cutoff_solution):
                 continue
             r = [new_L] + list(new_O)
             solutions.append(r)

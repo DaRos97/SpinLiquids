@@ -46,9 +46,10 @@ def find_lists(J2,J3,csvref,K,numb_it):
             list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
         list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,]}
 ######################################################################
-        return ansatze, list_p, list_phases
+        return ansatze, list_p, list_phases,0
     ansatze = []
     list_p = {}
+    Ls = {}
     list_phases = {}
     my_file = Path(csvref)
     if my_file.is_file():
@@ -76,6 +77,7 @@ def find_lists(J2,J3,csvref,K,numb_it):
                 ansatze.append(data[0])
                 list_p[data[0]] = [temp_p,]
                 list_phases[data[0]] = [1,]
+                Ls[data[0]] = float(data[head.index('L')])
             else:           #If ans already in list, but solution is anyway valid
                 k_ = 0
                 for ttt,PpP in enumerate(list_p[data[0]]):
@@ -91,7 +93,7 @@ def find_lists(J2,J3,csvref,K,numb_it):
                 else:
                     list_p[data[0]].append(temp_p)
                     list_phases[data[0]].append(1)
-    return ansatze, list_p, list_phases
+    return ansatze, list_p, list_phases, Ls
 #
 def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
     if K == 13:
@@ -107,6 +109,8 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
                 continue
             if pars[i][0] == 'p':
                 if ans == '16' and pars[i] == 'phiA3':
+                    Pinitial.append(0)
+                elif ans == '15' and pars[i] == 'phiB3':
                     Pinitial.append(0)
                 else:
                     Pinitial.append(np.pi)
