@@ -3,8 +3,35 @@ from pathlib import Path
 import inputs as inp
 import csv
 import os
-###############################################################
 def find_lists(J2,J3,csvref,K,numb_it):
+    if K == 13:
+        ansatze = inp.ansatze_1+inp.ansatze_2
+        my_file = Path(csvref)
+        if my_file.is_file():
+            with open(my_file,'r') as f:
+                lines = f.readlines()
+            N = (len(lines)-1)//2 +1        #2 lines per ansatz
+            for i in range(N):
+                head = lines[i*2].split(',')
+                head[-1] = head[-1][:-1]
+                data = lines[i*2+1].split(',')
+                if data[0] in ansatze:
+                    ansatze.remove(data[0])
+        if J2:
+            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
+            if J3:
+                list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),]}
+        elif J3:
+            list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),]}
+        else:
+            list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
+        list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,]}
+        return ansatze, list_p, list_phases, 0
+    else:
+        return find_lists_2(J2,J3,csvref,K,numb_it)
+
+###############################################################
+def find_lists_2(J2,J3,csvref,K,numb_it):
     if K == 13:
         ansatze = inp.ansatze_1+inp.ansatze_2
         list_p = {}
