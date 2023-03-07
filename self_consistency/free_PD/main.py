@@ -45,9 +45,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../../Data/self_consistency/test/'
-#DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
 csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -155,6 +155,7 @@ for ans in list_ansatze:
                             conv *= 0
                 if conv:
                     continue_loop = False
+                    new_L = fs.compute_L(new_O,Args_L)
                 #Margin in number of steps
                 if step > inp.MaxIter:#*len(pars):
                     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Exceeded number of steps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
