@@ -3,9 +3,22 @@ from pathlib import Path
 import inputs as inp
 import csv
 import os
-def find_lists(J2,J3,csvref,K,numb_it):
-    ansatze = inp.ansatze_1+inp.ansatze_2
-    my_file = Path(csvref)
+def find_lists(J2,J3,csvfile,csvref,K,numb_it):
+    if K == 13:
+        ansatze = inp.ansatze_1+inp.ansatze_2
+    else:
+        ansatze = []
+        my_file = Path(csvref)
+        if my_file.is_file():
+            with open(my_file,'r') as f:
+                lines = f.readlines()
+            N = (len(lines)-1)//2 +1        #2 lines per ansatz
+            for i in range(N):
+                head = lines[i*2].split(',')
+                head[-1] = head[-1][:-1]
+                data = lines[i*2+1].split(',')
+                ansatze.append(data[0])
+    my_file = Path(csvfile)
     if my_file.is_file():
         with open(my_file,'r') as f:
             lines = f.readlines()
