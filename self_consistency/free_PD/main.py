@@ -84,10 +84,10 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvref,K,numb_it)
+list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvfile,K,numb_it)
 #
 for ans in list_ansatze:
-    L_bounds = inp.L_bounds if K == 13 else (L_ref[ans]-inp.L_b_2,L_ref[ans]+inp.L_b_2)
+    L_bounds = inp.L_bounds #if K == 13 else (L_ref[ans]-inp.L_b_2,L_ref[ans]+inp.L_b_2)
     KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
     head_ans,pars = sf.find_head(ans,J2,J3)
@@ -134,11 +134,11 @@ for ans in list_ansatze:
                         if new_O[i] < 0:
                             new_O[i] += 2*np.pi
                     elif pars[i][0] == 'p':
-                        if np.abs(temp_O[i]-2*np.pi) < 1e-3:
-                            temp_O[i] -= 2*np.pi
                         new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase2 + temp_O[i]*(1-mix_phase2))))
                         if new_O[i] < 0:
                             new_O[i] += 2*np.pi
+                        if np.abs(new_O[i]-2*np.pi) < 1e-3:
+                            new_O[i] -= 2*np.pi
                     else:
                         new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
                 step += 1
