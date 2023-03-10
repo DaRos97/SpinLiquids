@@ -12,7 +12,7 @@ try:
     opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3='])
     S = '50'
     DM = '000'
-    ans = '15P0'
+    ans = '15'
     K = '13'
     J2 = J3 = 0
 except:
@@ -55,9 +55,17 @@ if printed:
 print("Using arguments: ans-> ",ans," Dm angle = ",DM," spin S = ",S," J2 = ",J2," J3 = ",J3)
 #import data from file
 data = fs.import_data(ans,filename)
-PpP = []
-for temp_p in range(int(ans[3])):
-    PpP.append(int(ans[4+temp_p]))
+if J2:
+    list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
+    if J3:
+        list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),]}
+elif J3:
+    list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),]}
+else:
+    list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
+PpP = list_p[ans][0]
+#for temp_p in range(int(ans[3])):
+#    PpP.append(int(ans[4+temp_p]))
 #compute the Ks of the minimum band
 Nx = 13     #points for looking at minima in BZ
 Ny = 13
@@ -72,7 +80,7 @@ t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 t2 = np.exp(-1j*DM2);    t2_ = np.conjugate(t2)
 t3 = np.exp(-1j*DM3);    t3_ = np.conjugate(t3)
 Tau = (t1,t1_,t2,t2_,t3,t3_)
-args = (Tau,S_val,J,ans[:2],PpP)
+args = (Tau,S_val,J,ans,PpP)
 K_,is_LRO = fs.find_minima(data,args,Nx,Ny)
 if not is_LRO:
     print("Not LRO, there is a gap now")
@@ -82,7 +90,9 @@ V,degenerate = fs.get_V(K_,data,args)
 #construct the spin matrix for each sublattice and compute the coordinates
 #of the spin at each lattice site
 UC = 12          #even
-m = fs.Mm[int(data[0])]
+p1 = 0 if ans in fs.ans_p0 else 1
+m = fs.Mm[p1]
+factor = 2 if m == 3 else 1
 S_l = np.zeros((3,m,UC,UC//2)) #3 spin components, 6 sites in UC, ij coordinates of UC
 #Pauli matrices
 sigma = np.zeros((3,2,2),dtype = complex)
@@ -90,7 +100,7 @@ sigma[0] = np.array([[0,1],[1,0]])
 sigma[1] = np.array([[0,-1j],[1j,0]])
 sigma[2] = np.array([[1,0],[0,-1]])
 a1 = np.array([1,0])
-a2 = np.array([-1,np.sqrt(3)])
+a2 = np.array([-1/factor,np.sqrt(3)/factor])
 if degenerate:                   #FIX degeneracy with multi gap-closing points!!!!!!!!!!!!!!!!!
     if len(K_) > 1:
         print("Not supported multi-gap closing points with degeneracy")
@@ -140,34 +150,34 @@ for i in range(UC):
 #plt.scatter(r[0].ravel(),r[1].ravel(),c = S[2].ravel(), cmap = cm.plasma)
 #plt.colorbar()
 #plt.show()
-for i in range(1,4):
-    for j in range(1,4):
-        print(i,j,':')
-        for m in range(6):
-            print(S_l[:,m,i,j])
-exit()
-print("Chirality single triangles: ")
-for i in range(1,2):
-    for j in range(1,2):
-        ch_u1 = np.dot(S_l[:,1,i,j],np.cross(S_l[:,2,i,j],S_l[:,3,i,j]))      #up
-        ch_u2 = np.dot(S_l[:,4,i,j],np.cross(S_l[:,5,i,j],S_l[:,0,i,j+1]))    #up
-        ch_d1 = np.dot(S_l[:,0,i,j],np.cross(S_l[:,1,i+1,j],S_l[:,2,i,j]))      #down
-        ch_d2 = np.dot(S_l[:,3,i,j],np.cross(S_l[:,4,i+1,j],S_l[:,5,i,j]))      #down
-        Ch_r = np.dot(S_l[:,2,i-1,j],np.cross(S_l[:,3,i,j],S_l[:,4,i,j]))      #right
-        Ch_l = np.dot(S_l[:,1,i,j],np.cross(S_l[:,5,i,j],S_l[:,3,i-1,j]))      #left
-        CH_a = np.dot(S_l[:,1,i+1,j],np.cross(S_l[:,3,i,j],S_l[:,2,i,j]))      #2nn
-        CH_b = np.dot(S_l[:,2,i,j],np.cross(S_l[:,4,i+1,j],S_l[:,3,i,j]))      #2nn
-        print("Small triangles up ",i,",",j,": ",ch_u1,"\t",ch_u2)
-        print("Small triangles down ",i,",",j,": ",ch_d1,"\t",ch_d2)
-        print("Big triangles right and left ",i,",",j,": ",Ch_r,"\t",Ch_l)
-        print("Big (2nn) triangles a and b ",i,",",j,": ",CH_a,"\t",CH_b)
+if 0:
+    for i in range(1,4):
+        for j in range(1,4):
+            print(i,j,':')
+            for m in range(3):
+                print(S_l[:,m,i,j])
+    print("Chirality single triangles: ")
+    for i in range(1,2):
+        for j in range(1,2):
+            ch_u1 = np.dot(S_l[:,1,i,j],np.cross(S_l[:,2,i,j],S_l[:,3,i,j]))      #up
+            ch_u2 = np.dot(S_l[:,4,i,j],np.cross(S_l[:,5,i,j],S_l[:,0,i,j+1]))    #up
+            ch_d1 = np.dot(S_l[:,0,i,j],np.cross(S_l[:,1,i+1,j],S_l[:,2,i,j]))      #down
+            ch_d2 = np.dot(S_l[:,3,i,j],np.cross(S_l[:,4,i+1,j],S_l[:,5,i,j]))      #down
+            Ch_r = np.dot(S_l[:,2,i-1,j],np.cross(S_l[:,3,i,j],S_l[:,4,i,j]))      #right
+            Ch_l = np.dot(S_l[:,1,i,j],np.cross(S_l[:,5,i,j],S_l[:,3,i-1,j]))      #left
+            CH_a = np.dot(S_l[:,1,i+1,j],np.cross(S_l[:,3,i,j],S_l[:,2,i,j]))      #2nn
+            CH_b = np.dot(S_l[:,2,i,j],np.cross(S_l[:,4,i+1,j],S_l[:,3,i,j]))      #2nn
+            print("Small triangles up ",i,",",j,": ",ch_u1,"\t",ch_u2)
+            print("Small triangles down ",i,",",j,": ",ch_d1,"\t",ch_d2)
+            print("Big triangles right and left ",i,",",j,": ",Ch_r,"\t",Ch_l)
+            print("Big (2nn) triangles a and b ",i,",",j,": ",CH_a,"\t",CH_b)
 #exit()
 savenameS = "data_SpinOrientations/S_"+ans+'_'+str(J2).replace('.','')+'_'+str(J3).replace('.','')+'.npy'
 np.save(savenameS,S_l)
 print("Spins computed, now compute the spin structure factor")
 #
 #Now compute the SSF
-UC = m
+UC = 6
 Kx = 17     #point to compute the SSF in the EBZ
 Ky = 17
 kxg = np.linspace(-8*np.pi/3,8*np.pi/3,Kx)
@@ -178,10 +188,10 @@ SFxy = np.zeros((Kx,Ky))
 for i in range(Kx):
     for j in range(Ky):
         K[:,i,j] = np.array([kxg[i],kyg[j]])
-        if not fs.EBZ(K[:,i,j]):
+        if not fs.EBZ(K[:,i,j],m):
             SFxy[i,j], SFzz[i,j] = ('nan','nan')
             continue
-        SFxy[i,j], SFzz[i,j] = fs.SpinStructureFactor(K[:,i,j],S_l,UC)
+        SFxy[i,j], SFzz[i,j] = fs.SpinStructureFactor(K[:,i,j],S_l,UC,m)
 
 np.save(savenameSFzz,SFzz)
 np.save(savenameSFxy,SFxy)
