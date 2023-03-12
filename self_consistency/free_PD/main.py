@@ -19,7 +19,8 @@ try:
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
     numb_it = 3
-    disp = False
+    save_to_file = False
+    disp = True #False
 except:
     print("Error in input parameters",argv)
     exit()
@@ -36,6 +37,7 @@ for opt, arg in opts:
         disp = True 
 J1 = 1
 J2, J3 = inp.J[N]
+print(J2,J3)
 J = (J1,J2,J3)
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
@@ -45,8 +47,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
-#DirName = '../../Data/self_consistency/test/'
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../../Data/self_consistency/test/'
 #DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
@@ -102,7 +104,6 @@ for ans in list_ansatze:
             Args_L = (KM,Tau,K,S,J,pars,ans,PpP,L_bounds)
             completed = sf.check_solutions(solutions,index_mixing_ph,Pinitial[index_mixing_ph])
             if completed:
-#                print("Already found solution for ans ",ans," at p=",PpP," and phase ",Pinitial[index_mixing_ph])
                 continue
             print("\nComputing ans ",ans," p=",PpP,", par:",pars[index_mixing_ph],"=",Pinitial[index_mixing_ph])
             Tti = t()
@@ -210,7 +211,8 @@ for ans in list_ansatze:
                 DataDic[head_ans[len(data)+ind2]] = new_O[ind2]
             print(DataDic)
             print("Time of solution : ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
-            sf.SaveToCsv(DataDic,csvfile)
+            if save_to_file:
+                sf.SaveToCsv(DataDic,csvfile)
 
 print("Total time: ",'{:5.2f}'.format((t()-Ti)/60),' minutes.')                           ################
 
