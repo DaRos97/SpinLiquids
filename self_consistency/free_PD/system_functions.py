@@ -5,10 +5,8 @@ import csv
 import os
 def find_lists(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
-        ansatze = inp.ansatze_1+inp.ansatze_2
-    else:
-        ansatze = []
-        my_file = Path(csvref)
+        ansatze = ['16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
+        my_file = Path(csvfile)
         if my_file.is_file():
             with open(my_file,'r') as f:
                 lines = f.readlines()
@@ -17,18 +15,24 @@ def find_lists(J2,J3,csvfile,csvref,K,numb_it):
                 head = lines[i*2].split(',')
                 head[-1] = head[-1][:-1]
                 data = lines[i*2+1].split(',')
-                ansatze.append(data[0])
-    my_file = Path(csvfile)
-    if my_file.is_file():
-        with open(my_file,'r') as f:
-            lines = f.readlines()
-        N = (len(lines)-1)//2 +1        #2 lines per ansatz
-        for i in range(N):
-            head = lines[i*2].split(',')
-            head[-1] = head[-1][:-1]
-            data = lines[i*2+1].split(',')
-            if data[0] in ansatze:
-                ansatze.remove(data[0])
+                if data[0] in ansatze:
+                    ansatze.remove(data[0])
+    else:
+        ansatze = ['nan',]
+        my_file = Path(csvref)
+        if my_file.is_file():
+            with open(my_file,'r') as f:
+                lines = f.readlines()
+            N = (len(lines)-1)//2 +1        #2 lines per ansatz
+            minE = 10
+            for i in range(N):
+                head = lines[i*2].split(',')
+                head[-1] = head[-1][:-1]
+                data = lines[i*2+1].split(',')
+                temp_E = float(data[head.index('Energy')])
+                if temp_E < minE:
+                    minE = temp_E
+                    ansatze[0] = data[0]
     if J2:
         list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
         if J3:

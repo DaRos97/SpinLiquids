@@ -19,8 +19,8 @@ try:
     K = 13      #number ok cuts in BZ
     txt_DM = '000'  #DM angle from list
     numb_it = 3
-    save_to_file = False
-    disp = True #False
+    save_to_file = True
+    disp = False
 except:
     print("Error in input parameters",argv)
     exit()
@@ -37,7 +37,6 @@ for opt, arg in opts:
         disp = True 
 J1 = 1
 J2, J3 = inp.J[N]
-print(J2,J3)
 J = (J1,J2,J3)
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
@@ -47,8 +46,8 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
-DirName = '../../Data/self_consistency/test/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '../../Data/self_consistency/test/'
 #DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
@@ -191,6 +190,12 @@ for ans in list_ansatze:
             if amp_found and ph_found:
                 continue
             if ans in ['19','20'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution or np.abs(new_O[1]-2*np.pi)<inp.cutoff_solution):
+                continue
+            pos_sol = True
+            for par_o in new_O:
+                if par_o < -1e-3:
+                    pos_sol = False
+            if not pos_sol:
                 continue
             r = [new_L] + list(new_O)
             solutions.append(r)
