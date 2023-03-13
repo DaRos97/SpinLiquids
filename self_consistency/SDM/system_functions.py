@@ -7,7 +7,7 @@ import os
 def find_lists(csvref,K,numb_it):
     my_file = Path(csvref)
     if K == 13:
-        ansatze = inp.ansatze_1+inp.ansatze_2
+        ansatze = ['15','16','19','20','17','18']#inp.ansatze_1+inp.ansatze_2
         if my_file.is_file():
             with open(my_file,'r') as f:
                 lines = f.readlines()
@@ -19,7 +19,7 @@ def find_lists(csvref,K,numb_it):
                 ansatze.remove(data[0])
         list_phases = {}
         for ans in ansatze:
-            list_phases[ans] = 1# numb_it
+            list_phases[ans] = 1
         return ansatze, list_phases
     ansatze = []
     list_phases = {}
@@ -42,7 +42,7 @@ def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
     if K == 13:
         Ai = S
         Bi = S/2
-        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.8,'20':1.95}
+        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':1,'20':1.95}
         if ans in inp.ansatze_1:
             Pinitial = [Ai,Bi,np.pi]
         else:
@@ -88,13 +88,14 @@ def import_solutions(filename,ans):
             lines = f.readlines()
         N = (len(lines)-1)//2 +1        #2 lines per ansatz
         for i in range(N):
+            head = lines[i*2+1].split(',')
+            head[-1] = head[-1][:-1]
             data = lines[i*2+1].split(',')
             if data[0] == ans:
                 r = []
-                for p in range(5,len(data)):
+                for p in range(head.index('A1'),len(data)):
                     r.append(float(data[p]))
                 solutions.append(r)
-
     return solutions
 #
 def check_solutions(solutions,index,new_phase):

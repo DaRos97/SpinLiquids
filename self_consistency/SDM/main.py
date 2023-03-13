@@ -17,6 +17,7 @@ try:
     K = 13      #number ok cuts in BZ
     numb_it = 3
     DM_type = 'uniform'
+    save_to_file = True
     disp = False
 except:
     print("Error in input parameters",argv)
@@ -40,8 +41,8 @@ DM = inp.DM_list[J//inp.S_pts]
 print("Computing S=%f and DM=%f"%(S,DM))
 DM1 = DM
 #Filenames
-#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
-DirName = '../../Data/self_consistency/SDM/test/'
+DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_SDM/Data/'+DM_type+'/'
+#DirName = '../../Data/self_consistency/SDM/test/'
 #DirName = '../../Data/self_consistency/SDM/'+DM_type+'/'
 DataDir = DirName + str(K) + '/'
 ReferenceDir = DirName + str(13) + '/'
@@ -53,23 +54,27 @@ Nx = Ny = K
 kxg = np.linspace(0,1,Nx)
 kyg = np.linspace(0,1,Ny)
 kkg = np.ndarray((2,Nx,Ny),dtype=complex)
-kkgp = np.ndarray((2,Nx,Ny))
+kkg_small = np.ndarray((2,Nx,Ny),dtype=complex)
 for i in range(Nx):
     for j in range(Ny):
         kkg[0,i,j] = kxg[i]*2*np.pi
         kkg[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
-        kkgp[0,i,j] = kxg[i]*2*np.pi
-        kkgp[1,i,j] = (kxg[i]+kyg[j])*2*np.pi/np.sqrt(3)
+        kkg_small[0,i,j] = kxg[i]*2*np.pi
+        kkg_small[1,i,j] = (kxg[i]+2*kyg[j])*2*np.pi/np.sqrt(3)
 #### product of lattice vectors with K-matrix
-KM = fs.KM(kkg,inp.a1,inp.a2,inp.a12p,inp.a12m)
+a1 = (1,0)
+a2 = (-1,np.sqrt(3))
+a2_small = (-1/2,np.sqrt(3)/2)
+a12p = (a1[0]+a2[0],a1[1]+a2[1])
+a12m = (a1[0]-a2[0],a1[1]-a2[1])
+a12p_small = (a1[0]+a2_small[0],a1[1]+a2_small[1])
+a12m_small = (a1[0]-a2_small[0],a1[1]-a2_small[1])
+#### product of lattice vectors with K-matrix
+KM_big = fs.compute_KM(kkg,a1,a2,a12p,a12m)     #large unit cell
+KM_small = fs.compute_KM(kkg_small,a1,a2_small,a12p_small,a12m_small)
 #### DM
 t1 = np.exp(-1j*DM1);    t1_ = np.conjugate(t1)
 Tau = (t1,t1_)
-########################
-########################    Initiate routine
-########################
-#need to check existing file in order to see which pars to compute, and if it is complete
-
 ######################
 ###################### Compute the parameters by self concistency
 ######################
@@ -89,6 +94,8 @@ for ans in list_ansatze:
         list_amp = [0,2]
         list_phase = [1,3]
     header = ['ans','S','DM','Energy','Gap','L'] + pars
+    KM = KM_small if ans in inp.ansatze_p0 else KM_big
+    #
     Args_O = (KM,Tau,K,S,pars,ans,DM_type)
     Args_L = (KM,Tau,K,S,ans,DM_type,L_bounds)
     solutions = sf.import_solutions(csvfile,ans)
@@ -96,7 +103,6 @@ for ans in list_ansatze:
         Pinitial = sf.find_Pinitial(S,ans,csvref,K,new_phase,index_ch_phase,numb_it)
         completed = sf.check_solutions(solutions,index_ch_phase,Pinitial[index_ch_phase])
         if completed:
-#            print("Already found solution for ans ",ans," and phase ",new_phase)
             continue
         ####################################################
         print("Computing ans ",ans,", par:",pars[index_ch_phase],"=",Pinitial[index_ch_phase])
@@ -117,16 +123,16 @@ for ans in list_ansatze:
             new_L = fs.compute_L(new_O,Args_L)
             temp_O = fs.compute_O_all(new_O,new_L,Args_O)
             #
-            mix_factor = random.uniform(0,1) if K == 13 else 0
+            mix_factor = 0#random.uniform(0,1) if K == 13 else 0
+            mix_phase = 0
             #
             for i in range(len(old_O_1)):
-                #if pars[i][0] == 'p' and np.abs(temp_O[i]-old_O_1[i]) > np.pi:
-                #    temp_O[i] -= 2*np.pi
                 if pars[i][0] == 'p':
-                    new_O[i] = temp_O[i]
+                    new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase + temp_O[i]*(1-mix_phase))))
+                    if new_O[i] < 0:
+                        new_O[i] += 2*np.pi
+                    continue
                 new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
-                #if pars[i][0] == 'p' and new_O[i] < 0:
-                #    new_O[i] += 2*np.pi
             step += 1
             #Check if all parameters are stable up to precision
             if np.abs(old_L_2-new_L)/S > inp.cutoff_L:
@@ -168,28 +174,33 @@ for ans in list_ansatze:
                 if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                     ph_found = False
             if amp_found and ph_found:
-                print("Already found solution")
                 break
         if amp_found and ph_found:
             continue
         if ans in ['19','20'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution or np.abs(new_O[1]-2*np.pi)<inp.cutoff_solution):
             continue
+        pos_sol = True
+        for par_o in new_O:
+            if par_o < -1e-3:
+                pos_sol = False
+        if not pos_sol:
+            continue
         r = [new_L] + list(new_O)
         solutions.append(r)
         ################################################### Save solution
         E,gap = fs.total_energy(new_O,new_L,Args_L)
-        print("Ansatz: ",ans)
-        print('L = ',new_L)
-        print('parameters: ',*new_O)
-        print('energy and gap: ',E,gap)
-        print("Time of solution : ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
+        if E == 0:
+            continue
         data = [ans,S,DM,E,gap,new_L]
         DataDic = {}
         for ind in range(len(data)):
             DataDic[header[ind]] = data[ind]
         for ind2 in range(len(new_O)):
             DataDic[header[len(data)+ind2]] = new_O[ind2]
-        sf.SaveToCsv(DataDic,csvfile)
+        print(DataDic)
+        print("Time of solution : ",'{:5.2f}'.format((t()-Tti)/60),' minutes\n')              ################
+        if save_to_file:
+            sf.SaveToCsv(DataDic,csvfile)
 
 
 print("Total time: ",'{:5.2f}'.format((t()-Ti)/60),' minutes.')                           ################
