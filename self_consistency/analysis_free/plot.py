@@ -9,9 +9,9 @@ from matplotlib.lines import Line2D
 
 Color = {'15':  ['blue','aqua','dodgerblue'],          #q=0      -> dodgerblue
          '16': ['red','y','orangered'],             #3x3      -> orangered
-         '17':  ['k','k','gray'],           #cb2      -> magenta
+         '17':  ['pink','pink','gray'],           #cb2      -> magenta
          '18':  ['k','k','gray'],              #oct     -> orange
-         '19':  ['pink','pink','magenta'],                #-> silver
+         '19':  ['gray','gray','magenta'],                #-> silver
          '20':  ['forestgreen','lime','limegreen'],    #cb1  -> forestgreen
          'labels':  ['k','k','k']
          }
@@ -44,16 +44,17 @@ else:
 #
 phi_label = {'000':0, '005':0.05, '104':np.pi/3, '209':np.pi/3*2}
 phi = phi_label[phi_t]
-#dirname = '../Data/SC_data/final_'+txt_S+'_'+phi_t+'/' 
 dirname = '../../Data/self_consistency/S'+txt_S+'/phi'+phi_t+'/'+K+'/' 
+#dirname = '../../Data/self_consistency/440_small_S50/phi000/13/' 
 title = "Phi = "+phi_t+", S = 0."+txt_S
 #
-D = np.ndarray((9,9),dtype='object')
+Grid = 31#9
+D = np.ndarray((Grid,Grid),dtype='object')
 DD_none = D[0,0]
 Ji = -0.3
-Jf = 0.3
-J2 = np.linspace(Ji,Jf,9)
-J3 = np.linspace(Ji,Jf,9)
+Jf = -Ji
+J2 = np.linspace(Ji,Jf,Grid)
+J3 = np.linspace(Ji,Jf,Grid)
 X,Y = np.meshgrid(J2,J3)
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
@@ -61,10 +62,13 @@ for filename in os.listdir(dirname):
     if len(lines) > 0:
         head_data = lines[0].split(',')
         data = lines[1].split(',')
-        j2 = float(data[head_data.index('J2')])
-        j3 = float(data[head_data.index('J3')])
-        i2 = list(J2).index(j2) 
-        i3 = list(J3).index(j3) 
+        try:
+            j2 = float(data[head_data.index('J2')])
+            j3 = float(data[head_data.index('J3')])
+            i2 = list(J2).index(j2) 
+            i3 = list(J3).index(j3) 
+        except:
+            continue
     else:
         continue
     ansatz = fs.min_energy(lines,considered_ans)
@@ -79,8 +83,8 @@ plt.title(title)
 plt.gca().set_aspect('equal')
 plt.axhline(y=0,color='k',zorder=-1)
 plt.axvline(x=0,color='k',zorder=-1)
-for i in range(9):
-    for j in range(9):
+for i in range(Grid):
+    for j in range(Grid):
         if D[i,j] == DD_none:
             continue
         ans = D[i,j][:2]

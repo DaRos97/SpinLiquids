@@ -1,5 +1,5 @@
 import numpy as np
-
+from pathlib import Path
 ans_1 = ('15','16','17','18')
 ans_2 = ('19','20')
 
@@ -61,7 +61,8 @@ def min_energy(lines,considered_ans):
                 bad = True
         if bad:
             continue
-        if data[0] == '19' and (find_15(head_data,data) or find_16(head_data,data)):
+        if data[0] in ['19','20'] and (np.abs(float(data[head_data.index('phiA1p')])) < 1e-3 or np.abs(float(data[head_data.index('phiA1p')])-np.pi) < 1e-3):
+                #and (find_15(head_data,data) or find_16(head_data,data)):
             continue
         energy = float(data[head_data.index('Energy')])
         ansatze.append(find_ansatz(head_data,data))
@@ -116,8 +117,43 @@ def find_16(head,data):     #establish if 19 is same result as 16
         if p4 != 1 or p5 != 1:
             result = False
     return True
-
-
+#
+def find_gap(args,K):
+    ans,txt_DM,J2,J3,txt_S = args
+    DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+    DataDir = DirName + str(K) + '/'
+    csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+    csvfile = DataDir + csvname
+    my_file = Path(csvfile)
+    if my_file.is_file():
+        with open(my_file,'r') as f:
+            lines = f.readlines()
+        N = (len(lines)-1)//2 +1        #2 lines per ansatz
+        for i in range(N):
+            head = lines[i*2].split(',')
+            head[-1] = head[-1][:-1]
+            data = lines[i*2+1].split(',')
+            valid = True
+            for j in range(head.index('A1'),len(data)):
+                if float(data[j]) < -1e-3:
+                    valid = False
+            if not valid:
+                continue
+            if data[0] != ans:
+                continue
+            if ans in ans_1:
+                return float(data[head.index('Gap')])
+            phiA1p = float(data[head.index('phiA1p')])
+            if np.abs(phiA1p) < CO_phase or np.abs(phiA1p-2*np.pi) < CO_phase or np.abs(phiA1p-np.pi) < CO_phase:
+                continue
+            return float(data[head.index('Gap')])
+#
+def quadratic(x,a,b):
+    return a/(3*x**2) + b
+def ql(x,a,b,c):
+    return a/(3*x**2) + c/x + b
+def linear(x,a,b):
+    return a/x + b
 
 
 

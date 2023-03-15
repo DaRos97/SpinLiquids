@@ -5,14 +5,15 @@ import sys
 import getopt
 import functions as fs
 from scipy.optimize import curve_fit
+from pathlib import Path
 import scipy.odr as odr
 
 #parameters are: ansatz, j2,j3, DM angle, Spin
-list_ans = ['3x3','q0','cb1','cb1_nc','cb2','oct']
+list_ans = ['15','16','17','18','19','20']
 DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax=',"fit=","data="])
+    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','Nmax='])
     S = 0.5
     txt_S = '50'
     J2 = 0
@@ -21,8 +22,6 @@ try:
     ans = '3x3'
     N_max = 13
     fit = 'quad'
-    type_of_ans = 'SU2'
-    dataType = 'real'
 except:
     print("Error in input parameters")
     exit()
@@ -39,11 +38,10 @@ for opt, arg in opts:
     if opt == '--j3':
         J3 = float(arg)
     if opt == '--DM':
-        DM = arg.replace('.','')
+        DM = arg
         if DM not in DM_list.keys():
             print('Not computed DM angle')
             exit()
-        type_of_ans = 'SU2' if DM in ['000','104','209'] else 'TMD'
     if opt == '--ans':
         ans = arg 
         if ans not in list_ans:
@@ -51,39 +49,35 @@ for opt, arg in opts:
             exit()
     if opt == '--Nmax':
         N_max = int(arg)
-    if opt == '--fit':
-        fit = arg
-    if opt == '--data':
-        dataType = arg
 
 print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
-print("On data: ",dataType)
 #import data
-arguments = (ans,DM,J2,J3,txt_S,dataType)
-arg2 = (ans,DM_list[DM],J2,J3,txt_S,type_of_ans)
+arguments = (ans,DM,J2,J3,txt_S)
 data = []
 gaps1 = []
 gaps2 = []
 #### N list for different ansatze depending on gap closing points
-N_ = [13,25,37] if N_max == 37 else [13,25,37,49]
+N_list = [13,25,37,49,62]
+N_ = N_list[:N_list.index(N_max)+1]
 bad_N = []
 ###
 for n in N_:
-    data.append(fs.get_data(arguments,n))
-    #gap = fs.find_gap(data[-1],n,arg2)
-    try:
-        gaps1.append(data[-1][0])           #gap in .csv file
-    except:
-        print("N=",n," is not correct")
-        #gaps1.append(0)
-        bad_N.append(n)
-        continue
-        try:
-            gaps1.append(gaps1[-1])
-        except:
-            continue
-    #gaps2.append(gap)                   #gap evaluated at the moment
-    print("N = ",n," :",gaps1[-1])
+    DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+DM+"/"
+    DataDir = DirName + str(n) + '/'
+    csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+    csvfile = DataDir + csvname
+    my_file = Path(csvfile)
+    if my_file.is_file():
+        with open(my_file,'r') as f:
+            lines = f.readlines()
+        N = (len(lines)-1)//2 +1        #2 lines per ansatz
+        for i in range(N):
+            head = lines[i*2].split(',')
+            head[-1] = head[-1][:-1]
+            data = lines[i*2+1].split(',')
+            if data[0] == ans:
+                temp = float(data[head.index('Gap')])
+    gaps1.append(temp)
 #fit
 fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
 try:
@@ -112,6 +106,7 @@ plt.plot(N_,gaps1,'b*')
 if conv:
     plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
     plt.hlines(pars[1],N_[0],N_[-1],color='blue',linestyles='--')
+    plt.text(30,abs(gaps1[0]+gaps1[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
 if 0:
     func = np.poly1d(z)
     N_steps = np.linspace(N_[0],100,1000)
@@ -123,5 +118,4 @@ if 0:
     plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
 plt.xlabel('L',fontsize=16)
 plt.ylabel('gap',fontsize=16)
-plt.text(30,abs(gaps1[0]+gaps1[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
 plt.show()

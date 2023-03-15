@@ -17,10 +17,12 @@ Color = {'15':  ['blue','blue'],          #q=0      -> dodgerblue
          }
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "K:",['staggered','final'])
+    opts, args = getopt.getopt(argv, "K:",['staggered','uniform','final','only='])
     K = 13
     DM_type = 'uniform'
     final = False
+    do_only = False
+    only = '15'
 except:
     print("Error in inputs")
     exit()
@@ -29,13 +31,17 @@ for opt, arg in opts:
         K = int(arg)
     if opt == '--staggered':
         DM_type = 'staggered'
+    if opt == '--uniform':
+        DM_type = 'uniform'
     if opt == '--final':
         final = True
+    if opt == '--only':
+        do_only = True
+        only = arg
 if final:
     dirname = '../../Data/self_consistency/SDM/final_SDM/' 
 else: 
     dirname = '../../Data/self_consistency/SDM/'+DM_type+'/'+str(K)+'/' 
-
 #
 S_max = 0.5
 DM_max = 0.15
@@ -46,6 +52,10 @@ DM_list = np.linspace(0,DM_max,DM_pts,endpoint=True)
 X,Y = np.meshgrid(DM_list,S_list)
 D = np.ndarray((DM_pts,S_pts),dtype='object')
 DD_none = D[0,0]
+if do_only:
+    considered_ans = [only]
+else:
+    considered_ans = Color.keys()
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
         lines = f.readlines()
@@ -57,28 +67,10 @@ for filename in os.listdir(dirname):
         s = list(S_list).index(float(data[1]))          #was 0
     else:
         continue
-    ansatz = fs.min_energy(lines)
+    ansatz = fs.min_energy(lines,considered_ans)
     if ansatz == 0:
         continue
     D[dm,s] = ansatz
-    continue
-    minE1 = 10
-    for i in range(N):
-        head = lines[i*2].split(',')
-        head[-1] = head[-1][:-1]
-        data = lines[i*2+1].split(',')
-        if i == 0:
-            dm = list(DM_list).index(float(data[2]))        #was 1
-            s = list(S_list).index(float(data[1]))          #was 0
-        energy = float(data[head.index('Energy')])
-        if energy < minE1:
-            i_ = i
-            minE1 = energy
-    head = lines[i_*2].split(',')
-    head[-1] = head[-1][:-1]
-    data = lines[i_*2+1].split(',')
-    D[dm,s] = fs.find_ansatz(head,data)
-#    print(D[dm,s])
 
 ##########
 s = 90

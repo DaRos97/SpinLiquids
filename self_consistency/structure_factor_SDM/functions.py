@@ -3,24 +3,9 @@ from scipy import linalg as LA
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-m_ = [6,6]
+m_ = [3,6]
 orders = [('15','16','19'),('17','18','20')]
 cutoff_solution = 1e-3
-def find_ans(data):
-    p1 = int(data[4])
-    phiA1p = float(data[8])
-    if np.abs(phiA1p) < cutoff_solution or np.abs(phiA1p-2*np.pi) < cutoff_solution:
-        ord_ = 0
-    elif np.abs(phiA1p-np.pi) < cutoff_solution:
-        ord_ = 1
-    else:
-        ord_ = 2
-
-    result = orders[p1][ord_]
-    return result
-    
-
-
 def import_data(ans,filename):
     P = []
     done = False
@@ -28,26 +13,20 @@ def import_data(ans,filename):
         lines = f.readlines()
     N = (len(lines)-1)//2 + 1
     for i in range(N):
+        head = lines[i*2].split(',')
+        head[-1] = head[-1][:-1]
         data = lines[i*2+1].split(',')
-        if find_ans(data) == ans:
-            print('Gap value found: ',data[3])
-            P.append(int(data[4]))
-            S = float(data[0])
-            for d in data[5:]:
-                P.append(float(d))
+        if data[0] == ans:
+            print('Gap value found: ',data[head.index('Gap')])
+            for p in range(head.index('L'),len(data)):
+                P.append(float(data[p]))
             done = True
             break
-    if 0:#done:            #transform to actual parameters?
-        P[1] *= S
-        P[2] *= S
-        P[3] *= S
-        P[5] *= S
-        P[7] *= S
     return P
 ####
 def find_minima(args,Nx,Ny):
-    S,DM,data = args
-    p1 = int(data[0])
+    S,DM,data,ans = args
+    p1 = 0 if ans in ['15','16','19'] else 1
     m = m_[p1]
     J = np.zeros((2*m,2*m))
     for i in range(m):
@@ -57,10 +36,11 @@ def find_minima(args,Nx,Ny):
     nyg = np.linspace(-1/2,1/2,Ny)
     K = np.zeros((2,Nx,Ny))
     en = np.zeros((Nx,Ny))
+    factor = 2 if m == 3 else 1
     for i in range(Nx):
         for j in range(Ny):
-            K[:,i,j] = np.array([nxg[i]*2*np.pi,(nxg[i]+nyg[j])*2*np.pi/np.sqrt(3)])
-            N = Nk(K[:,i,j],DM,data)
+            K[:,i,j] = np.array([nxg[i]*2*np.pi,(nxg[i]+factor*nyg[j])*2*np.pi/np.sqrt(3)])
+            N = Nk(K[:,i,j],DM,data,ans)
             Ch = LA.cholesky(N)
             temp = np.dot(np.dot(Ch,J),np.conjugate(Ch.T))
             en[i,j] = LA.eigvalsh(temp)[m]
@@ -113,7 +93,7 @@ def find_minima(args,Nx,Ny):
     return k_list, LRO
 ####
 def get_V(K_,args):
-    S,DM,data = args
+    S,DM,data,ans = args
     p1 = int(data[0])
     m = m_[p1]
     J = np.zeros((2*m,2*m))
@@ -123,7 +103,7 @@ def get_V(K_,args):
     V = []
     degenerate = False
     for K in K_:
-        N = Nk(K,DM,data)
+        N = Nk(K,DM,data,ans)
         Ch = LA.cholesky(N) #upper triangular
         w,U = LA.eigh(np.dot(np.dot(Ch,J),np.conjugate(Ch.T)))
         w_ = np.diag(np.sqrt(np.einsum('ij,j->i',J,w)))
@@ -193,23 +173,38 @@ def SpinStructureFactor(k,L,UC):
 
 
 
-def Nk(K,DM,data):
+def Nk(K,DM,data,ans):
+    #
+    t1 = np.exp(-1j*DM);    t1_ = np.conjugate(t1)
+    
+    if ans in ['15','16','19']:
+        p1 = 0
+    else:
+        p1 = 1
+    if ans in ['15','16','17','18']:
+        L,A1,B1,phiB1 = data
+        phiB1p = -phiB1
+    else:
+        L,A1,phiA1p,B1,phiB1 = data
+        phiB1p = phiB1
+    if ans in ['15','17']:
+        phiA1p = 0
+    if ans in ['16','18']:
+        phiA1p = np.pi
+    B1p = B1
+    A1p = A1
+    J1 = 1/2
+    m = m_[p1]
+    ################
     a1 = (1,0)
-    a2 = (-1,np.sqrt(3))
+    factor = 2 if m == 3 else 1
+    a2 = (-1/factor,np.sqrt(3)/factor)
     a12p = (a1[0]+a2[0],a1[1]+a2[1])
     a12m = (a1[0]-a2[0],a1[1]-a2[1])
     ka1 = np.exp(1j*np.dot(a1,K));   ka1_ = np.conjugate(ka1);
     ka2 = np.exp(1j*np.dot(a2,K));   ka2_ = np.conjugate(ka2);
     ka12p = np.exp(1j*np.dot(a12p,K));   ka12p_ = np.conjugate(ka12p);
     ka12m = np.exp(1j*np.dot(a12m,K));   ka12m_ = np.conjugate(ka12m);
-    #
-    p1 = data[0]
-    t1 = np.exp(-1j*DM);    t1_ = np.conjugate(t1)
-    m = m_[p1]
-    L = float(data[1])
-    P = data[2:]
-    J1 = 1/2
-    A1,A1p,phiA1p,B1,phiB1,B1p,phiB1p = P
     ################
     N = np.zeros((2*m,2*m), dtype=complex)
     ##################################### B

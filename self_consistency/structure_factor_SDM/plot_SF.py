@@ -8,12 +8,13 @@ import getopt
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','SL'])
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','SL','staggered','uniform'])
     S = 0.5
     DM = 0
     a = '16'
     K = 13
     ph = 'LRO'
+    DM_type = 'uniform'
 except:
     print("Error")
 for opt, arg in opts:
@@ -27,14 +28,18 @@ for opt, arg in opts:
         DM = float(arg)
     if opt == '--SL':
         ph = 'SL'
+    if opt == '--staggered':
+        DM_type = 'staggered'
+    if opt == '--uniform':
+        DM_type = 'uniform'
 ################################
 ################################
 if ph == 'SL':
     savenameSFzz = "data_SF/SL_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
     savenameSFxy = "data_SF/SL_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
 else:
-    savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-    savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
+    savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+DM_type+'.npy'
+    savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+DM_type+'.npy'
 SFzz = np.load(savenameSFzz)
 SFxy = np.load(savenameSFxy)
 Kx,Ky = SFzz.shape

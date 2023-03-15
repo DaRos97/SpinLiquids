@@ -48,7 +48,7 @@ def find_ansatz(head,data):
     
     return result
 
-def min_energy(lines):
+def min_energy(lines,considered_ans):
     N = (len(lines)-1)//2 + 1
     minE = 10
     index = 0
@@ -59,9 +59,13 @@ def min_energy(lines):
         head_data = lines[2*i].split(',')
         head_data[-1] = head_data[-1][:-1]
         data = lines[2*i+1].split(',')
-        if data[0] == '19' and (find_15(head_data,data) or find_16(head_data,data)):
+        if data[0] not in considered_ans:
+            continue
+        if data[0] in ['19','20'] and (find_15(head_data,data) or find_16(head_data,data) or np.abs(float(data[head_data.index('phiA1p')])-np.pi/2) < CO_phase):
             continue
         energy = float(data[head_data.index('Energy')])
+        if energy == 0:
+            continue
         ansatze.append(find_ansatz(head_data,data))
         if energy < minE:
             minE = energy

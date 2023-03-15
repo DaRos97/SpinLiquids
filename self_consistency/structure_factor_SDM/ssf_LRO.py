@@ -9,11 +9,12 @@ import os
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM='])
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','staggered','uniform'])
     S = 0.5
     DM = 0
     a = '16'
     K = 13
+    DM_type = 'uniform'
 except:
     print("Error")
 for opt, arg in opts:
@@ -25,12 +26,16 @@ for opt, arg in opts:
         a = arg
     if opt == '--DM':
         DM = float(arg)
+    if opt == '--staggered':
+        DM_type = 'staggered'
+    if opt == '--uniform':
+        DM_type = 'uniform'
 
-dirname = '../../Data/self_consistency/SDM/13/'
+dirname = '../../Data/self_consistency/SDM/'+DM_type+'/13/'
 filename = dirname+'S_DM=('+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+').csv'
-savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'.npy'
-command_plot = 'python plot_SF.py -S '+str(S)+' -K '+str(K)+' --DM '+str(DM)+' -a '+a
+savenameSFzz = "data_SF/LRO_SFzz_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+DM_type+'.npy'
+savenameSFxy = "data_SF/LRO_SFxy_"+a+'_'+'{:5.4f}'.format(DM).replace('.','')+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+DM_type+'.npy'
+command_plot = 'python plot_SF.py -S '+str(S)+' -K '+str(K)+' --DM '+str(DM)+' -a '+a+' --'+DM_type
 
 if not os.path.isfile(filename):
     print(S,DM," values are not valid or the point was not computed")
@@ -53,7 +58,7 @@ data = fs.import_data(a,filename)
 Nx = 49     #points for looking at minima in BZ
 Ny = 49
 #Arguments
-args = (S,DM,data)
+args = (S,DM,data,a)
 K_,is_LRO = fs.find_minima(args,Nx,Ny)
 if not is_LRO:
     print("Not LRO, there is a gap now")

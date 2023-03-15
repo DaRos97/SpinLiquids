@@ -42,7 +42,7 @@ def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
     if K == 13:
         Ai = S
         Bi = S/2
-        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':1,'20':1.95}
+        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.25,'20':1.95}
         if ans in inp.ansatze_1:
             Pinitial = [Ai,Bi,np.pi]
         else:

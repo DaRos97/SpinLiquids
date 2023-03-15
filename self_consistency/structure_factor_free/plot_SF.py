@@ -54,6 +54,8 @@ for i in range(Kx):
 plt.figure(figsize=(12,12))
 #plt.subplot(1,2,1)
 plt.gca().set_aspect('equal')
+title = 'S='+S+', DM='+DM+', (J2,J3)=('+str(J2)+','+str(J3)+'), ansatz: '+ans
+plt.title(title)
 #
 plt.plot(fs.X1,fs.fu1(fs.X1),'k-')
 plt.hlines(2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
