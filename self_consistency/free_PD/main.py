@@ -87,6 +87,7 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
 list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvfile,csvref,K,numb_it)
 #
+print(J2,J3,list_ansatze)
 for ans in list_ansatze:
     KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2

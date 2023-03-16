@@ -1,6 +1,6 @@
 import numpy as np
 ####
-ansatze_1 = ['15','16','17','18']
+ansatze_1 = ['15','16','17','18','14']
 ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 header = ['J2','J3','Energy','Gap','L']

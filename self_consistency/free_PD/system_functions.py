@@ -5,7 +5,7 @@ import csv
 import os
 def find_lists(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
-        ansatze = ['16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
+        ansatze = ['14','16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
         my_file = Path(csvfile)
         if my_file.is_file():
             with open(my_file,'r') as f:
@@ -34,14 +34,14 @@ def find_lists(J2,J3,csvfile,csvref,K,numb_it):
                     minE = temp_E
                     ansatze[0] = data[0]
     if J2:
-        list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
+        list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),], '14':[(0,0),]}
         if J3:
-            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),]}
+            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),], '14':[(0,0),]}
     elif J3:
-        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),]}
+        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),], '14':[(2,2),]}
     else:
-        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
-    list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,]}
+        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),], '14':[(2,2),]}
+    list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,], '14':[1,]}
     return ansatze, list_p, list_phases, 0
 
 ###############################################################
@@ -145,19 +145,25 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         for i in range(len(pars)):
             if i == index_mixing_ph:
 #                Pinitial.append(np.pi-new_phase/(numb_it-1)*np.pi) ######
-                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi}           ######
+                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi, '14':np.pi-0.95}           ######
                 Pinitial.append(phase[ans])                         ######
                 continue
             if pars[i][0] == 'p':
-                if ans == '16' and pars[i] == 'phiA3':
+                if ans in ['16','14'] and pars[i] == 'phiA3':
                     Pinitial.append(0)
                 elif ans == '15' and pars[i] == 'phiB3':
                     Pinitial.append(0)
                 else:
                     Pinitial.append(np.pi)
             elif pars[i][0] == 'A':
+                if ans == '14' and pars[i] == 'A1':
+                    Pinitial.append(0.25)
+                    continue
                 Pinitial.append(Ai)
             elif pars[i][0] == 'B':
+                if ans == '14' and pars[i] == 'B1':
+                    Pinitial.append(0.43)
+                    continue
                 Pinitial.append(Bi)
         return Pinitial,0
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
@@ -214,7 +220,7 @@ def find_head(ans,J2,J3):
         pars = ['A1','phiA1p','B1','phiB1']
     header = head_p + inp.header
     if J2:
-        if ans in ['15','17']:
+        if ans in ['15','17','14']:
             pars += ['A2','phiA2','A2p','phiA2p','B2','B2p']
         elif ans in ['16','18']:
             pars += ['B2','B2p']
@@ -225,7 +231,7 @@ def find_head(ans,J2,J3):
             pars += ['B3','phiB3']
         elif ans == '16':
             pars += ['A3','phiA3','B3','phiB3']
-        elif ans == '17':
+        elif ans in ['17','14']:
             pars += ['A3','phiA3']
         if ans in ['19','20']:
             pars += ['A3','B3']
