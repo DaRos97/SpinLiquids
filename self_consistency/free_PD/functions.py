@@ -18,9 +18,11 @@ def compute_K1(P,pars,J):
     for i,ps in enumerate(pars):
         if ps[0] in ['A','B']:
             ind = int(ps[1])-1
-            K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+            temp = J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+            K1 += temp
             if ps[-1] != 'p' and ps+'p' not in pars:
-                K1 += J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+                temp2 = J[ind]*inp.z[ind]/4*P[i]**2*dic_sign[ps[0]]
+                K1 += temp2
     return K1
 
 def total_energy(P,L,args):
@@ -58,6 +60,7 @@ def total_energy(P,L,args):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
     r2 /= m
+    print("omega: ",r2)
     #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())
@@ -175,7 +178,7 @@ def compute_O_all(old_O,L,args):
             new_O[p] = np.angle(res)
             if new_O[p] < 0:
                 new_O[p] += 2*np.pi
-            if new_O[p] > np.pi and par in ['phiA1p','phiB1']:
+            if new_O[p] > np.pi and par in ['phiA1p']:
                 new_O[p] = 2*np.pi - new_O[p]
         else:                   #Amplitudes
             if 'phi'+par in pars or par == 'A1':           #just amplitude since the phase is in the minimization process

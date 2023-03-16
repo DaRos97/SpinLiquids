@@ -175,7 +175,7 @@ def compute_O_all(old_O,L,args):
             new_O[p] = np.angle(res)
             if new_O[p] < 0:
                 new_O[p] += 2*np.pi
-            if new_O[p] > np.pi and par in ['phiA1p','phiB1']:
+            if new_O[p] > np.pi and par in ['phiA1p']:
                 new_O[p] = 2*np.pi - new_O[p]
         else:                   #Amplitudes
             if 'phi'+par in pars or par == 'A1':           #just amplitude since the phase is in the minimization process

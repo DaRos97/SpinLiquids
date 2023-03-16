@@ -9,6 +9,7 @@ from matplotlib.lines import Line2D
 
 Color = {'15':  ['blue','aqua','dodgerblue'],          #q=0      -> dodgerblue
          '16': ['red','y','orangered'],             #3x3      -> orangered
+         '14': ['k','k','orangered'],             #3x3      -> orangered
          '17':  ['pink','pink','gray'],           #cb2      -> magenta
          '18':  ['k','k','gray'],              #oct     -> orange
          '19':  ['gray','gray','magenta'],                #-> silver

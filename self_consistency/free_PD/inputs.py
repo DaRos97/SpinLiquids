@@ -20,7 +20,7 @@ z = (4,4,2)
 m = (3,6)
 J2i = J3i = -0.3 
 J2f = J3f = 0.3 
-Jpts = 31                ######
+Jpts = 9                ######
 J= []
 for i in range(Jpts):
     for j in range(Jpts):
