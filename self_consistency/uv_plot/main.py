@@ -17,7 +17,7 @@ try:
     N = 40      #inp.J point in phase diagram
     txt_S = '50'
     K = 13      #number ok cuts in BZ
-    numb_it = 3
+    numb_it = 10
     save_to_file = True
     disp = False
 except:
@@ -193,13 +193,13 @@ for ans in list_ansatze:
                     break
             if amp_found and ph_found:
                 continue
-            if ans in ['19'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution):
-                continue
-            if ans == '20' and (np.abs(new_O[1]) < inp.cutoff_solution or (np.abs(new_O[1]-np.pi)<inp.cutoff_solution and (np.abs(new_O[3])<inp.cutoff_solution or np.abs(new_O[3]-np.pi)<inp.cutoff_solution))):
-                continue
-            ind_B1 = 1 if ans in inp.ansatze_1 else 2
-            if np.abs(new_O[0])<inp.cutoff_solution and np.abs(new_O[ind_B1])<inp.cutoff_solution:       #if A1 == 0 and B1 == 0
-                continue
+#            if ans in ['19'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution):
+#                continue
+#            if ans == '20' and (np.abs(new_O[1]) < inp.cutoff_solution or (np.abs(new_O[1]-np.pi)<inp.cutoff_solution and (np.abs(new_O[3])<inp.cutoff_solution or np.abs(new_O[3]-np.pi)<inp.cutoff_solution))):
+#                continue
+#            ind_B1 = 1 if ans in inp.ansatze_1 else 2
+#            if np.abs(new_O[0])<inp.cutoff_solution and np.abs(new_O[ind_B1])<inp.cutoff_solution:       #if A1 == 0 and B1 == 0
+#                continue
             pos_sol = True
             for par_o in new_O:
                 if par_o < -1e-3:

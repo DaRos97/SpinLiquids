@@ -3,6 +3,7 @@ from pathlib import Path
 import inputs as inp
 import csv
 import os
+import random
 def find_lists_2(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
         ansatze = ['16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
@@ -137,16 +138,16 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
                 #Pinitial.append(phase[ans])                         ######
                 continue
             if pars[i][0] == 'p':
-                if ans == '16' and pars[i] == 'phiA3':
-                    Pinitial.append(0)
-                elif ans == '15' and pars[i] == 'phiB3':
-                    Pinitial.append(0)
-                else:
-                    Pinitial.append(np.pi)
+#                if ans == '16' and pars[i] == 'phiA3':
+#                    Pinitial.append(0)
+#                elif ans == '15' and pars[i] == 'phiB3':
+#                    Pinitial.append(0)
+#                else:
+                Pinitial.append(random.uniform(0,2*np.pi)
             elif pars[i][0] == 'A':
-                Pinitial.append(Ai)
+                Pinitial.append(random.uniform(0,S)
             elif pars[i][0] == 'B':
-                Pinitial.append(Bi)
+                Pinitial.append(random.uniform(0,S)
         return Pinitial,0
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
     my_file = Path(csvfile)

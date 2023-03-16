@@ -9,7 +9,7 @@ cutoff_L = 1e-6
 cutoff_O = 1e-6
 cutoff_F = 1e-4
 cutoff_solution = 1e-3 
-MaxIter = 200
+MaxIter = 500
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
@@ -24,7 +24,7 @@ t2 = t1*0.145
 t3 = t1*0.08
 Ui = t1*50
 Uf = t1*150
-UV_pts = 10
+UV_pts = 20
 U_list = np.linspace(Ui,Uf,UV_pts)
 V_list = []
 for u in U_list:
