@@ -17,7 +17,7 @@ try:
     N = 40      #inp.J point in phase diagram
     txt_S = '50'
     K = 13      #number ok cuts in BZ
-    numb_it = 10
+    numb_it = inp.numb_it
     save_to_file = True
     disp = False
 except:
@@ -35,10 +35,16 @@ for opt, arg in opts:
 U = inp.U_list[N//inp.UV_pts]
 V = inp.V_list[N//inp.UV_pts][N%inp.UV_pts]
 parameters = sf.coefficients(inp.t1,inp.t2,inp.t3,U,V,2*np.pi/3,np.pi,np.pi/3)
-J1 = np.sign(parameters['J1_z'])
-J2 = parameters['J2_z']/np.abs(parameters['J1_z'])
-J3 = parameters['J3e_z']/np.abs(parameters['J1_z'])
-J = (J1,J2,J3)
+
+J1 = parameters['J1_z']
+J2 = parameters['J2_z']#/np.abs(parameters['J1_z'])
+J3 = parameters['J3e_z']#/np.abs(parameters['J1_z'])
+J = np.array([J1,J2,J3])
+J_max = np.abs(np.amax(np.abs(J)))
+for i in range(3):
+    J[i] /= J_max
+inp.L_bounds[1] = 2*np.abs(np.amax(np.abs(J)))
+J = tuple(J)
 print('computing ',J,' and U,V = ',U,V/U)
 S_label = {'50':0.5,'36':(np.sqrt(3)-1)/2,'34':0.34,'30':0.3,'20':0.2}
 S = S_label[txt_S]
@@ -99,7 +105,6 @@ for ans in list_ansatze:
         Args_O = (KM,Tau,K,S,J,pars,ans,PpP)
         for new_phase in range(list_phases[ans][it_p]):
             Pinitial,Linitial = sf.find_Pinitial(new_phase,numb_it,S,ans,pars,csvref,K,PpP)
-#            Pinitial = [0.25,0.43,np.pi-0.95,0.43,np.pi-0.95,0.43,np.pi+0.43,0.25,0.25,0.5,0]
             if K == 13:
                 L_bounds = inp.L_bounds 
             else:
@@ -141,8 +146,6 @@ for ans in list_ansatze:
                         new_O[i] = np.angle(np.exp(1j*(old_O_1[i]*mix_phase2 + temp_O[i]*(1-mix_phase2))))
                         if new_O[i] < 0:
                             new_O[i] += 2*np.pi
-                        if np.abs(new_O[i]-2*np.pi) < 1e-3:
-                            new_O[i] -= 2*np.pi
                     else:
                         new_O[i] = old_O_1[i]*mix_factor + temp_O[i]*(1-mix_factor)
                 step += 1
@@ -189,7 +192,6 @@ for ans in list_ansatze:
                     if not (diff < inp.cutoff_solution or np.abs(diff-2*np.pi) < inp.cutoff_solution):
                         ph_found = False
                 if amp_found and ph_found:
-#                    print("Already found solution, phase ",pars[index_mixing_ph],"=",new_O[index_mixing_ph])
                     break
             if amp_found and ph_found:
                 continue
@@ -197,9 +199,9 @@ for ans in list_ansatze:
 #                continue
 #            if ans == '20' and (np.abs(new_O[1]) < inp.cutoff_solution or (np.abs(new_O[1]-np.pi)<inp.cutoff_solution and (np.abs(new_O[3])<inp.cutoff_solution or np.abs(new_O[3]-np.pi)<inp.cutoff_solution))):
 #                continue
-#            ind_B1 = 1 if ans in inp.ansatze_1 else 2
-#            if np.abs(new_O[0])<inp.cutoff_solution and np.abs(new_O[ind_B1])<inp.cutoff_solution:       #if A1 == 0 and B1 == 0
-#                continue
+            ind_B1 = 1 if ans in inp.ansatze_1 else 2
+            if np.abs(new_O[0])<inp.cutoff_solution and np.abs(new_O[ind_B1])<inp.cutoff_solution:       #if A1 == 0 and B1 == 0
+                continue
             pos_sol = True
             for par_o in new_O:
                 if par_o < -1e-3:

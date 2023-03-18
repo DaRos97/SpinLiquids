@@ -48,7 +48,7 @@ def find_lists_2(J2,J3,csvfile,csvref,K,numb_it):
 ###############################################################
 def find_lists(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
-        ansatze = inp.ansatze_1+inp.ansatze_2
+        ansatze = ['15','16','19','17','20','18']#inp.ansatze_1+inp.ansatze_2
         list_p = {}
         list_phases = {}
         for ans in ansatze:
@@ -133,7 +133,7 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         Pinitial  = []
         for i in range(len(pars)):
             if i == index_mixing_ph:
-                Pinitial.append(new_phase/(numb_it-1)*index_mixing_ph*np.pi) ######
+                Pinitial.append(new_phase/(numb_it-1)*2*np.pi) ######
                 #phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi}           ######
                 #Pinitial.append(phase[ans])                         ######
                 continue
@@ -143,11 +143,11 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
 #                elif ans == '15' and pars[i] == 'phiB3':
 #                    Pinitial.append(0)
 #                else:
-                Pinitial.append(random.uniform(0,2*np.pi)
+                Pinitial.append(random.uniform(0,2*np.pi))
             elif pars[i][0] == 'A':
-                Pinitial.append(random.uniform(0,S)
+                Pinitial.append(random.uniform(0.1,S))
             elif pars[i][0] == 'B':
-                Pinitial.append(random.uniform(0,S)
+                Pinitial.append(random.uniform(0.1,S))
         return Pinitial,0
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
     my_file = Path(csvfile)
