@@ -4,9 +4,9 @@ import inputs as inp
 import csv
 import os
 import random
-def find_lists_2(J2,J3,csvfile,csvref,K,numb_it):
+def find_lists(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
-        ansatze = ['16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
+        ansatze = ['14','16','19','20','15','17','18']#inp.ansatze_1+inp.ansatze_2
         my_file = Path(csvfile)
         if my_file.is_file():
             with open(my_file,'r') as f:
@@ -35,18 +35,18 @@ def find_lists_2(J2,J3,csvfile,csvref,K,numb_it):
                     minE = temp_E
                     ansatze[0] = data[0]
     if J2:
-        list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),]}
+        list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1),], '17':[(1,1),], '19':[(1,1),], '18':[(0,0),], '14':[(0,0),]}
         if J3:
-            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),]}
+            list_p = {'15':[(1,1),], '16':[(0,0),], '20':[(1,1,0,0),], '17':[(1,1),], '19':[(1,1,0,0),], '18':[(0,0),], '14':[(0,0),]}
     elif J3:
-        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),]}
+        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(0,0),], '17':[(2,2),], '19':[(0,0),], '18':[(2,2),], '14':[(2,2),]}
     else:
-        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),]}
-    list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,]}
+        list_p = {'15':[(2,2),], '16':[(2,2),], '20':[(2,2),], '17':[(2,2),], '19':[(2,2),], '18':[(2,2),], '14':[(2,2),]}
+    list_phases = {'15':[1,],'16':[1,],'20':[1,],'17':[1,],'19':[1,],'18':[1,], '14':[1,]}
     return ansatze, list_p, list_phases, 0
 
 ###############################################################
-def find_lists(J2,J3,csvfile,csvref,K,numb_it):
+def find_lists_2(J2,J3,csvfile,csvref,K,numb_it):
     if K == 13:
         ansatze = ['15','16','19','17','20','18']#inp.ansatze_1+inp.ansatze_2
         list_p = {}
@@ -133,21 +133,29 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         Pinitial  = []
         for i in range(len(pars)):
             if i == index_mixing_ph:
-                Pinitial.append(new_phase/(numb_it-1)*2*np.pi) ######
+#                Pinitial.append(new_phase/(numb_it-1)*2*np.pi) ######
+                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi, '14':np.pi-0.95}           ######
+                Pinitial.append(phase[ans])                         ######
                 #phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi}           ######
                 #Pinitial.append(phase[ans])                         ######
                 continue
             if pars[i][0] == 'p':
-#                if ans == '16' and pars[i] == 'phiA3':
-#                    Pinitial.append(0)
-#                elif ans == '15' and pars[i] == 'phiB3':
-#                    Pinitial.append(0)
-#                else:
-                Pinitial.append(random.uniform(0,2*np.pi))
+                if ans in ['16','14'] and pars[i] == 'phiA3':
+                    Pinitial.append(0)
+                elif ans == '15' and pars[i] == 'phiB3':
+                    Pinitial.append(0)
+                else:
+                    Pinitial.append(np.pi)
             elif pars[i][0] == 'A':
-                Pinitial.append(random.uniform(0.1,S))
+                if ans == '14' and pars[i] == 'A1':
+                    Pinitial.append(0.25)
+                    continue
+                Pinitial.append(Ai)
             elif pars[i][0] == 'B':
-                Pinitial.append(random.uniform(0.1,S))
+                if ans == '14' and pars[i] == 'B1':
+                    Pinitial.append(0.43)
+                    continue
+                Pinitial.append(Bi)
         return Pinitial,0
     phase_name = 'phiA1p' if ans in inp.ansatze_2 else 'phiB1'
     my_file = Path(csvfile)

@@ -219,7 +219,7 @@ for ans in list_ansatze:
                 if p_ == 2:
                     continue
                 data.append(p_)
-            data += [J1,J2,J3,E,gap,new_L]
+            data += [J[0],J[1],J[2],E,gap,new_L]
             DataDic = {}
             for ind in range(len(data)):
                 DataDic[head_ans[ind]] = data[ind]

@@ -1,6 +1,6 @@
 import numpy as np
 ####
-ansatze_1 = ['15','16','17','18']
+ansatze_1 = ['14','15','16','17','18']
 ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 header = ['J1','J2','J3','Energy','Gap','L']
@@ -9,8 +9,8 @@ cutoff_L = 1e-6
 cutoff_O = 1e-6
 cutoff_F = 1e-4
 cutoff_solution = 1e-3 
-MaxIter = 300
-numb_it = 7
+MaxIter = 3000
+numb_it = 1
 prec_L = 1e-10       #precision required in L maximization
 cutoff_pts = 1e-10      #min difference b/w phase diagram points to be considered the same
 L_method = 'Brent'
