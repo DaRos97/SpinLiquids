@@ -147,6 +147,7 @@ def compute_O_all(old_O,L,args):
         li_ = dic_indexes[str(m)][par_][0]
         lj_ = dic_indexes[str(m)][par_][1]
         Tau_ = (Tau[2*(int(par_1)-1)],Tau[2*(int(par_1)-1)+1])
+        DM_ch = True if par_ in ['1p','2p','3'] else False
         func = dic_O[par_2]
         #res = 0
         rrr = np.zeros((K_,K_),dtype=complex)
@@ -156,7 +157,7 @@ def compute_O_all(old_O,L,args):
                 U,X,V,Y = split(M[:,:,i,j],m,m)
                 U_,V_,X_,Y_ = split(np.conjugate(M[:,:,i,j].T),m,m)
 #                res += func(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_)
-                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau_,li_,lj_,K__)
+                rrr[i,j] = func(U,X,V,Y,U_,X_,V_,Y_,Tau_,li_,lj_,K__,DM_ch)
         interI = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.imag(rrr))
         res2I = interI.integral(0,1,0,1)
         interR = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),np.real(rrr))
@@ -182,21 +183,25 @@ dic_indexes =   {'3':{'1': (1,2), '1p': (2,0),
                       '2': (1,0), '2p': (5,1), 
                       '3': (4,1)}
                  }
-def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_,K__):
+def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau__,li_,lj_,K__,DM_ch):
+    if DM_ch:
+        Tau__ = np.conjugate(np.array(Tau__))
     if (li_,lj_) in [(2,1),(1,1)]:
         dist = np.array([-1/2,np.sqrt(3)/2])
     else:
         dist = np.zeros(2)
-    return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau[1] *np.exp(1j*np.dot(K__,dist))
-            - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau[0] *np.exp(-1j*np.dot(K__,dist)))
+    return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau__[1] *np.exp(1j*np.dot(K__,dist))
+            - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau__[0] *np.exp(-1j*np.dot(K__,dist)))
 ########
-def compute_B(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_,K__):
+def compute_B(U,X,V,Y,U_,X_,V_,Y_,Tau__,li_,lj_,K__,DM_ch):
+    if DM_ch:
+        Tau__ = np.conjugate(np.array(Tau__))
     if (li_,lj_) in [(2,1),(1,1)]:
         dist = np.array([-1/2,np.sqrt(3)/2])
     else:
         dist = np.zeros(2)
-    return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau[0] *np.exp(-1j*np.dot(K__,dist))
-            + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau[1] *np.exp(1j*np.dot(K__,dist)))
+    return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau__[0] *np.exp(-1j*np.dot(K__,dist))
+            + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau__[1] *np.exp(1j*np.dot(K__,dist)))
 
 def split(array, nrows, ncols):
     r, h = array.shape
