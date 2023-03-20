@@ -94,8 +94,9 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################    Initiate routine
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
-list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvfile,csvref,K,numb_it)
+list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J1,J2,J3,csvfile,csvref,K,numb_it)
 #
+#list_ansatze = ['19']
 for ans in list_ansatze:
     KM = KM_small if ans in inp.ansatze_p0 else KM_big
     index_mixing_ph = 1 if ans in inp.ansatze_2 else 2
@@ -195,8 +196,8 @@ for ans in list_ansatze:
                     break
             if amp_found and ph_found:
                 continue
-#            if ans in ['19'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution):
-#                continue
+            if ans in ['19'] and (np.abs(new_O[1])<inp.cutoff_solution or np.abs(new_O[1]-np.pi)<inp.cutoff_solution):
+                continue
 #            if ans == '20' and (np.abs(new_O[1]) < inp.cutoff_solution or (np.abs(new_O[1]-np.pi)<inp.cutoff_solution and (np.abs(new_O[3])<inp.cutoff_solution or np.abs(new_O[3]-np.pi)<inp.cutoff_solution))):
 #                continue
             ind_B1 = 1 if ans in inp.ansatze_1 else 2
