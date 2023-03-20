@@ -145,7 +145,7 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         for i in range(len(pars)):
             if i == index_mixing_ph:
 #                Pinitial.append(np.pi-new_phase/(numb_it-1)*np.pi) ######
-                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi, '14':np.pi-0.95}           ######
+                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':0.6,'18':np.pi, '14':np.pi-0.95}           ######
                 Pinitial.append(phase[ans])                         ######
                 continue
             if pars[i][0] == 'p':

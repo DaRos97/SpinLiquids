@@ -157,7 +157,7 @@ def compute_O_all(old_O,L,args):
         li_ = dic_indexes[str(m)][par_][0]
         lj_ = dic_indexes[str(m)][par_][1]
         Tau_ = (Tau[2*(int(par_1)-1)],Tau[2*(int(par_1)-1)+1])
-        DM_ch = True if par_ in ['2p','3'] else False
+        DM_ch = True if par_ in ['1p','2p','3'] else False
         #func = dic_O[par_2]
         #res = 0
         rrr = np.zeros((K_,K_),dtype=complex)
