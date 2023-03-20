@@ -1,6 +1,6 @@
 import numpy as np
 ####
-ansatze_1 = ['15','16','17','18']
+ansatze_1 = ['14','15','16','17','18']
 ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 #derivative

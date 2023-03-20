@@ -7,7 +7,7 @@ import os
 def find_lists(csvref,K,numb_it):
     my_file = Path(csvref)
     if K == 13:
-        ansatze = ['15','16','19','20','17','18']#inp.ansatze_1+inp.ansatze_2
+        ansatze = ['14','15','16','19','20','17','18']#inp.ansatze_1+inp.ansatze_2
         if my_file.is_file():
             with open(my_file,'r') as f:
                 lines = f.readlines()
@@ -40,9 +40,9 @@ def find_lists(csvref,K,numb_it):
 #
 def find_Pinitial(S,ans,csvfile,K,new_phase,index_ch_phase,numb_it):
     if K == 13:
-        Ai = S
-        Bi = S/2
-        phi_i = {'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.25,'20':1.95}
+        Ai = 0.2 if ans == '14' else S
+        Bi = 0.5 if ans == '14' else S/2
+        phi_i = {'14':np.pi-0.95,'15':np.pi,'16':np.pi,'17':np.pi,'18':np.pi,'19':0.25,'20':1.95}
         if ans in inp.ansatze_1:
             Pinitial = [Ai,Bi,np.pi]
         else:
