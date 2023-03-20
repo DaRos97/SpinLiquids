@@ -4,6 +4,14 @@ ansatze_1 = ['14','15','16','17','18']
 ansatze_2 = ['19','20']
 ansatze_p0 = ['15','16','19']
 header = ['J1','J2','J3','Energy','Gap','L']
+init_phases = { '15':np.pi,
+                '16':np.pi,
+                '20':1.95,
+                '17':np.pi,
+                '19':0.62,
+                '18':np.pi, 
+                '14':np.pi-0.95
+                }           ######
 #derivative
 cutoff_L = 1e-6
 cutoff_O = 1e-6

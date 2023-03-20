@@ -154,7 +154,7 @@ def compute_O_all(old_O,L,args):
         li_ = dic_indexes[str(m)][par_][0]
         lj_ = dic_indexes[str(m)][par_][1]
         Tau_ = (Tau[2*(int(par_1)-1)],Tau[2*(int(par_1)-1)+1])
-        DM_ch = True if par_ in ['2p','3'] else False
+        DM_ch = True if par_ in ['1p','2p','3'] else False
         #func = dic_O[par_2]
         #res = 0
         rrr = np.zeros((K_,K_),dtype=complex)
@@ -175,8 +175,8 @@ def compute_O_all(old_O,L,args):
             new_O[p] = np.angle(res)
             if new_O[p] < 0:
                 new_O[p] += 2*np.pi
-#            if new_O[p] > np.pi and par in ['phiA1p']:
-#                new_O[p] = 2*np.pi - new_O[p]
+            if new_O[p] > np.pi and par in ['phiA1p']:
+                new_O[p] = 2*np.pi - new_O[p]
         else:                   #Amplitudes
             if 'phi'+par in pars or par == 'A1':           #just amplitude since the phase is in the minimization process
                 new_O[p] = np.absolute(res)                   #renormalization of amplitudes 
@@ -234,26 +234,25 @@ dic_indexes =   {'3':{'1': (1,2), '1p': (2,0),
                       '2': (1,0), '2p': (5,1), 
                       '3': (4,1)}
                  }
-def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_,K__,DM_ch):
+def compute_A(U,X,V,Y,U_,X_,V_,Y_,Tau__,li_,lj_,K__,DM_ch):
     if DM_ch:
-        Tau = np.conjugate(np.array(Tau))
+        Tau__ = np.conjugate(np.array(Tau__))
     if (li_,lj_) in [(2,1),(1,1)]:
         dist = np.array([-1/2,np.sqrt(3)/2])
     else:
         dist = np.zeros(2)
-    return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau[1] *np.exp(1j*np.dot(K__,dist))
-            - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau[0] *np.exp(-1j*np.dot(K__,dist)))
+    return (np.einsum('ln,nm->lm',U,V_)[li_,lj_]     *Tau__[1] *np.exp(1j*np.dot(K__,dist))
+            - np.einsum('nl,mn->lm',Y_,X)[li_,lj_]   *Tau__[0] *np.exp(-1j*np.dot(K__,dist)))
 ########
-def compute_B(U,X,V,Y,U_,X_,V_,Y_,Tau,li_,lj_,K__,DM_ch):
+def compute_B(U,X,V,Y,U_,X_,V_,Y_,Tau__,li_,lj_,K__,DM_ch):
     if DM_ch:
-    #if li_== 2 or li_ == 4:
-        Tau = np.conjugate(np.array(Tau))
+        Tau__ = np.conjugate(np.array(Tau__))
     if (li_,lj_) in [(2,1),(1,1)]:
         dist = np.array([-1/2,np.sqrt(3)/2])
     else:
         dist = np.zeros(2)
-    return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau[0] *np.exp(-1j*np.dot(K__,dist))
-            + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau[1] *np.exp(1j*np.dot(K__,dist)))
+    return (np.einsum('nl,mn->lm',X_,X)[li_,lj_]  *Tau__[0] *np.exp(-1j*np.dot(K__,dist))
+            + np.einsum('ln,nm->lm',V,V_)[li_,lj_]*Tau__[1] *np.exp(1j*np.dot(K__,dist)))
 
 def split(array, nrows, ncols):
     r, h = array.shape
@@ -321,57 +320,57 @@ def big_Nk(P,L,args):
     N[0,m+0] +=  J3*a3i *ka1  *t3
     if m == 6:
         #   B
-        N[0,4] = J1*b1_  *ka2_ *t1               + J2*b2pi *ka12m*t2_               #t1
-        N[0,5] = J1*b1   *ka2_ *t1_              + J2*b2i_ *ka12p_*t2_              #t1_
-        N[1,3] = J1*b1         *t1_              + J2*b2p_ *ka1_*t2                 #t1_
-        N[1,5] =                                   J2*(b2  *ka12p_*t2 + b2p*t2_)
-        N[2,3] = J1*b1_        *t1               + J2*b2   *ka1*t2                  #t1
-        N[2,4] =                                   J2*(b2p_*ka2_*t2 + b2i_*ka1*t2_)
-        N[3,4] = J1*b1pi_*ka1  *t1_              + J2*b2*t2                         #t1
-        N[3,5] = J1*b1p        *t1               + J2*b2pi_*ka1*t2                  #t1_
-        N[4,5] = J1*(b1_       *t1  + b1pi_*ka1_*t1_)                               #t1
-        N[3,3] = J3*b3_  *ka1_ *t3_
-        N[1,4] = J3*(b3_ *ka2_ *t3_ + b3       *t3)
-        N[2,5] = J3*(b3  *ka12p_  *t3  + b3i_*ka1*t3_)
+        N[0,4] += J1*b1_  *ka2_ *t1               + J2*b2pi *ka12m*t2_               #t1
+        N[0,5] += J1*b1   *ka2_ *t1_              + J2*b2i_ *ka12p_*t2_              #t1_
+        N[1,3] += J1*b1         *t1_              + J2*b2p_ *ka1_*t2                 #t1_
+        N[1,5] +=                                   J2*(b2  *ka12p_*t2 + b2p*t2_)
+        N[2,3] += J1*b1_        *t1               + J2*b2   *ka1*t2                  #t1
+        N[2,4] +=                                   J2*(b2p_*ka2_*t2 + b2i_*ka1*t2_)
+        N[3,4] += J1*b1pi_*ka1  *t1_              + J2*b2*t2                         #t1
+        N[3,5] += J1*b1p        *t1               + J2*b2pi_*ka1*t2                  #t1_
+        N[4,5] += J1*(b1_       *t1  + b1pi_*ka1_*t1_)                               #t1
+        N[3,3] += J3*b3_  *ka1_ *t3_
+        N[1,4] += J3*(b3_ *ka2_ *t3_ + b3       *t3)
+        N[2,5] += J3*(b3  *ka12p_  *t3  + b3i_*ka1*t3_)
         #
-        N[m+0,m+4] = J1*b1   *ka2_ *t1            + J2*b2pi_*ka12m*t2_
-        N[m+0,m+5] = J1*b1_  *ka2_ *t1_           + J2*b2i  *ka12p_*t2_
-        N[m+1,m+3] = J1*b1_        *t1_           + J2*b2p  *ka1_*t2
-        N[m+1,m+5] =                                J2*(b2_ *ka12p_*t2 + b2p_*t2_)
-        N[m+2,m+3] = J1*b1         *t1            + J2*b2_  *ka1*t2
-        N[m+2,m+4] =                                J2*(b2p *ka2_*t2 + b2i *ka1*t2_)
-        N[m+3,m+4] = J1*b1pi *ka1  *t1_           + J2*b2_*t2
-        N[m+3,m+5] = J1*b1p_       *t1            + J2*b2pi *ka1*t2
-        N[m+4,m+5] = J1*(b1        *t1  + b1pi*ka1_*t1_)
-        N[m+3,m+3] = J3*b3  *ka1_ *t3_
-        N[m+1,m+4] = J3*(b3 *ka2_ *t3_ + b3_  *t3)
-        N[m+2,m+5] = J3*(b3_*ka12p_  *t3  + b3i *ka1*t3_)
+        N[m+0,m+4] += J1*b1   *ka2_ *t1            + J2*b2pi_*ka12m*t2_
+        N[m+0,m+5] += J1*b1_  *ka2_ *t1_           + J2*b2i  *ka12p_*t2_
+        N[m+1,m+3] += J1*b1_        *t1_           + J2*b2p  *ka1_*t2
+        N[m+1,m+5] +=                                J2*(b2_ *ka12p_*t2 + b2p_*t2_)
+        N[m+2,m+3] += J1*b1         *t1            + J2*b2_  *ka1*t2
+        N[m+2,m+4] +=                                J2*(b2p *ka2_*t2 + b2i *ka1*t2_)
+        N[m+3,m+4] += J1*b1pi *ka1  *t1_           + J2*b2_*t2
+        N[m+3,m+5] += J1*b1p_       *t1            + J2*b2pi *ka1*t2
+        N[m+4,m+5] += J1*(b1        *t1  + b1pi*ka1_*t1_)
+        N[m+3,m+3] += J3*b3  *ka1_ *t3_
+        N[m+1,m+4] += J3*(b3 *ka2_ *t3_ + b3_  *t3)
+        N[m+2,m+5] += J3*(b3_*ka12p_  *t3  + b3i *ka1*t3_)
         #   A
-        N[0,m+4] = - J1*a1  *ka2_*t1            +J2*a2pi *ka12m*t2_
-        N[0,m+5] =   J1*a1  *ka2_*t1_           -J2*a2i  *ka12p_*t2_
-        N[1,m+3] =   J1*a1       *t1_           -J2*a2p  *ka1_*t2
-        N[1,m+5] =                               J2*(a2  *ka12p_*t2  +a2p*t2_)
-        N[2,m+3] = - J1*a1       *t1            +J2*a2   *ka1*t2
-        N[2,m+4] =                              -J2*(a2p *ka2_*t2  +a2i*ka1*t2_)
-        N[3,m+4] = - J1*a1pi*ka1 *t1_           +J2*a2*t2
-        N[3,m+5] =   J1*a1p      *t1            -J2*a2pi *ka1*t2
-        N[4,m+5] = - J1*(a1      *t1   +a1pi*ka1_*t1_)  
-        N[3,m+3] = - J3*a3  *ka1_*t3_
-        N[1,m+4] = - J3*(a3 *ka2_*t3_  -a3 *t3)
-        N[2,m+5] = - J3*(a3i*ka1*t3_  -a3 *ka12p_ *t3)
+        N[0,m+4] += - J1*a1  *ka2_*t1            +J2*a2pi *ka12m*t2_
+        N[0,m+5] +=   J1*a1  *ka2_*t1_           -J2*a2i  *ka12p_*t2_
+        N[1,m+3] +=   J1*a1       *t1_           -J2*a2p  *ka1_*t2
+        N[1,m+5] +=                               J2*(a2  *ka12p_*t2  +a2p*t2_)
+        N[2,m+3] += - J1*a1       *t1            +J2*a2   *ka1*t2
+        N[2,m+4] +=                              -J2*(a2p *ka2_*t2  +a2i*ka1*t2_)
+        N[3,m+4] += - J1*a1pi*ka1 *t1_           +J2*a2*t2
+        N[3,m+5] +=   J1*a1p      *t1            -J2*a2pi *ka1*t2
+        N[4,m+5] += - J1*(a1      *t1   +a1pi*ka1_*t1_)  
+        N[3,m+3] += - J3*a3  *ka1_*t3_
+        N[1,m+4] += - J3*(a3 *ka2_*t3_  -a3 *t3)
+        N[2,m+5] += - J3*(a3i*ka1*t3_  -a3 *ka12p_ *t3)
         #
-        N[4,m]   =   J1*a1  *ka2 *t1_           -J2*a2pi *ka12m_*t2
-        N[5,m]   = - J1*a1  *ka2 *t1            +J2*a2i  *ka12p*t2
-        N[3,m+1] = - J1*a1       *t1            +J2*a2p  *ka1*t2_               #Second term was ka1_
-        N[5,m+1] =                              -J2*(a2  *ka12p*t2_   +a2p*t2)
-        N[3,m+2] =   J1*a1       *t1_           -J2*a2   *ka1_*t2_
-        N[4,m+2] =                               J2*(a2p *ka2*t2_   +a2i*ka1_*t2)
-        N[4,m+3] =   J1*a1pi*ka1_*t1            -J2*a2*t2_
-        N[5,m+3] = - J1*a1p      *t1_           +J2*a2pi *ka1_*t2_
-        N[5,m+4] =   J1*(a1      *t1_  +a1pi*ka1 *t1)
+        N[4,m]   +=   J1*a1  *ka2 *t1_           -J2*a2pi *ka12m_*t2
+        N[5,m]   += - J1*a1  *ka2 *t1            +J2*a2i  *ka12p*t2
+        N[3,m+1] += - J1*a1       *t1            +J2*a2p  *ka1*t2_               #Second term was ka1_
+        N[5,m+1] +=                              -J2*(a2  *ka12p*t2_   +a2p*t2)
+        N[3,m+2] +=   J1*a1       *t1_           -J2*a2   *ka1_*t2_
+        N[4,m+2] +=                               J2*(a2p *ka2*t2_   +a2i*ka1_*t2)
+        N[4,m+3] +=   J1*a1pi*ka1_*t1            -J2*a2*t2_
+        N[5,m+3] += - J1*a1p      *t1_           +J2*a2pi *ka1_*t2_
+        N[5,m+4] +=   J1*(a1      *t1_  +a1pi*ka1 *t1)
         N[3,m+3] +=  J3*a3  *ka1  *t3
-        N[4,m+1] =   J3*(a3 *ka2 *t3   -a3 *t3_)
-        N[5,m+2] =   J3*(a3i*ka1_ *t3   -a3 *ka12p *t3_)
+        N[4,m+1] +=   J3*(a3 *ka2 *t3   -a3 *t3_)
+        N[5,m+2] +=   J3*(a3i*ka1_ *t3   -a3 *ka12p *t3_)
     else:
         #   B
         N[0,1] += J1*b1_  *ka2_ *t1               + J2*b2pi *ka12m*t2_               #t1

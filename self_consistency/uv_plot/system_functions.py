@@ -134,8 +134,7 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
         for i in range(len(pars)):
             if i == index_mixing_ph:
 #                Pinitial.append(new_phase/(numb_it-1)*2*np.pi) ######
-                phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi, '14':np.pi-0.95}           ######
-                Pinitial.append(phase[ans])                         ######
+                Pinitial.append(inp.init_phases[ans])                         ######
                 #phase = {'15':np.pi,'16':np.pi,'20':1.95,'17':np.pi,'19':2,'18':np.pi}           ######
                 #Pinitial.append(phase[ans])                         ######
                 continue
@@ -149,8 +148,10 @@ def find_Pinitial(new_phase,numb_it,S,ans,pars,csvfile,K,PpP):
             elif pars[i][0] == 'A':
                 if ans == '14' and pars[i] == 'A1':
                     Pinitial.append(0.25)
-                    continue
-                Pinitial.append(Ai)
+                elif ans == '19' and pars[i] == 'A3':
+                    Pinitial.append(0.2)
+                else:
+                    Pinitial.append(Ai)
             elif pars[i][0] == 'B':
                 if ans == '14' and pars[i] == 'B1':
                     Pinitial.append(0.43)
@@ -211,7 +212,7 @@ def find_head(ans,J2,J3):
         pars = ['A1','phiA1p','B1','phiB1']
     header = head_p + inp.header
     if J2:
-        if ans in ['15','17']:
+        if ans in ['15','17','14']:
             pars += ['A2','phiA2','A2p','phiA2p','B2','B2p']
         elif ans in ['16','18']:
             pars += ['B2','B2p']
@@ -222,7 +223,7 @@ def find_head(ans,J2,J3):
             pars += ['B3','phiB3']
         elif ans == '16':
             pars += ['A3','phiA3','B3','phiB3']
-        elif ans == '17':
+        elif ans in ['17','14']:
             pars += ['A3','phiA3']
         if ans in ['19','20']:
             pars += ['A3','B3']

@@ -51,7 +51,7 @@ S = S_label[txt_S]
 ###########################
 phi = 2*np.pi/3#####################################
 ###########################
-DM1 = phi;      DM2 = 0;    DM3 = 2*phi
+DM1 = phi;      DM2 = 0;    DM3 = phi*2
 #BZ points
 Nx = K;     Ny = K
 #Filenames
