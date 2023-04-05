@@ -46,9 +46,9 @@ DM1 = phi;      DM2 = 0;    DM3 = 2*phi
 #BZ points
 Nx = K;     Ny = K
 #Filenames
-DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
+#DirName = '/home/users/r/rossid/0_SELF-CONSISTENCY_PD/Data/S'+txt_S+'/phi'+txt_DM+"/"
 #DirName = '../../Data/self_consistency/test/'
-#DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
+DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+txt_DM+"/"
 DataDir = DirName + str(Nx) + '/'
 ReferenceDir = DirName + str(13) + '/'
 csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
@@ -86,6 +86,7 @@ Tau = (t1,t1_,t2,t2_,t3,t3_)
 ########################
 #Find the parameters that we actually need to use and their labels (some parameters are zero if J2 or J3 are zero
 list_ansatze,list_PpP,list_phases,L_ref = sf.find_lists(J2,J3,csvfile,csvref,K,numb_it)
+list_ansatze = ['15']
 #
 for ans in list_ansatze:
     KM = KM_small if ans in inp.ansatze_p0 else KM_big

@@ -10,12 +10,13 @@ from tqdm import tqdm
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3='])
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3=','Nq='])
     S = '50'
     DM = '000'
     ans = '15'
     K = '13'
     J2 = J3 = 0
+    Nq = 33
 except:
     print("Error")
 for opt, arg in opts:
@@ -31,13 +32,17 @@ for opt, arg in opts:
         J2 = float(arg)
     if opt == '--j3':
         J3 = float(arg)
+    if opt == '--Nq':
+        Nq = int(arg)
 
+Nx = Nq     #points to compute in BZ (Q)
+Ny = Nx
 dirname = '../../Data/self_consistency/S'+S+'/phi'+DM+'/'+K+'/'
 #dirname = '../../Data/self_consistency/test/'+K+'/'
 filename = dirname+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
-savenameSFzz = "data_SF/SL_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'_'+S+'.npy'
-savenameSFxy = "data_SF/SL_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'_'+S+'.npy'
-command_plot = 'python plot_SF.py -S '+S+' -K '+K+' --DM '+DM+' -a '+ans+' --j2 '+str(J2)+' --j3 '+str(J3)+' --ph SL'
+savenameSFzz = "data_SF/SL_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'_'+S+DM+str(Nx)+'.npy'
+savenameSFxy = "data_SF/SL_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'_'+S+DM+str(Nx)+'.npy'
+command_plot = 'python plot_SF.py -S '+S+' -K '+K+' --DM '+DM+' -a '+ans+' --j2 '+str(J2)+' --j3 '+str(J3)+' --ph SL --Nq '+str(Nq)
 
 if not os.path.isfile(filename):
     print(J2,J3,ans," values are not valid or the point was not computed")
@@ -80,8 +85,8 @@ args = (Tau,S_val,J,ans,PpP)
 p1 = 0 if ans in fs.ans_p0 else 1
 m = fs.Mm[p1]
 #######################################################################
-Kx = 13     #points for summation over BZ
-Ky = 13
+Kx = 25     #points for summation over BZ
+Ky = 25
 ######
 f = np.sqrt(3)/4
 D = np.array([  [1/2,-1/4,1/4,0,-3/4,-1/4],
@@ -94,8 +99,6 @@ else:
     Kyg = np.linspace(-2*np.pi/np.sqrt(3),2*np.pi/np.sqrt(3),Ky)
 
 ##
-Nx = 17     #points to compute in BZ (Q)
-Ny = 17
 Qxg = np.linspace(-8*np.pi/3,8*np.pi/3,Nx)
 Qyg = np.linspace(-4*np.pi/np.sqrt(3),4*np.pi/np.sqrt(3),Ny)
 

@@ -13,9 +13,9 @@ import functions as fs
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "r:",["DM=","pts="])
-    lim = 3
-    DM = '000'
-    pts = 21
+    lim = 0.3
+    DM = '010'
+    pts = 51
 except:
     print("Error in input parameters",argv)
     exit()
@@ -36,11 +36,12 @@ J3f = lim
 J2pts = J3pts = pts
 dirname = 'data/'
 
-dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
+dic_DM = {'000':0,'005':0.05,'010':0.1,'104':np.pi/3,'209':2*np.pi/3}
 DM_angle = dic_DM[DM]
 
 filename = dirname+'J2_'+str(J2i)+'--'+str(J2f)+'__J3_'+str(J3i)+'--'+str(J3f)+'__DM_'+DM+'__Pts_'+str(pts)+'.npy'
-energies = np.load(filename)
+data = np.load(filename)
+energies = data[:,:,:,0]
 min_E = np.zeros((J2pts,J3pts),dtype = int)
 #k -> ferro, r -> s3x3, b -> s3x3_g1, y -> q0, g -> q0_g1, orange -> q0_g2,
 #gray -> octa, purple -> octa_g1, m -> octa_g2, c -> cb1, cb2, spiral
@@ -69,12 +70,13 @@ J3 = np.linspace(J3i,J3f,J3pts)
 ################################################################################ Fitting
 
 #
-txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
+txt_dm = {'000':r'$0$','010':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 used_o = []
 for i in range(J2pts):
     for j in range(J3pts):
 #        ens = np.array(energies[i,j,0])        #Also spirals
-        ens = np.array(energies[i,j,0,:-1])     #No spirals
+#        ens = np.array(energies[i,j,0,:-1])     #No spirals
+        ens = np.array(energies[i,j])
         if (ens == np.zeros(len(ens))).all():
             min_E[i,j] = 1e5
             continue
@@ -84,7 +86,7 @@ for i in range(J2pts):
         ens[aminE[0]] += 5
         while True:
             aminE2 = np.argmin(ens)
-            if aminE2 == len(energies[i,j,0])-1:
+            if aminE2 == len(energies[i,j])-1:
                 break
             minE2 = ens[aminE2]
             if np.abs(minE-minE2) < 1e-5:
@@ -121,8 +123,9 @@ res = np.zeros((3,4))   #three lines and two parameters per line + 2 bounds on x
 #Line 1: between 3x3 and cb1
 p = cont.collections[1].get_paths()[0]
 v = p.vertices
+pp = 0.17
 for i in range(len(v[:,0])):
-    if v[i,0] > 0.102:      #> 0.1
+    if v[i,0] > pp:      #> 0.1
         ix_max = i 
         break
 x = v[:ix_max,0]
@@ -144,7 +147,7 @@ plt.plot(x,linear(x,res[1,0],res[1,1]),'r-')
 p = cont.collections[0].get_paths()[0]
 v = p.vertices
 for i in range(len(v[:,1])):
-    if v[i,1] < 0.102:          #<0.1
+    if v[i,1] < pp:          #<0.1
         ix_max = i 
         break
 x = v[ix_max:,0]
@@ -156,6 +159,37 @@ res[2,3] = x[0]
 plt.plot(x,linear(x,res[2,0],res[2,1]),'r-')
 #
 plt.show()
+
+plt.figure()
+res = np.zeros((3,4))   #three lines and two parameters per line + 2 bounds on x
+p1 = [0,-0.3]
+p2 = [0.18,0.19]
+m = (p2[1]-p1[1])/(p2[0]-p1[0])
+q = p1[1]-p1[0]*m
+res[0] = [m,q,p1[0],p2[0]]
+#
+p1 = [0.09,0.3]
+p2 = [0.18,0.19]
+m = (p2[1]-p1[1])/(p2[0]-p1[0])
+q = p1[1]-p1[0]*m
+res[1] = [m,q,p1[0],p2[0]]
+#
+p1 = [0.18,0.19]
+p2 = [0.28,0.3]
+m = (p2[1]-p1[1])/(p2[0]-p1[0])
+q = p1[1]-p1[0]*m
+res[2] = [m,q,p1[0],p2[0]]
+
+for i in range(3):
+    X = np.linspace(res[i,2],res[i,3],100)
+    plt.plot(X,res[i,0]*X+res[i,1])
+plt.xlim(-0.3,0.3)
+plt.ylim(-0.3,0.3)
+plt.show()
+
+
+
+
 np.save("fit_"+DM+"_"+str(pts)+".npy",res)
 
 

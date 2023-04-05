@@ -13,9 +13,9 @@ import functions as fs
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "r:",["DM=","pts=","disp","plot"])
-    lim = 3.0
-    DM = '000'
-    pts = 21
+    lim = 0.3
+    DM = '005'
+    pts = 51
     disp = False
     plot = False
 except:
@@ -105,7 +105,7 @@ for i in range(J2pts):
             if aminE2 == len(energies[i,j,0])-1:
                 break
             minE2 = ens[aminE2]
-            if np.abs(minE-minE2) < 1e-2:
+            if np.abs(minE-minE2) < 1e-5:
                 aminE.append(aminE2)
                 ens[aminE[-1]] += 5
                 continue

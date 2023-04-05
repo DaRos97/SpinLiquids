@@ -2,7 +2,7 @@ import numpy as np
 import functions as fs
 import sys
 import getopt
-#import tqdm
+from tqdm import tqdm
 import os
 
 argv = sys.argv[1:]
@@ -37,7 +37,7 @@ min_energy = np.zeros((J2pts,J3pts,16,16))
 J2_i = J3_i = 0
 
 
-dic_DM = {'000':0,'005':0.05,'104':np.pi/3,'209':2*np.pi/3}
+dic_DM = {'000':0,'005':0.05,'010':0.1,'104':np.pi/3,'209':2*np.pi/3}
 dm_angle_1nn = dic_DM[DM]
 DM_angles = np.array([dm_angle_1nn,0,2*dm_angle_1nn])
 spin_angles = (0,0)
@@ -86,7 +86,7 @@ if os.path.isfile(filename):        ####################
 
 ###########################################################################
 print('using: ',lim,DM,pts)
-for n2 in range(J2_i,J2pts):
+for n2 in tqdm(range(J2_i,J2pts)):
     j2 = J2[n2]
     for n3 in range(0,J3pts):
         if n2 == J2_i and n3 < J3_i:

@@ -50,72 +50,81 @@ for opt, arg in opts:
     if opt == '--Nmax':
         N_max = int(arg)
 
-print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
-#import data
-arguments = (ans,DM,J2,J3,txt_S)
-data = []
-gaps1 = []
-gaps2 = []
-#### N list for different ansatze depending on gap closing points
-N_list = [13,25,37,49,62]
-N_ = N_list[:N_list.index(N_max)+1]
-bad_N = []
-###
-for n in N_:
-    DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+DM+"/"
-    DataDir = DirName + str(n) + '/'
-    csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
-    csvfile = DataDir + csvname
-    my_file = Path(csvfile)
-    if my_file.is_file():
-        with open(my_file,'r') as f:
-            lines = f.readlines()
-        N = (len(lines)-1)//2 +1        #2 lines per ansatz
-        for i in range(N):
-            head = lines[i*2].split(',')
-            head[-1] = head[-1][:-1]
-            data = lines[i*2+1].split(',')
-            if data[0] == ans:
-                temp = float(data[head.index('Gap')])
-    gaps1.append(temp)
-#fit
-fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
-try:
-    pin = [1,1,0] if fit == 'ql' else [1,0]
-    new_N = []
+fig = plt.figure(figsize=(30,5))
+ss = 20
+plt.margins(x=0,y=0)
+for iii,txt_S in enumerate(['50','36','30','20']):
+    plt.subplot(1,4,iii+1)
+    print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
+    #import data
+    arguments = (ans,DM,J2,J3,txt_S)
+    data = []
+    gaps1 = []
+    gaps2 = []
+    #### N list for different ansatze depending on gap closing points
+    N_list = [13,25,37,49,62]
+    N_ = N_list[:N_list.index(N_max)+1]
+    bad_N = []
+    ###
     for n in N_:
-        if n in bad_N:
-            continue
-        new_N.append(n)
-    N_ = new_N
-    pars,cov = curve_fit(fit_curve_def[fit],N_,gaps1,p0=pin,bounds=(-100,100))
-    #print("Fitted")
-    #print(pars,'\n',cov)
-    conv = 1
-except:
-    print("Not fitted")
-    conv = 0
+        DirName = '../../Data/self_consistency/S'+txt_S+'/phi'+DM+"/"
+        DataDir = DirName + str(n) + '/'
+        csvname = 'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
+        csvfile = DataDir + csvname
+        my_file = Path(csvfile)
+        if my_file.is_file():
+            with open(my_file,'r') as f:
+                lines = f.readlines()
+            N = (len(lines)-1)//2 +1        #2 lines per ansatz
+            for i in range(N):
+                head = lines[i*2].split(',')
+                head[-1] = head[-1][:-1]
+                data = lines[i*2+1].split(',')
+                if data[0] == ans:
+                    temp = float(data[head.index('Gap')])
+        gaps1.append(temp)
+    #fit
+    fit_curve_def = {'lin':fs.linear,'quad':fs.quadratic, 'ql':fs.ql}
+    try:
+        pin = [1,1,0] if fit == 'ql' else [1,0]
+        new_N = []
+        for n in N_:
+            if n in bad_N:
+                continue
+            new_N.append(n)
+        N_ = new_N
+        pars,cov = curve_fit(fit_curve_def[fit],N_,gaps1,p0=pin,bounds=(-100,100))
+        #print("Fitted")
+        #print(pars,'\n',cov)
+        conv = 1
+    except:
+        print("Not fitted")
+        conv = 0
 
-plt.figure()
-N_steps = np.linspace(N_[0],N_[-1],100)
-#plt.xscale('log')
-#plt.yscale('log')
-plt.title(ans+': DM = '+DM+', S = '+txt_S+', (J2,J3) = '+str(J2)+','+str(J3))#+'. Fit: '+fit)
-#plt.plot(N_,gaps2,'ro')
-plt.plot(N_,gaps1,'b*')
-if conv:
-    plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
-    plt.hlines(pars[1],N_[0],N_[-1],color='blue',linestyles='--')
-    plt.text(30,abs(gaps1[0]+gaps1[1])/2,'fit: a/(3*L^2)+b\n\na:  '+str(pars[0])+'\nb:  '+str(pars[1]))
-if 0:
-    func = np.poly1d(z)
-    N_steps = np.linspace(N_[0],100,1000)
-    fitted = []
-    for n in N_steps:
-        fitted.append(func(n))
-    plt.plot(N_steps,fitted,'g-')
-    limit = func(100)
-    plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
-plt.xlabel('L',fontsize=16)
-plt.ylabel('gap',fontsize=16)
+    N_steps = np.linspace(N_[0],N_[-1],100)
+    #plt.xscale('log')
+    #plt.yscale('log')
+    dic_S = {'50':r'$0.5$','36':r'$(\sqrt{3}-1)/2$','30':r'$0.3$','20':r'$0.2$'}
+    plt.title('S = '+dic_S[txt_S],fontsize=ss+5)
+    #plt.plot(N_,gaps2,'ro')
+    plt.plot(N_,gaps1,'r*')
+    if conv:
+        plt.plot(N_steps,fit_curve_def[fit](N_steps,*pars),'g--')
+        plt.hlines(pars[1],N_[0],N_[-1],color='blue',linestyles='--')
+        #plt.text(30,abs(gaps1[0]+gaps1[1])/2,'a:  '+str(pars[0])+'\nb:  '+str(pars[1]))
+    if 0:
+        func = np.poly1d(z)
+        N_steps = np.linspace(N_[0],100,1000)
+        fitted = []
+        for n in N_steps:
+            fitted.append(func(n))
+        plt.plot(N_steps,fitted,'g-')
+        limit = func(100)
+        plt.hlines(pars[1],N_[0],N_[-1],color='green',linestyles='--')
+    plt.xticks(fontsize = ss+2)
+    plt.yticks(fontsize = ss+2)
+    plt.xlabel(r'$N_k$',fontsize=ss+5)
+    if iii == 0:
+        plt.ylabel('gap',fontsize=ss+5)
+#fig.set_size_inches(15,5)
 plt.show()

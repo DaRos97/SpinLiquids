@@ -76,7 +76,6 @@ for filename in os.listdir(dirname):
 s = 90
 pts = len(os.listdir(dirname))
 fig = plt.figure(figsize=(16,8))
-plt.title("DM diagram")
 #plt.gca().set_aspect('equal')
 for i in range(DM_pts):
     for j in range(S_pts):
@@ -124,7 +123,8 @@ for col in ['red','gray','forestgreen','k']:
 
 #plt.legend(legend_lines,list_leg,loc='upper right',bbox_to_anchor=(1,1),fancybox=True)
 #
-plt.xlabel(r'$\phi$',size = 20)
-plt.ylabel(r'$S$',size = 20)
-plt.title(r'$S-\phi$  phase diagram',size = 20)
+plt.xlabel(r'$\phi$',size=12)
+plt.ylabel(r'$S$',size = 12,rotation='horizontal')
+#plt.title(r'$S-\phi$  phase diagram',size = 20)
+fig.set_size_inches(6,5)
 plt.show()

@@ -1,123 +1,153 @@
 import numpy as np
-import functions_SF as fs
-from time import time as T
+import functions as fs
+import matplotlib.pyplot as plt
+from matplotlib import cm
 import getopt
 import sys
-#######################################################################     Inputs
-list_ans = ['3x3','q0','cb1','cb2','oct']
-DM_list = {'000':0, '005':0.05, '104':np.pi/3, '209':2*np.pi/3}
-S_dic = {'50': 0.5, '36':(np.sqrt(3)+1)/2, '34':0.34, '30':0.3, '20':0.2}
+import os
+from tqdm import tqdm
+
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:", ['j2=','j3=','DM=','ans=','kpts='])
-    txt_S = '50'
-    J2 = 0
-    J3 = 0
-    DM = '000'
-    ans = '3x3'
-    pts = '49'
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','type=','Nq='])
+    S = 0.5
+    DM = 0.0
+    ans = '15'
+    K = '13'
+    DM_type = 'uniform'
+    Nq = 35
 except:
     print("Error")
 for opt, arg in opts:
     if opt in ['-S']:
-        txt_S = arg
-    if opt == '--j2':
-        J2 = float(arg)
-    if opt == '--j3':
-        J3 = float(arg)
-    if opt == '--DM':
-        DM = arg.replace('.','')
-        if DM not in DM_list.keys():
-            print('Not computed DM angle')
-            exit()
-    if opt == '--ans':
+        S = float(arg)
+    if opt in ['-K']:
+        K = arg
+    if opt in ['-a']:
         ans = arg
-        if ans not in list_ans:
-            print('Error in -ans choice')
-            exit()
-    if opt == '--kpts':
-        pts = arg
-#
-S = S_dic[txt_S]
-DM_angle = DM_list[DM]
-PSG = 'SU2'if DM == '000' else 'TMD'
-#Arguments
-args = (1,J2,J3,ans,DM_angle,PSG)
-########################################
-########################################
-print("Using arguments: ans-> ",ans," j2,j3 = ",J2,",",J3," Dm angle = ",DM," spin S = ",S)
-filename = '../Data/SC_data/S'+txt_S+'/phi'+DM+'/'+pts+'/'+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
-#
-savenameZZ = "data_SF/SL_SFzz_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
-savenameXY = "data_SF/SL_SFxy_"+ans+'_'+DM+'_'+txt_S+'_J2_J3=('+'{:5.3f}'.format(J2).replace('.','')+'_'+'{:5.3f}'.format(J3).replace('.','')+').npy'
-Kx = 17     #points to compute in the SF BZ
-Ky = 17
-kxg = np.linspace(-8*np.pi/3,8*np.pi/3,Kx)
-kyg = np.linspace(-4*np.pi/np.sqrt(3),4*np.pi/np.sqrt(3),Ky)
-##
-Nx = 37     #points for summation over BZ
-Ny = 37
-nxg = np.linspace(0,1,Nx)
-nyg = np.linspace(0,1,Ny)
+    if opt == '--DM':
+        DM = float(arg)
+    if opt == '--type':
+        DM_type = arg
+    if opt == '--Nq':
+        Nq = int(arg)
 
+Nx = Nq     #points to compute in BZ (Q)
+Ny = Nx
+dirname = '../../Data/self_consistency/SDM/'+DM_type+'/'+K+'/'
+#dirname = '../../Data/self_consistency/test/'+K+'/'
+filename = dirname + 'S_DM=('+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+').csv'
+savenameSFzz = "data_SF/SL_SFzz_"+ans+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+str(Nq)+'.npy'
+savenameSFxy = "data_SF/SL_SFxy_"+ans+'_'+'{:5.4f}'.format(S).replace('.','')+'_'+'{:5.4f}'.format(DM).replace('.','')+str(Nq)+'.npy'
+command_plot = 'python plot_SF.py -S '+str(S)+' -K '+K+' --DM '+str(DM)+' -a '+ans+' --ph SL --type '+DM_type+' --Nq '+str(Nq)
+
+if not os.path.isfile(filename):
+    print(S,DM,ans," values are not valid or the point was not computed")
+if os.path.isfile(savenameSFzz):
+    os.system(command_plot)
+    printed = True
+else:
+    printed = False
+    print("Computing it ....")
+#
+if printed:
+    exit()
+#
+print("Using arguments: ans-> ",ans," Dm angle = ",DM," spin S = ",S)
+#import data from file
 params = fs.import_data(ans,filename)
-
-SFzz = np.zeros((Kx,Ky))
-SFxy = np.zeros((Kx,Ky))
+#Arguments
+t1 = np.exp(-1j*DM);    t1_ = np.conjugate(t1)
+Tau = (t1,t1_)
 #
-for i in range(Kx):
-    for j in range(Ky):
-        #K = np.array([kxg[i]*2*np.pi,(kxg[i]+2*kyg[j])*2*np.pi/np.sqrt(3)])
-        K = np.array([kxg[i],kyg[j]])
-        if not fs.EBZ(K):
-            SFzz[i,j] = 'nan'
-            SFxy[i,j] = 'nan'
+args = (Tau,S,ans)
+#
+p1 = 0 if ans in fs.ans_p0 else 1
+m = fs.Mm[p1]
+#######################################################################
+Kx = 13     #points for summation over BZ
+Ky = 13
+######
+f = np.sqrt(3)/4
+D = np.array([  [1/2,-1/4,1/4,0,-3/4,-1/4],
+                [0,f,f,2*f,3*f,3*f]])
+if m == 6:
+    Kxg = np.linspace(-np.pi,np.pi,Kx)
+    Kyg = np.linspace(-np.pi/np.sqrt(3),np.pi/np.sqrt(3),Ky)
+else:
+    Kxg = np.linspace(-4/3*np.pi,4/3*np.pi,Kx)
+    Kyg = np.linspace(-2*np.pi/np.sqrt(3),2*np.pi/np.sqrt(3),Ky)
+
+##
+Qxg = np.linspace(-8*np.pi/3,8*np.pi/3,Nx)
+Qyg = np.linspace(-4*np.pi/np.sqrt(3),4*np.pi/np.sqrt(3),Ny)
+
+#Result store
+SFzz = np.zeros((Nx,Ny))
+SFxy = np.zeros((Nx,Ny))
+#Compute Xi(Q) for Q in BZ
+for xx in tqdm(range(Nx*Ny)):
+    ii = xx//Nx
+    ij = xx%Ny
+    Q = np.array([Qxg[ii],Qyg[ij]])
+    if not fs.EBZ(Q):
+        SFzz[ii,ij] = np.nan
+        SFxy[ii,ij] = np.nan
+        continue
+    #
+    delta = np.zeros((m,m),dtype=complex)
+    for u in range(m):
+        for g in range(m):
+            delta[u,g] = np.exp(1j*np.dot(Q,D[:,g]-D[:,u]))
+    #
+    resxy = 0
+    #summation over BZ
+    for x in range(Kx*Ky):
+        i = x//Kx
+        j = x%Ky
+        #
+        K__ = np.array([Kxg[i],Kyg[j]])
+        if m == 3 and not fs.BZ(K__):
             continue
-        reszz = 0
-        resxy = 0
-        Ti = T()
-        for ii in range(Nx):
-            for ij in range(Ny):
-                Q = np.array([nxg[ii]*2*np.pi,(nxg[ii]+nyg[ij])*2*np.pi/np.sqrt(3)])
-                U1,X1,V1,Y1 = fs.M(Q,params,args)
-                U2,X2,V2,Y2 = fs.M(-Q,params,args)
-                U3,X3,V3,Y3 = fs.M(K-Q,params,args)
-                U4,X4,V4,Y4 = fs.M(Q-K,params,args)
-                #zz1
-                A1 = np.einsum('ba,bc->ac',np.conjugate(X1),U4)
-                B1 = np.einsum('ac,dc->ad',A1,np.conjugate(U4))
-                C1 = np.einsum('ad,de->ae',B1,X1)
-                reszz += np.einsum('aa',C1)
-                D1 = np.einsum('ac,cd->ad',A1,Y1)
-                E1 = np.einsum('ad,ed->ae',D1,np.conjugate(V4))
-                reszz -= np.einsum('aa',E1)
-                #zz2
-                A1 = np.einsum('ab,cb->ac',V2,np.conjugate(Y3))
-                B1 = np.einsum('ac,cd->ad',A1,Y3)
-                C1 = np.einsum('ad,ed->ae',B1,np.conjugate(V2))
-                reszz += np.einsum('aa',C1)
-                D1 = np.einsum('ac,dc->ad',A1,np.conjugate(U2))
-                E1 = np.einsum('ad,de->ae',D1,X3)
-                reszz -= np.einsum('aa',E1)
-                #xx+yy1
-                A1 = np.einsum('ba,cb->ac',np.conjugate(X1),np.conjugate(Y3))
-                B1 = np.einsum('ac,cd->ad',A1,Y3)
-                C1 = np.einsum('ad,de->ae',B1,X1)
-                resxy += 2*np.einsum('aa',C1)
-                D1 = np.einsum('ac,cd->ad',A1,Y1)
-                E1 = np.einsum('ad,de->ae',D1,X3)
-                resxy += 2*np.einsum('aa',E1)
-                #xx+yy2
-                A1 = np.einsum('ab,bc->ac',V2,U4)
-                B1 = np.einsum('ac,dc->ad',A1,np.conjugate(U4))
-                C1 = np.einsum('ad,ed->ae',B1,np.conjugate(V2))
-                resxy += 2*np.einsum('aa',C1)
-                D1 = np.einsum('ac,dc->ad',A1,np.conjugate(U2))
-                E1 = np.einsum('ad,ed->ae',D1,np.conjugate(V4))
-                resxy += 2*np.einsum('aa',E1)
-        SFzz[i,j] = 3/2*np.real(reszz)/(Nx*Ny)
-        SFxy[i,j] = 3/2*np.real(resxy)/(Nx*Ny)
-        print("Step ",i*Kx+j,"/",Kx*Ky)#," took ",T()-Ti)
-np.save(savenameZZ,SFzz)
-np.save(savenameXY,SFxy)
+        U1,X1,V1,Y1 = fs.M(K__,params,args,'nor')
+        U2,X2,V2,Y2 = fs.M(-K__,params,args,'nor')
+        U3,X3,V3,Y3 = fs.M(Q+K__,params,args,'nor')
+        U4,X4,V4,Y4 = fs.M(-K__-Q,params,args,'nor')
+        ##############################################
+        temp1 = np.einsum('ua,ga->ug',np.conjugate(X1),X1) * np.einsum('ua,ga->ug',np.conjugate(Y4),Y4)
+        temp2 = np.einsum('ua,ga->ug',np.conjugate(X1),Y1) * np.einsum('ua,ga->ug',np.conjugate(Y4),X4)
+        temp3 = np.einsum('ua,ga->ug',V2,np.conjugate(V2)) * np.einsum('ua,ga->ug',U3,np.conjugate(U3))
+        temp4 = np.einsum('ua,ga->ug',V2,np.conjugate(U2)) * np.einsum('ua,ga->ug',U3,np.conjugate(V3))
+        temp = (temp1 + temp2 + temp3 + temp4) * delta
+        resxy += temp.ravel().sum()
+    #
+    SFxy[ii,ij] = np.real(resxy)/(Kx*Ky)
+#
+np.save(savenameSFzz,SFzz)
+np.save(savenameSFxy,SFxy)
+print("Finished")
+##################################
+print("\n\nPlotting...")
+
+os.system(command_plot)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

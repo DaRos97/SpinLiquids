@@ -118,8 +118,9 @@ def find_minima(data,args,Nx,Ny):
 #    plt.ylabel(r'$K_y$',size=15)
     plt.tick_params(left = False, right = False , labelleft = False ,
                 labelbottom = False, bottom = False)
-    plt.show()
-    ok = input("Is it ok?[Y/n] ([1] for keeping only first value found,[2] for just first 2 values (NOT good)\t")
+    #plt.show()
+    #ok = input("Is it ok?[Y/n] ([1] for keeping only first value found,[2] for just first 2 values (NOT good)\t")
+    ok = 'y'
     if ok == 'n':
         exit()
     #Condition for correct closure of the gap (should be the case)

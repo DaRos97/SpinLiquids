@@ -80,9 +80,31 @@ for filename in os.listdir(dirname):
     data = lines[2*i_+1].split(',')
     sol = data[0] + data[1]
     D[i2,i3] = sol
+dirname = '../../Data/self_consistency/S'+txt_S+'/phi'+phi_t+'/25/'     ###va bene?
+for i in range(Grid):
+    for j in range(Grid):
+        if D[i,j] != DD_none:
+            continue
+        j2 =  J2[i]
+        j3 =  J3[j]
+        csvname = 'J2_J3=('+'{:5.4f}'.format(j2).replace('.','')+'_'+'{:5.4f}'.format(j3).replace('.','')+').csv'
+        filename = dirname+csvname
+        with open(filename,'r') as f:
+            lines = f.readlines()
+        head = lines[0].split(',')
+        head[-1] = head[-1][:-1]
+        data = lines[1].split(',')
+        sol = data[0] + 'LRO'
+        D[i,j] = sol
+
+
 ##########
 pts = len(os.listdir(dirname))
+fit_classical = np.load("../../classical_kagome/phase_diagram/fit_000_101.npy")
 fig = plt.figure(figsize=(10,10))
+for i in range(3):
+    x = np.linspace(fit_classical[i][2],fit_classical[i][3],100)
+    plt.plot(x,fit_classical[i][0]*x+fit_classical[i][1],'k-',alpha = 0.5,zorder=0)
 #plt.subplot(2,2,1)
 plt.title(title)
 plt.gca().set_aspect('equal')
@@ -104,7 +126,8 @@ for i in range(Grid):
         plt.scatter(J2[i],J3[j],color=c,marker=m,s=100)
 
 #plt.legend
-
+plt.xlabel(r'$J_2$')
+plt.ylabel(r'$J_3$')
 list_leg = [r'$\mathbf{Q}=0$',
             r'$15$',
             r'$\sqrt{3}\times\sqrt{3}$',

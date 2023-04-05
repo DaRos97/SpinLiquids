@@ -5,16 +5,18 @@ from matplotlib import cm
 import getopt
 import sys
 import os
+from tqdm import tqdm
 
 #input arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3='])
+    opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','j2=','j3=','Nq='])
     S = '50'
     DM = '000'
     ans = '15'
     K = '13'
     J2 = J3 = 0
+    Nq = 17
 except:
     print("Error")
 for opt, arg in opts:
@@ -30,13 +32,15 @@ for opt, arg in opts:
         J2 = float(arg)
     if opt == '--j3':
         J3 = float(arg)
+    if opt == '--Nq':
+        Nq = int(arg)
 
 dirname = '../../Data/self_consistency/S'+S+'/phi'+DM+'/'+K+'/'
 #dirname = '../../Data/self_consistency/test/'+K+'/'
 filename = dirname+'J2_J3=('+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+').csv'
-savenameSFzz = "data_SF/LRO_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
-savenameSFxy = "data_SF/LRO_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+'.npy'
-command_plot = 'python plot_SF.py -S '+S+' -K '+K+' --DM '+DM+' -a '+ans+' --j2 '+str(J2)+' --j3 '+str(J3)
+savenameSFzz = "data_SF/LRO_SFzz_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+S+DM+str(Nq)+'.npy'
+savenameSFxy = "data_SF/LRO_SFxy_"+ans+'_'+'{:5.4f}'.format(J2).replace('.','')+'_'+'{:5.4f}'.format(J3).replace('.','')+S+DM+str(Nq)+'.npy'
+command_plot = 'python plot_SF.py -S '+S+' -K '+K+' --DM '+DM+' -a '+ans+' --j2 '+str(J2)+' --j3 '+str(J3)+' --Nq '+str(Nq)
 
 if not os.path.isfile(filename):
     print(J2,J3,ans," values are not valid or the point was not computed")
@@ -89,11 +93,11 @@ if not is_LRO:
 V,degenerate = fs.get_V(K_,data,args)
 #construct the spin matrix for each sublattice and compute the coordinates
 #of the spin at each lattice site
-UC = 12          #even
+UC = 16          #even
 p1 = 0 if ans in fs.ans_p0 else 1
 m = fs.Mm[p1]
 factor = 2 if m == 3 else 1
-S_l = np.zeros((3,m,UC,UC//2)) #3 spin components, 6 sites in UC, ij coordinates of UC
+S_l = np.zeros((3,m,UC,UC)) #3 spin components, 6 sites in UC, ij coordinates of UC
 #Pauli matrices
 sigma = np.zeros((3,2,2),dtype = complex)
 sigma[0] = np.array([[0,1],[1,0]])
@@ -111,17 +115,17 @@ k2 = K_[-1]
 v1 = V[0]/np.linalg.norm(V[0])
 v2 = V[-1]/np.linalg.norm(V[-1])
 #constants of modulo 1 (?) whic give the orientation of the condesate
-c1 = (1+1j)/np.sqrt(2)
+c1 = (1)/np.sqrt(2)
 c1_ = np.conjugate(c1)
-c2 = (1+1j)/np.sqrt(2)
+c2 = (1)/np.sqrt(2)
 c2_ = np.conjugate(c2)
-c = [1j,1j,1j,1j]
+c = [1j,1,1,1]
 f = np.sqrt(3)/4
 d = np.array([  [1/2,-1/4,1/4,0  ,-3/4,-1/4],
                 [0  ,f   ,f  ,2*f,3*f ,3*f ]])
 r = np.zeros((2,m,UC,UC))
 for i in range(UC):
-    for j in range(UC//2):
+    for j in range(UC):
         R = i*a1 + j*a2
         for s in range(m):
             r_ = R# + d[:,s]
@@ -177,21 +181,21 @@ np.save(savenameS,S_l)
 print("Spins computed, now compute the spin structure factor")
 #
 #Now compute the SSF
-UC = 6
-Kx = 17     #point to compute the SSF in the EBZ
-Ky = 17
+Kx = Nq     #point to compute the SSF in the EBZ
+Ky = Kx
 kxg = np.linspace(-8*np.pi/3,8*np.pi/3,Kx)
 kyg = np.linspace(-4*np.pi/np.sqrt(3),4*np.pi/np.sqrt(3),Ky)
 K = np.zeros((2,Kx,Ky))
 SFzz = np.zeros((Kx,Ky))
 SFxy = np.zeros((Kx,Ky))
-for i in range(Kx):
-    for j in range(Ky):
-        K[:,i,j] = np.array([kxg[i],kyg[j]])
-        if not fs.EBZ(K[:,i,j],m):
-            SFxy[i,j], SFzz[i,j] = ('nan','nan')
-            continue
-        SFxy[i,j], SFzz[i,j] = fs.SpinStructureFactor(K[:,i,j],S_l,UC,m)
+for nn in tqdm(range(Kx**2)):
+    i = nn//Kx
+    j = nn%Kx
+    K[:,i,j] = np.array([kxg[i],kyg[j]])
+    if not fs.EBZ(K[:,i,j]):
+        SFxy[i,j], SFzz[i,j] = ('nan','nan')
+        continue
+    SFxy[i,j], SFzz[i,j] = fs.SpinStructureFactor(K[:,i,j],S_l,UC,m)
 
 np.save(savenameSFzz,SFzz)
 np.save(savenameSFxy,SFxy)

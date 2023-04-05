@@ -3,9 +3,13 @@ from scipy import linalg as LA
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-m_ = [3,6]
-orders = [('15','16','19'),('17','18','20')]
+Mm = [3,6]
+ans_1 = ['14','15','16','17','18']
+ans_2 = ['19','20']
+ans_p0 = ['15','16','19']
 cutoff_solution = 1e-3
+CO_phase = 1e-3
+#
 def import_data(ans,filename):
     P = []
     done = False
@@ -23,27 +27,6 @@ def import_data(ans,filename):
             done = True
             break
     return P
-####
-def find_minima(args,Nx,Ny):
-    S,DM,data,ans = args
-    p1 = 0 if ans in ['15','16','19'] else 1
-    m = m_[p1]
-    J = np.zeros((2*m,2*m))
-    for i in range(m):
-        J[i,i] = -1
-        J[i+m,i+m] = 1
-    nxg = np.linspace(-1/2,1/2,Nx)
-    nyg = np.linspace(-1/2,1/2,Ny)
-    K = np.zeros((2,Nx,Ny))
-    en = np.zeros((Nx,Ny))
-    factor = 2 if m == 3 else 1
-    for i in range(Nx):
-        for j in range(Ny):
-            K[:,i,j] = np.array([nxg[i]*2*np.pi,(nxg[i]+factor*nyg[j])*2*np.pi/np.sqrt(3)])
-            N = Nk(K[:,i,j],DM,data,ans)
-            Ch = LA.cholesky(N)
-            temp = np.dot(np.dot(Ch,J),np.conjugate(Ch.T))
-            en[i,j] = LA.eigvalsh(temp)[m]
     ########################Now find the minimum (can be more than one)
     ######################
     ###################### RECURSIVE METHOD
@@ -75,16 +58,25 @@ def find_minima(args,Nx,Ny):
         en[ind//Nx,ind%Ny] -= 10
     #plot points for additional checking
     plt.figure()
+    plt.gca().set_aspect('equal')
+    #
+    plt.plot(X1,fu1(X1),'k-')
+    plt.hlines(2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
+    plt.plot(X2,fu3(X2),'k-')
+    plt.plot(X1,fd1(X1),'k-')
+    plt.hlines(-2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
+    plt.plot(X2,fd3(X2),'k-')
     plt.scatter(K[0],K[1],c=en,cmap = cm.plasma)
     plt.colorbar()
     for k in k_list:
 #        plt.scatter(k[0],k[1],c='g',marker='*')
         print('new: ',k)
-#    plt.xlabel(r'$K_x$',size=15)
-#    plt.ylabel(r'$K_y$',size=15)
+    plt.xlabel(r'$K_x$',size=15)
+    plt.ylabel(r'$K_y$',size=15,rotation='horizontal')
     plt.tick_params(left = False, right = False , labelleft = False ,
                 labelbottom = False, bottom = False)
     plt.show()
+    exit()
     ok = input("Is it ok?[Y/n] ([1] for keeping only first value found,[2] for just first 2 values (NOT good)\t")
     if ok == 'n':
         exit()
@@ -115,16 +107,21 @@ def get_V(K_,args):
             degenerate = True
     return V,degenerate
 ####
-
-def M(K,P,args):
-    m = 6
+def M(K,P,args,form):
+    p1 = 0 if args[2] in ans_p0 else 1
+    m = Mm[p1]
+    J = np.zeros((2*m,2*m))
+    for i in range(m):
+        J[i,i] = -1
+        J[i+m,i+m] = 1
     N = Nk(K,P,args)
     Ch = LA.cholesky(N) #upper triangular
     w,U = LA.eigh(np.dot(np.dot(Ch,J),np.conjugate(Ch.T)))
     w = np.diag(np.sqrt(np.einsum('ij,j->i',J,w)))
     Mk = np.dot(np.dot(LA.inv(Ch),U),w)
-    U,X,V,Y = split(Mk,m,m) 
-    return U,X,V,Y
+    return split(Mk,m,m) 
+#    if form == 'dag':
+#        return split(np.conjugate(Mk.T),m,m) 
 ####
 def split(array, nrows, ncols):
     r, h = array.shape
@@ -140,6 +137,30 @@ def EBZ(K):
     if x < -4*np.pi/3 and (y < -a*x-b or y > a*x+b):
         return False
     if x > 4*np.pi/3 and (y < a*x-b or y > -a*x+b):
+        return False
+    return True
+#normal brillouin zone
+def NBZ(K):
+    x = K[0]
+    y = K[1]
+    a = np.sqrt(3)
+    b = np.pi*4/np.sqrt(3)
+    if x < -5*np.pi/3:# and (y < -a*x-b or y > a*x+b):
+        return False
+    if x > 5*np.pi/3:# and (y < a*x-b or y > -a*x+b):
+        return False
+    if np.abs(y) > 2.4*np.pi/np.sqrt(3):
+        return False
+    return True
+####
+def BZ(K):
+    x = K[0]
+    y = K[1]
+    a = np.sqrt(3)
+    b = np.pi*4/np.sqrt(3)
+    if x < -2*np.pi/3 and (y < -a*x-b or y > a*x+b):
+        return False
+    if x > 2*np.pi/3 and (y < a*x-b or y > -a*x+b):
         return False
     return True
 ####
@@ -172,39 +193,34 @@ def SpinStructureFactor(k,L,UC):
     return np.real(resxy), np.real(resz)
 
 
-
-def Nk(K,DM,data,ans):
-    #
-    t1 = np.exp(-1j*DM);    t1_ = np.conjugate(t1)
-    
-    if ans in ['15','16','19']:
-        p1 = 0
-    else:
-        p1 = 1
-    if ans in ['15','16','17','18']:
-        L,A1,B1,phiB1 = data
-        phiB1p = -phiB1
-    else:
-        L,A1,phiA1p,B1,phiB1 = data
-        phiB1p = phiB1
-    if ans in ['15','17']:
-        phiA1p = 0
-    if ans in ['16','18']:
-        phiA1p = np.pi
-    B1p = B1
-    A1p = A1
-    J1 = 1/2
-    m = m_[p1]
-    ################
-    a1 = (1,0)
+def Nk(K,P_,args):
+    Tau,S,ans = args
+    p1 = 0 if ans in ans_p0 else 1
+    m = Mm[p1]
     factor = 2 if m == 3 else 1
+    a1 = (1,0)
     a2 = (-1/factor,np.sqrt(3)/factor)
+#    a2 = (-1,np.sqrt(3))
     a12p = (a1[0]+a2[0],a1[1]+a2[1])
     a12m = (a1[0]-a2[0],a1[1]-a2[1])
     ka1 = np.exp(1j*np.dot(a1,K));   ka1_ = np.conjugate(ka1);
     ka2 = np.exp(1j*np.dot(a2,K));   ka2_ = np.conjugate(ka2);
     ka12p = np.exp(1j*np.dot(a12p,K));   ka12p_ = np.conjugate(ka12p);
     ka12m = np.exp(1j*np.dot(a12m,K));   ka12m_ = np.conjugate(ka12m);
+    t1, t1_ = Tau
+    if ans in ['15','16','14','17','18']:
+        L,A1,B1,phiB1 = P_
+        phiB1p = -phiB1
+    else:
+        L,A1,phiA1p,B1,phiB1 = P_
+        phiB1p = phiB1
+    if ans in ['15','17','14']:
+        phiA1p = 0
+    if ans in ['16','18']:
+        phiA1p = np.pi
+    B1p = B1
+    A1p = A1
+    J1 = 1/2
     ################
     N = np.zeros((2*m,2*m), dtype=complex)
     ##################################### B

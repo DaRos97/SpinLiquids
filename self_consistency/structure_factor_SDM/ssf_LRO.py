@@ -55,8 +55,8 @@ print("Using arguments: ans-> ",a," Dm angle = ",DM," spin S = ",S)
 #import data from file
 data = fs.import_data(a,filename)
 #compute the Ks of the minimum band
-Nx = 49     #points for looking at minima in BZ
-Ny = 49
+Nx = 101     #points for looking at minima in BZ
+Ny = Nx
 #Arguments
 args = (S,DM,data,a)
 K_,is_LRO = fs.find_minima(args,Nx,Ny)

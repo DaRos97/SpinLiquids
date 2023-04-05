@@ -60,7 +60,6 @@ def total_energy(P,L,args):
         func = RBS(np.linspace(0,1,K_),np.linspace(0,1,K_),res[i])
         r2 += func.integral(0,1,0,1)        #integrate the fitting curves to get the energy of each band
     r2 /= m
-    print("omega: ",r2)
     #normalize
     #Summation over k-points
     #r3 = res.ravel().sum() / len(res.ravel())

@@ -12,8 +12,9 @@ import functions as fs
 
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, ["pts="])
-    pts = 21
+    opts, args = getopt.getopt(argv, 'a:',["pts="])
+    pts = 51
+    disp = False
 except:
     print("Error in input parameters",argv)
     exit()
@@ -65,7 +66,7 @@ dic_text_ord = {'ferro':    r'$FM$',
                 }
 orders = list(legend_names.keys())
 txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
-width = 20 
+width = 30 
 fig = plt.figure(figsize=(width,10))
 plt.rcParams.update({
     "text.usetex": True,
@@ -92,7 +93,9 @@ for nnnn,lim in enumerate([3.0,0.3]):
     used_o = []
     for i in range(J2pts):
         for j in range(J3pts):
-            ens = np.array(energies[i,j,0,:-1])
+            ens = np.array(energies[i,j,:,0])        #Also spirals
+            #ens = np.array(energies[i,j,0])        #Also spirals
+    #        ens = np.array(energies[i,j,0,:-1])     #No spirals
             if (ens == np.zeros(len(ens))).all():
                 min_E[i,j] = 1e5
                 continue
@@ -105,7 +108,7 @@ for nnnn,lim in enumerate([3.0,0.3]):
                 if aminE2 == len(energies[i,j,0])-1:
                     break
                 minE2 = ens[aminE2]
-                if np.abs(minE-minE2) < 1e-5:
+                if np.abs(minE-minE2) < 1e-4:
                     aminE.append(aminE2)
                     ens[aminE[-1]] += 5
                     continue
@@ -115,28 +118,27 @@ for nnnn,lim in enumerate([3.0,0.3]):
                 ord_E.append(orders[amin])
             if ord_E[0] == 'spiral' and len(ord_E) > 1:
                 ord_E = list(ord_E[1:])
-    #        print('Point: ',J2[i],J3[j],' has orders',*ord_E)
-            ###
             for e in ord_E:
                 if e not in used_o:
                     used_o.append(e)
             min_E[i,j] = orders.index(ord_E[0])
             if len(ord_E) == 1:
                 if ord_E[0] == 'spiral':
-                    parameters = energies[i,j,1,:-1]
-                    #print('\n\nFinding spiral order at ',J2[i],J3[j])
-                    color1 = fs.find_order(parameters)
-                    mark = "P"
+                    parameters = energies[i,j,15,1:]            #there is one filling 0 at the end
+                    #parameters = energies[i,j,1,:-1]            #there is one filling 0 at the end
+                    if disp:
+                        print('\n\nFinding spiral order at ',J2[i],J3[j])
+                    marker_style = fs.find_order(parameters,args_sp)
                 else:
                     color1 = legend_names[ord_E[0]]
                     mark = 'o'
-                marker_style = dict(
+                    marker_style = dict(
                         color=color1, 
                         marker=mark,
                         markeredgecolor='none',
-                        markersize = 20,
+                        markersize = 5,
                         )
-                plt.plot(J2[i],J3[j],**marker_style)
+#                plt.plot(J2[i],J3[j],**marker_style)
             elif len(ord_E) > 1:
                 r = [0.25]
                 for t in range(len(ord_E)):
@@ -145,26 +147,35 @@ for nnnn,lim in enumerate([3.0,0.3]):
                     x1 = np.cos(2 * np.pi * np.linspace(r[-2], r[-1]))
                     y1 = np.sin(2 * np.pi * np.linspace(r[-2], r[-1]))
                     xy1 = np.row_stack([[0, 0], np.column_stack([x1, y1])])
-                    plt.plot(J2[i],J3[j],marker=xy1,markersize=20,markerfacecolor=color, markeredgecolor='none',linestyle='none')
+#                    plt.plot(J2[i],J3[j],marker=xy1,markersize=5,markerfacecolor=color, markeredgecolor='none',linestyle='none')
             else:
                 color1 = 'brown'
                 marker_style = dict(
                         color=color1, 
                         marker='*',
                         markeredgecolor='none',
-                        markersize = 15,
+                        markersize = 5,
                         )
-                plt.plot(J2[i],J3[j],**marker_style)
+#                plt.plot(J2[i],J3[j],**marker_style)
 
     plt.axhline(y=0,color='k',zorder=-1,linewidth=0.5)
     plt.axvline(x=0,color='k',zorder=-1,linewidth=0.5)
     plt.xlim(J2i-lp,J2f+lp)
     plt.ylim(J3i-lp,J3f+lp)
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
-    plt.xlabel(r'$J_2$',fontsize=25)
-    if DM == '000' or DM == '005':
-        plt.ylabel(r'$J_3$',fontsize=25)
+    ss = 50
+    if nnnn == 0:
+        plt.xticks([-3,-1.5,0,1.5,3],fontsize=ss)
+        plt.yticks([-3,-1.5,0,1.5,3],fontsize=ss)
+    else:
+        plt.xticks([-0.3,-0.15,0,0.15,0.3],fontsize=ss)
+        plt.yticks([-0.3,-0.15,0,0.15,0.3],fontsize=ss)
+    plt.xlabel(r'$J_2$',fontsize=ss+5)
+    if nnnn == 0:
+        plt.ylabel(r'$J_3$',fontsize=ss+5,rotation='horizontal')
+        plt.hlines(-0.3,-0.3,0.3,colors='r')
+        plt.hlines(0.3,-0.3,0.3,colors='r')
+        plt.vlines(-0.3,-0.3,0.3,colors='r')
+        plt.vlines(0.3,-0.3,0.3,colors='r')
     ###
     ###
     used_o.sort()
@@ -180,11 +191,19 @@ for nnnn,lim in enumerate([3.0,0.3]):
             legend_lines.append(Line2D([], [], color='none', marker='P', markerfacecolor='k'))
         else:
            legend_lines.append(Line2D([], [], color='none', marker='o', markerfacecolor=legend_names[ord_u]))
-    plt.legend(legend_lines,used_O,loc='upper left',fancybox=True,fontsize=20)#,bbox_to_anchor=(1,1))
+    plt.legend(legend_lines,used_O,loc='upper left',fancybox=True,fontsize=30)#,bbox_to_anchor=(1,1))
+    if nnnn == 0:
+        lim_v = 3
+    else:
+        lim_v = 0.3
+    plt.xlim(-lim_v,lim_v)
+    plt.ylim(-lim_v,lim_v)
 
-plt.suptitle(r'$\phi = $'+txt_dm[DM],fontsize=30)
+#plt.suptitle(r'$\phi = $'+txt_dm[DM],fontsize=ss+5)
 plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+fig.set_size_inches(12,5.5)
 plt.show()
+
 exit()
 
 

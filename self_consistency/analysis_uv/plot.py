@@ -9,7 +9,8 @@ from matplotlib.lines import Line2D
 
 Color = {'15':  ['blue','aqua','dodgerblue'],          #q=0      -> dodgerblue
          '16': ['red','y','orangered'],             #3x3      -> orangered
-         '17':  ['pink','pink','gray'],           #cb2      -> magenta
+         '17':  ['y','pink','gray'],           #cb2      -> magenta
+         '14':  ['magenta','pink','gray'],           #cb2      -> magenta
          '18':  ['k','k','gray'],              #oct     -> orange
          '19':  ['gray','gray','magenta'],                #-> silver
          '20':  ['forestgreen','lime','limegreen'],    #cb1  -> forestgreen
@@ -37,7 +38,7 @@ for opt, arg in opts:
 if do_only:
     considered_ans = (only,)
 else:
-    considered_ans = Color.keys()
+    considered_ans = Color.keys()#['14','15','16','19']#Color.keys()
 #
 dirname = '../../Data/self_consistency/UV/S'+txt_S+'/'+K+'/' 
 #
@@ -53,7 +54,6 @@ for u in U_list:
     V_list.append(np.linspace(0.08*u,0.15*u,UV_pts))
 D = np.ndarray((UV_pts,UV_pts),dtype='object')
 DD_none = D[0,0]
-cnt = 0
 for filename in os.listdir(dirname):
     with open(dirname+filename, 'r') as f:
         lines = f.readlines()
@@ -79,12 +79,10 @@ for filename in os.listdir(dirname):
         data = lines[2*i+1].split(',')
         if data[0] not in considered_ans:
             continue
-        if data[0] == '17':
-            continue
-        if data[0] == '19' and np.abs(float(data[head.index('phiA1p')])-np.pi) < 1e-3:
-            continue
-        if data[0] == '20' and (np.abs(float(data[head.index('phiA1p')])-np.pi) < 1e-3 or np.abs(float(data[head.index('phiA1p')])) < 1e-3):
-            continue
+#        if data[0] == '19' and np.abs(float(data[head.index('phiA1p')])-np.pi) < 1e-3:
+#            continue
+#        if data[0] == '20' and (np.abs(float(data[head.index('phiA1p')])-np.pi) < 1e-3 or np.abs(float(data[head.index('phiA1p')])) < 1e-3):
+#            continue
         tempE = float(data[head.index('Energy')])
         if tempE < minE:
             minE = tempE
@@ -114,6 +112,8 @@ for i in range(UV_pts):
         m = 'o'
 #        plt.text(x,y,D[i,j])
         plt.scatter(x,y,color=c,marker=m,s=100)
+
+fig.set_size_inches(4,3)
 
 plt.show()
 

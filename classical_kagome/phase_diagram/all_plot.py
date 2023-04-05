@@ -80,8 +80,8 @@ txt_dm = {'000':r'$0$','005':r'$0.05$','104':r'$\pi/3$','209':r'$2\pi/3$'}
 J2 = np.linspace(J2i,J2f,J2pts)
 J3 = np.linspace(J3i,J3f,J3pts)
 lp = (J2f-J2i)/15
-width = 35 if len(list_DM) == 3 else 15
-fig = plt.figure(figsize=(width,15))
+width = 25 # if len(list_DM) == 3 else 15
+fig = plt.figure()#figsize=(width,12))
 plt.rcParams.update({
     "text.usetex": True,
 #    "font.family": "Helvetica"
@@ -141,9 +141,9 @@ for nnnn,DM in enumerate(list_DM):
                         color=color1, 
                         marker=mark,
                         markeredgecolor='none',
-                        markersize = 20,
+                        markersize = 5,
                         )
-                plt.plot(J2[i],J3[j],**marker_style)
+#                plt.plot(J2[i],J3[j],**marker_style)
             elif len(ord_E) > 1:
                 r = [0.25]
                 for t in range(len(ord_E)):
@@ -152,27 +152,28 @@ for nnnn,DM in enumerate(list_DM):
                     x1 = np.cos(2 * np.pi * np.linspace(r[-2], r[-1]))
                     y1 = np.sin(2 * np.pi * np.linspace(r[-2], r[-1]))
                     xy1 = np.row_stack([[0, 0], np.column_stack([x1, y1])])
-                    plt.plot(J2[i],J3[j],marker=xy1,markersize=20,markerfacecolor=color, markeredgecolor='none',linestyle='none')
+#                    plt.plot(J2[i],J3[j],marker=xy1,markersize=5,markerfacecolor=color, markeredgecolor='none',linestyle='none')
             else:
                 color1 = 'brown'
                 marker_style = dict(
                         color=color1, 
                         marker='*',
                         markeredgecolor='none',
-                        markersize = 15,
+                        markersize = 5,
                         )
-                plt.plot(J2[i],J3[j],**marker_style)
-    plt.title(r'$\phi = $'+txt_dm[DM],fontsize=30)
+#                plt.plot(J2[i],J3[j],**marker_style)
+    ss = 20
+    plt.title(r'$\phi = $'+txt_dm[DM],fontsize=ss+5)
 
     plt.axhline(y=0,color='k',zorder=-1,linewidth=0.5)
     plt.axvline(x=0,color='k',zorder=-1,linewidth=0.5)
     plt.xlim(J2i-lp,J2f+lp)
     plt.ylim(J3i-lp,J3f+lp)
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
-    plt.xlabel(r'$J_2$',fontsize=25)
+    plt.xticks(fontsize=ss)
+    plt.yticks(fontsize=ss)
+    plt.xlabel(r'$J_2$',fontsize=ss)
     if DM == '000' or DM == '005':
-        plt.ylabel(r'$J_3$',fontsize=25)
+        plt.ylabel(r'$J_3$',fontsize=ss)
     ###
     ###
     used_o.sort()
@@ -187,11 +188,14 @@ for nnnn,DM in enumerate(list_DM):
         if ord_u == 'spiral':
             legend_lines.append(Line2D([], [], color='none', marker='P', markerfacecolor='k'))
         else:
-           legend_lines.append(Line2D([], [], color='none', marker='o', markerfacecolor=legend_names[ord_u]))
-    plt.legend(legend_lines,used_O,loc='upper left',fancybox=True,fontsize=20)#,bbox_to_anchor=(1,1))
+           legend_lines.append(Line2D([], [], color='none', markeredgecolor='none', marker='s', markerfacecolor=legend_names[ord_u]))
+    plt.legend(legend_lines,used_O,loc='upper left',fancybox=True,fontsize=ss-3)#,bbox_to_anchor=(1,1))
 
 plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+fig.set_size_inches(15,5.5)
 plt.show()
+
+
 exit()
 
 

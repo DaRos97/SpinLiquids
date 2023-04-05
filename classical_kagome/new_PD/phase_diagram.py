@@ -9,8 +9,8 @@ argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "r:",["DM=","pts="])
     lim = 0.3
-    DM = '010'
-    pts = 21
+    DM = '005'
+    pts = 51
 except:
     print("Error in input parameters",argv)
     exit()
@@ -92,7 +92,7 @@ for n2 in tqdm(range(J2_i,J2pts)):
         if n2 == J2_i and n3 < J3_i:
             continue
         j3 = J3[n3]
-        print(j2,j3)
+        #print(j2,j3)
         J = np.array([J1,j2,j3])
         for i in range(15):
             args = [i,m__[i],J,DM_angles]
@@ -100,8 +100,8 @@ for n2 in tqdm(range(J2_i,J2pts)):
             res = fs.energy_old(spin_angles,*args)   #fs.lat_energy(L,m__[i],J,DM_angles)
             min_energy[n2,n3,i,0] = res#[0]
             #min_energy[n2,n3,i,1:3] = res[1]
-        spiral = fs.spiral(J,DM_angles)
-#        spiral = [0,np.zeros(len(min_energy[0,0,0,:])-1)]
+#        spiral = fs.spiral(J,DM_angles)
+        spiral = [0,np.zeros(len(min_energy[0,0,0,:])-1)]
         min_energy[n2,n3,15,0] = spiral[0]
         min_energy[n2,n3,15,1:] = spiral[1]
         with open(filename,'w') as f:
