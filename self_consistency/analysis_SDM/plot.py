@@ -42,6 +42,10 @@ if final:
     dirname = '../../Data/self_consistency/SDM/final_SDM/' 
 else: 
     dirname = '../../Data/self_consistency/SDM/'+DM_type+'/'+str(K)+'/' 
+plt.rcParams.update({
+    "text.usetex": True,
+#    "font.family": "Helvetica"
+})
 #
 S_max = 0.5
 DM_max = 0.15
@@ -99,11 +103,13 @@ for i in range(DM_pts):
 #        if c == 'k' and m == '*':
 #            print(D[i,j],i,j)
 #            input()
-        plt.scatter(DM_list[i],S_list[j],color=c,marker=m,s=s)
+#        plt.scatter(DM_list[i],S_list[j],color=c,marker=m,s=s)
 plt.ylim(0.01,0.50)
 plt.xlim(0.0,0.15)
+ggg = 20
 #Legenda
-plt.xticks([0,0.03,0.06,0.09,0.12,0.15], ['0','0.03','0.06','0.09','0.12','0.15'])
+plt.xticks([0,0.03,0.06,0.09,0.12,0.15], [r'$0$',r'$0.03$',r'$0.06$',r'$0.09$',r'$0.12$',r'$0.15$'],size = ggg)
+plt.yticks(size=ggg)
 list_leg = []
 for col in ['16','19','20']:
     if col == 'labels':
@@ -123,8 +129,8 @@ for col in ['red','gray','forestgreen','k']:
 
 #plt.legend(legend_lines,list_leg,loc='upper right',bbox_to_anchor=(1,1),fancybox=True)
 #
-plt.xlabel(r'$\phi$',size=12)
-plt.ylabel(r'$S$',size = 12,rotation='horizontal')
+plt.xlabel(r'$\phi$',size=ggg+5)
+plt.ylabel(r'$S$',size = ggg+5,rotation='horizontal')
 #plt.title(r'$S-\phi$  phase diagram',size = 20)
 fig.set_size_inches(6,5)
 plt.show()

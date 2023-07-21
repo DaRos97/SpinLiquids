@@ -34,6 +34,7 @@ def gauge_trsf(L):
 
 Z_ = [4,4,2]
 #define regular orders with DM angles as functions of J1,J2,J3, the DM angle and also a representative spin orientation
+#Uniform --> TMD
 def energy_2(L,M,j,DM_angles):
     energy_1nn = 0
     energy_2nn = 0
@@ -44,10 +45,43 @@ def energy_2(L,M,j,DM_angles):
             s0 = L[x,y,0]; s0_2 = L[x-1,y-1,2]; s0_1 = L[x-1,y,1]
             s1 = L[x,y,1]; s1_0 = L[x+1,y,0];   s1_2 = L[x,y-1,2]
             s2 = L[x,y,2]; s2_0 = L[x+1,y+1,0]; s2_1 = L[x,y+1,1]
-            energy_1nn += ( dots(s0,s2,-DM1) + dots(s0,s0_2,DM1) + dots(s0,s1,DM1) + dots(s0,s0_1,-DM1) +
-                            dots(s1,s0,-DM1) + dots(s1,s1_0,DM1) + dots(s1,s2,DM1) + dots(s1,s1_2,-DM1) +
-                            dots(s2,s0,DM1) + dots(s2,s2_0,-DM1) + dots(s2,s1,-DM1) + dots(s2,s2_1,DM1)
+            energy_1nn += ( dots(s0,s2,-DM1) + dots(s0,s0_2,DM1) + dots(s0,s1,DM1) + dots(s0,s0_1,-DM1)
+                            #+ dots(s1,s0,-DM1) + dots(s1,s1_0,DM1) 
+                            + dots(s1,s2,DM1) + dots(s1,s1_2,-DM1)
+                            #+ dots(s2,s0,DM1) + dots(s2,s2_0,-DM1) + dots(s2,s1,-DM1) + dots(s2,s2_1,DM1)
                             )   * j[0]
+            continue
+            s0a = L[x,y+1,1];   s0b = L[x,y-1,2]
+            s1a = L[x-1,y-1,2]; s1b = L[x+1,y+1,0]
+            s2a = L[x+1,y,0];   s2b = L[x-1,y,1]
+            energy_2nn += j[1]*(np.dot(s0,s0a) + np.dot(s0,s0b) +
+                                     np.dot(s1,s1a) + np.dot(s1,s1b) +
+                                     np.dot(s2,s2a) + np.dot(s2,s2b)
+                                     ) 
+            s0 = L[x,y,0]; s0_a = L[x,y+1,0]; s0_b = L[x,y-1,0]
+            s1 = L[x,y,1]; s1_a = L[x-1,y-1,1]; s1_b = L[x+1,y+1,1]
+            s2 = L[x,y,2]; s2_a = L[x+1,y,2]; s2_b = L[x-1,y,2]
+            energy_3nn += ( dots(s0,s0_a,DM3) + dots(s0,s0_b,-DM3) + 
+                            dots(s1,s1_a,DM3) + dots(s1,s1_b,-DM3) +
+                            dots(s2,s2_a,DM3) + dots(s2,s2_b,-DM3) 
+                            )   *j[2]
+    return (energy_1nn + energy_2nn*2 + energy_3nn)/(M*M*3)
+def energy_Staggered_DM(L,M,j,DM_angles):
+    energy_1nn = 0
+    energy_2nn = 0
+    energy_3nn = 0
+    DM1,DM2,DM3 = DM_angles
+    for x in range(1,1+M):
+        for y in range(1,1+M):
+            s0 = L[x,y,0]; s0_2 = L[x-1,y-1,2]; s0_1 = L[x-1,y,1]
+            s1 = L[x,y,1]; s1_0 = L[x+1,y,0];   s1_2 = L[x,y-1,2]
+            s2 = L[x,y,2]; s2_0 = L[x+1,y+1,0]; s2_1 = L[x,y+1,1]
+            energy_1nn += ( dots(s0,s2,-DM1) + dots(s0,s0_2,-DM1) + dots(s0,s1,DM1) + dots(s0,s0_1,DM1)
+                           #+ dots(s1,s0,-DM1) + dots(s1,s1_0,-DM1) + 
+                           + dots(s1,s2,DM1) + dots(s1,s1_2,DM1)
+                           #+ dots(s2,s0,DM1) + dots(s2,s2_0,DM1) + dots(s2,s1,-DM1) + dots(s2,s2_1,-DM1)
+                            )   * j[0]
+            continue
             s0a = L[x,y+1,1];   s0b = L[x,y-1,2]
             s1a = L[x-1,y-1,2]; s1b = L[x+1,y+1,0]
             s2a = L[x+1,y,0];   s2b = L[x-1,y,1]

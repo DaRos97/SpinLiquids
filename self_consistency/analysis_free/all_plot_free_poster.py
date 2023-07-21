@@ -40,7 +40,7 @@ legend_lines = [Line2D([], [], color="none", marker=marker['15'][0], markerfacec
                 ]
 
 list_S = ['50','36','30','20']
-list_DM = ['000']
+list_DM = ['005']
 
 #
 phi_label = {'000':0, '005':0.05}
@@ -50,14 +50,14 @@ plt.rcParams.update({
     "text.usetex": True,
 #    "font.family": "Helvetica"
 })
-fig = plt.figure(figsize=(30,9))
+fig = plt.figure(figsize=(9,30))
 for iii,txt_S in enumerate(list_S):
     for phi_t in list_DM:
         if phi_t == '000':
             fit_classical = np.load("../../classical_kagome/phase_diagram/fit_"+phi_t+"_101.npy")
         else:
             fit_classical = np.load("../../classical_kagome/phase_diagram/fit_010_51.npy")
-        plt.subplot(1,4,iii+1)
+        plt.subplot(4,1,iii+1)
         phi = phi_label[phi_t]
         dirname = '../../Data/self_consistency/S'+txt_S+'/phi'+phi_t+'/final/' 
         #dirname = '../../Data/self_consistency/440_small_S50/phi'+phi_t+'/13/' 
@@ -143,18 +143,20 @@ for iii,txt_S in enumerate(list_S):
         plt.ylim(-0.3,0.3)
         ss = 18
         if iii == 3:
-            plt.legend(legend_lines,list_leg,loc='upper left',fancybox=True, bbox_to_anchor=(1.05,1.035),fontsize=ss-8)
-        if iii == 0:
-            plt.ylabel(r'$J_3$',size=ss+5,rotation = 'horizontal')
-            plt.yticks([-0.3,-0.15,0,0.15,0.3],[r'$-0.3$','$-0.15$',r'$0$',r'$0.15$',r'$0.3$'],fontsize=ss)
+            #plt.legend(legend_lines,list_leg,loc='upper left',fancybox=True, bbox_to_anchor=(1.05,1.035),fontsize=ss-8)
+            plt.xlabel(r'$J_2$',size=ss+5)
+            plt.xticks([-0.3,-0.15,0,0.15,0.3],[r'$-0.3$','$-0.15$',r'$0$',r'$0.15$',r'$0.3$'],fontsize=ss)
         else:
-            plt.yticks([])
-        plt.xlabel(r'$J_2$',size=ss+5)
-        plt.xticks([-0.3,-0.15,0,0.15,0.3],[r'$-0.3$','$-0.15$',r'$0$',r'$0.15$',r'$0.3$'],fontsize=ss)
+            plt.xticks([])
+
+        plt.ylabel(r'$J_3$',size=ss+5,rotation = 'horizontal')
+        plt.yticks([-0.3,-0.15,0,0.15,0.3],[r'$-0.3$','$-0.15$',r'$0$',r'$0.15$',r'$0.3$'],fontsize=ss)
+
+        #plt.xticks([-0.3,-0.15,0,0.15,0.3],[r'$-0.3$','$-0.15$',r'$0$',r'$0.15$',r'$0.3$'],fontsize=ss)
         plt.title(title,size=ss)
 
 
-fig.set_size_inches(15,5)
+fig.set_size_inches(5,15)
 if 1:
     #filename = '../../../../Figs_SB_paper/SB_'+list_DM[0]+'_new'+'.svg'
     filename = 'SB_'+list_DM[0]+'_new'+'.svg'

@@ -27,6 +27,28 @@ def import_data(ans,filename):
             done = True
             break
     return P
+def find_minima(args1,Nx,Ny):
+    data = args1[2]
+    args = ((np.exp(-1j*args1[1]),np.exp(1j*args1[1])),args1[0],args1[3])
+#    args = (args1[0],args1[1],args1[3])
+    p1 = 1 if args1[3] in ['17','18','20'] else 0
+    m = Mm[p1]
+    J = np.zeros((2*m,2*m))
+    for i in range(m):
+        J[i,i] = -1
+        J[i+m,i+m] = 1
+    nxg = np.linspace(-1,1,Nx)
+    nyg = np.linspace(-1,1,Ny)
+    K = np.zeros((2,Nx,Ny))
+    en = np.zeros((Nx,Ny))
+    factor = 2 if m == 3 else 1
+    for i in range(Nx):
+        for j in range(Ny):
+            K[:,i,j] = np.array([nxg[i]*2*np.pi,(nxg[i]+nyg[j]*factor)*2*np.pi/np.sqrt(3)])
+            N = Nk(K[:,i,j],data,args)
+            Ch = LA.cholesky(N)
+            temp = np.dot(np.dot(Ch,J),np.conjugate(Ch.T))
+            en[i,j] = LA.eigvalsh(temp)[m]
     ########################Now find the minimum (can be more than one)
     ######################
     ###################### RECURSIVE METHOD
@@ -58,6 +80,10 @@ def import_data(ans,filename):
         en[ind//Nx,ind%Ny] -= 10
     #plot points for additional checking
     plt.figure()
+    plt.rcParams.update({
+    "text.usetex": True,
+#    "font.family": "Helvetica"
+    })
     plt.gca().set_aspect('equal')
     #
     plt.plot(X1,fu1(X1),'k-')
@@ -66,15 +92,20 @@ def import_data(ans,filename):
     plt.plot(X1,fd1(X1),'k-')
     plt.hlines(-2*np.pi/np.sqrt(3), -2*np.pi/3,2*np.pi/3, color = 'k')
     plt.plot(X2,fd3(X2),'k-')
-    plt.scatter(K[0],K[1],c=en,cmap = cm.plasma)
-    plt.colorbar()
-    for k in k_list:
+    plt.scatter(K[0],K[1],c=en,cmap = cm.get_cmap('plasma_r'))
+#    for k in k_list:
 #        plt.scatter(k[0],k[1],c='g',marker='*')
-        print('new: ',k)
-    plt.xlabel(r'$K_x$',size=15)
-    plt.ylabel(r'$K_y$',size=15,rotation='horizontal')
+#        print('new: ',k)
+#    plt.xlabel(r'$K_x$',size=15)
+#    plt.ylabel(r'$K_y$',size=15,rotation='horizontal')
     plt.tick_params(left = False, right = False , labelleft = False ,
                 labelbottom = False, bottom = False)
+    cbar = plt.colorbar()
+    cbar.set_ticks(ticks=[0.2, 0.22, 0.24, 0.26, 0.28],labels=['0.20', '0.22', '0.24', '0.26', '0.28'],size='x-large')
+    cbar.set_label(r'$\epsilon^1/J_1$',rotation='horizontal',size='x-large')
+    plt.xlim((-5,5))
+    plt.ylim((-4.5,4.5))
+    plt.axis('off')
     plt.show()
     exit()
     ok = input("Is it ok?[Y/n] ([1] for keeping only first value found,[2] for just first 2 values (NOT good)\t")

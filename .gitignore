@@ -8,8 +8,6 @@ minimization_TMD/__pycache__/
 self_consistency/__pycache__/
 SDM_diagram/__pycache__/
 #
-bashCodes/
-#
 Figures/
 #
 classical_kagome/phase_diagram/__pycache__/
@@ -22,12 +20,6 @@ classical_kagome/structure_factor/data/
 PyEnv/
 #
 Data/
-#
-old_Data/
-#
-ssf_cb1/
-#
-indoings.txt
 #
 self_consistency/*/__pycache__/
 self_consistency/structure_factor_*/data_*/

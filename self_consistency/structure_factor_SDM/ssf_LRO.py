@@ -10,9 +10,9 @@ import os
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "S:K:a:", ['DM=','staggered','uniform'])
-    S = 0.5
+    S = 0.1114
     DM = 0
-    a = '16'
+    a = '19'
     K = 13
     DM_type = 'uniform'
 except:
