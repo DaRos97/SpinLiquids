@@ -105,7 +105,8 @@ def compute_fluc(data,head,index_m,S,phi,K_):
     #
     n2_i = Xff**2 + Vff**2 + 2*Xff*Vff + Xff*Uff + Vff*Yff + YXff*UVff + XYff*VUff
     n_i = Xff + Vff
-    return n2_i, n_i
+    fluc = Xff*Uff + Vff*Yff + 2*YXff*UVff #+ XYff*VUff
+    return n2_i, n_i, fluc
 #
 def split(array, nrows, ncols):
     r, h = array.shape
